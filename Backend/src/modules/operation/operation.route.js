@@ -9,7 +9,7 @@ const operationRouter = express.Router();
 
 // @desc    Get all operations
 // @route   GET /api/operations
-operationRouter.get("/", getAllOperation);
+operationRouter.get("/all", getAllOperation);
 
 // @desc    Create new operation
 // @route   POST /api/operations
