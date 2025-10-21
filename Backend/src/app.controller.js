@@ -3,6 +3,7 @@ import express from "express"
 import path from "node:path"
 import dotenv from "dotenv"
 import authRoute from "./modules/auth/auth.route.js"
+import imgController from "./modules/image/image.route.js"
 import operationRouter from "./modules/operation/operation.route.js";
 
 async function bootstrap() {
@@ -22,6 +23,7 @@ async function bootstrap() {
     });
     app.use("/auth", authRoute);
     app.use("/operations", operationRouter);
+    app.use("/image",imgController)
     app.listen(port, () => {
         console.log(`Server is running on port = ${port}`)
     })
