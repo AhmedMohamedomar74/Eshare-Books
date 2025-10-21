@@ -99,8 +99,7 @@ export const generateAuthTokens = (user) => {
 
 
 export const generateEmailTokens = (user) => {
-    const tokenPayload = { _id: user._id, email: user.email };
-
+    const tokenPayload = {email: user.email };
     const accessToken = genrateToken({
         data: tokenPayload,
         key: process.env.EMAIL_TOKEN_SIGNATURE,
