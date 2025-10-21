@@ -26,21 +26,9 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
-    userName:
+    address:
     {
-        type: String,
-        unique: true,
-        required: true,
-    },
-    DOB:
-    {
-        type: Date
-    },
-    gender:
-    {
-        type: String,
-        enum: Object.values(genderEnum),
-        default: genderEnum.male
+        type: String
     },
     role:
     {
@@ -48,10 +36,14 @@ const userSchema = new Schema({
         enum: Object.values(roleEnum),
         default: roleEnum.user
     },
-    isConfirmed : 
+    isConfirmed:
     {
-        type : Boolean,
-        default : false
+        type: Boolean,
+        default: false
+    },
+    profilePic:
+    {
+        type: String,
     }
 },
     {

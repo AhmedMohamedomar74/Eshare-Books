@@ -25,10 +25,7 @@ export const signup = asyncHandler(async (req, res, next) => {
     console.log({ password, email, userName })
     const findUser = await findOne({
         model: userModel, filter: {
-            $or: [
-                { email: email },
-                { userName: userName }
-            ]
+            email: email
         }
     })
     if (findUser) {
