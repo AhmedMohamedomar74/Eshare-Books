@@ -5,6 +5,7 @@ import dotenv from "dotenv"
 import authRoute from "./modules/auth/auth.route.js"
 import imgController from "./modules/image/image.route.js"
 import operationRouter from "./modules/operation/operation.route.js";
+import { glopalErrorHandling } from "./utils/glopalErrorHandling.js"
 
 async function bootstrap() {
     dotenv.config({
@@ -24,6 +25,8 @@ async function bootstrap() {
     app.use("/auth", authRoute);
     app.use("/operations", operationRouter);
     app.use("/image",imgController)
+
+    app.use(glopalErrorHandling);
     app.listen(port, () => {
         console.log(`Server is running on port = ${port}`)
     })

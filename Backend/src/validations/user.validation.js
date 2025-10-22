@@ -31,7 +31,6 @@ export const signupSchema = Joi.object({
     .email()
     .required()
     .trim()
-    .lowercase()
     .messages({
       'string.email': 'Please provide a valid email address',
       'string.empty': 'Email is required'
@@ -41,43 +40,34 @@ export const signupSchema = Joi.object({
     .min(6)
     .max(100)
     .required()
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)'))
     .messages({
       'string.empty': 'Password is required',
       'string.min': 'Password must be at least 6 characters long',
-      'string.max': 'Password cannot exceed 100 characters',
-      'string.pattern.base': 'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+      'string.max': 'Password cannot exceed 100 characters'
     }),
 
-  userName: Joi.string()
-    .min(3)
-    .max(30)
-    .required()
-    .alphanum()
+  address: Joi.string()
+    .optional()
+    .allow('')
+    .max(255)
     .messages({
-      'string.empty': 'Username is required',
-      'string.min': 'Username must be at least 3 characters long',
-      'string.max': 'Username cannot exceed 30 characters',
-      'string.alphanum': 'Username can only contain letters and numbers'
-    }),
-
-  DOB: Joi.date()
-    .max('now')
-    .messages({
-      'date.max': 'Date of birth cannot be in the future'
-    }),
-
-  gender: Joi.string()
-    .valid(...Object.values(genderEnum))
-    .messages({
-      'any.only': `Gender must be one of: ${Object.values(genderEnum).join(', ')}`
+      'string.max': 'Address cannot exceed 255 characters'
     }),
 
   role: Joi.string()
     .valid(...Object.values(roleEnum))
+    .default(roleEnum.user)
     .messages({
       'any.only': `Role must be one of: ${Object.values(roleEnum).join(', ')}`
-    })
+    }),
+
+  // profilePic: Joi.string()
+  //   .optional()
+  //   .allow('')
+  //   .uri()
+  //   .messages({
+  //     'string.uri': 'Profile picture must be a valid URL'
+  //   })
 });
 
 // User login validation schema

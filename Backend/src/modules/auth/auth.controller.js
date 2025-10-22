@@ -21,14 +21,16 @@ export const signup = asyncHandler(async (req, res, next) => {
 
 
 
-    const { password, email, userName } = req.body
-    console.log({ password, email, userName })
+    const { password, email } = req.body
+    console.log({ password, email })
     const findUser = await findOne({
         model: userModel, filter: {
             email: email
         }
     })
+
     if (findUser) {
+        console.log("duplicate user",findUser)
         next(new Error("User already Exsits",{ cause: 409 }))
         return
     }
