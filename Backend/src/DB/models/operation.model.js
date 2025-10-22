@@ -25,7 +25,23 @@ const operationSchema = new mongoose.Schema({
     default: "pending",
   },
 
-  date: { type: Date, default: Date.now },
+  operationType: {
+    type: String,
+    enum: ["borrow", "buy"],
+    required: true,
+  },
+
+  startDate: { type: Date, default: Date.now },
+  endDate: { type: Date },
+  durationDays: { type: Number },
+});
+
+operationSchema.pre("save", function (next) {
+  if (this.startDate && this.endDate) {
+    const diff = (this.endDate - this.startDate) / (1000 * 60 * 60 * 24);
+    this.durationDays = Math.ceil(diff);
+  }
+  next();
 });
 
 const operationModel = mongoose.model("operation", operationSchema);

@@ -22,13 +22,32 @@ export const getAllOperation = asyncHandler(async (req, res) => {
 // @route   POST /api/operations
 
 export const createOperation = asyncHandler(async (req, res) => {
-  const { user_src, user_dest, book_id } = req.body;
+  const { user_src, user_dest, book_id, startDate, endDate, operationType } =
+    req.body;
 
-  if (!user_src || !user_dest || !book_id) {
+  if (!user_src || !user_dest || !book_id || !operationType) {
     return res.status(400).json({
       success: false,
-      message: "user_src, user_dest, and book_id are required.",
+      message: "user_src, user_dest, book_id, and operationType are required.",
     });
+  }
+
+  if (operationType === "borrow") {
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: "startDate and endDate are required for borrowing.",
+      });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (end <= start) {
+      return res.status(400).json({
+        success: false,
+        message: "endDate must be after startDate.",
+      });
+    }
   }
 
   const existingOperation = await operationModel.findOne({
@@ -49,6 +68,9 @@ export const createOperation = asyncHandler(async (req, res) => {
     user_src,
     user_dest,
     book_id,
+    operationType,
+    startDate: operationType === "borrow" ? startDate : undefined,
+    endDate: operationType === "borrow" ? endDate : undefined,
   });
 
   res.status(201).json({
