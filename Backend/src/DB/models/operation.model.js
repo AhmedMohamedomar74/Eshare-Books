@@ -3,13 +3,13 @@ import mongoose from "mongoose";
 const operationSchema = new mongoose.Schema({
   user_src: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "user",
     required: true,
   },
 
   user_dest: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "user",
     required: true,
   },
 
@@ -28,5 +28,5 @@ const operationSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now },
 });
 
-const operationModel = mongoose.model("Operation", operationSchema);
+const operationModel = mongoose.model("operation", operationSchema);
 export default operationModel;
