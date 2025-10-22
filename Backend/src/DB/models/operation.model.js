@@ -34,6 +34,7 @@ const operationSchema = new mongoose.Schema({
   startDate: { type: Date, default: Date.now },
   endDate: { type: Date },
   durationDays: { type: Number },
+  isDeleted: { type: Boolean, default: false },
 });
 
 operationSchema.pre("save", function (next) {

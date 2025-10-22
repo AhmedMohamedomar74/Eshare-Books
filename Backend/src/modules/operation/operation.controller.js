@@ -6,10 +6,10 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 
 export const getAllOperation = asyncHandler(async (req, res) => {
   const operations = await operationModel
-    .find()
+    .find({ isDeleted: false })
     .populate("user_src", "firstName secondName email")
-    .populate("user_dest", "firstName secondName email")
-    .populate("book_id", "title author");
+    .populate("user_dest", "firstName secondName email");
+  // .populate("book_id", "title author");
 
   res.status(200).json({
     success: true,
@@ -112,7 +112,12 @@ export const updateOperation = asyncHandler(async (req, res) => {
 
 export const deleteOperation = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const deleted = await operationModel.findByIdAndDelete(id);
+
+  const deleted = await operationModel.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true }
+  );
 
   if (!deleted) {
     return res.status(404).json({
