@@ -25,7 +25,7 @@ router.patch("/change-password", changePassword);
 // Admin only routes
 router.get("/", adminCheckmiddelware, getUsers);
 router.get("/:id", adminCheckmiddelware, getUserById);
-router.put("/:id", adminCheckmiddelware, updateUser);
+// router.put("/:id", adminCheckmiddelware, updateUser);
 
 
 export default router;

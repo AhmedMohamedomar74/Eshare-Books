@@ -38,34 +38,56 @@ export const createMany = async ({ model, data = [], options = {} }) => {
     return await model.create(data, options);
 }
 
+// UPDATED: All update operations now automatically increment version
 export const update = async ({ model, filter = {}, data = {}, options = {} }) => {
     const updateOptions = { 
         new: true, 
-        runValidators: true, 
+        // runValidators: true, 
         ...options 
     };
     
-    return await model.findOneAndUpdate(filter, data, updateOptions);
+    // Increment version and update timestamps
+    const updateData = {
+        ...data,
+        $inc: { __v: 1 }, // Automatically increment version
+        $set: { updatedAt: new Date() }
+    };
+    
+    return await model.findOneAndUpdate(filter, updateData, updateOptions);
 }
 
 export const updateMany = async ({ model, filter = {}, data = {}, options = {} }) => {
     const updateOptions = { 
-        runValidators: true, 
+        // runValidators: true, 
         ...options 
     };
     
-    const result = await model.updateMany(filter, data, updateOptions);
+    // Increment version for all updated documents
+    const updateData = {
+        ...data,
+        $inc: { __v: 1 },
+        $set: { updatedAt: new Date() }
+    };
+    
+    const result = await model.updateMany(filter, updateData, updateOptions);
     return result;
 }
 
 export const findByIdAndUpdate = async ({ model, id, data = {}, options = {} }) => {
     const updateOptions = { 
         new: true, 
-        runValidators: true, 
+        // runValidators: true, 
         ...options 
     };
     
-    return await model.findByIdAndUpdate(id, data, updateOptions);
+    // Increment version
+    const updateData = {
+        ...data,
+        $inc: { __v: 1 },
+        $set: { updatedAt: new Date() }
+    };
+    
+    return await model.findByIdAndUpdate(id, updateData, updateOptions);
 }
 
 export const deleteOne = async ({ model, filter = {}, options = {} }) => {
@@ -154,12 +176,16 @@ export const findWithPagination = async ({
     };
 }
 
-// Soft delete operations (if you have isDeleted field in your models)
+// UPDATED: Soft delete operations with version increment
 export const softDelete = async ({ model, filter = {}, options = {} }) => {
     return await update({
         model,
         filter,
-        data: { isDeleted: true, deletedAt: new Date() },
+        data: { 
+            isDeleted: true, 
+            deletedAt: new Date(),
+            $inc: { __v: 1 } // Increment version on soft delete
+        },
         options
     });
 }
@@ -168,7 +194,11 @@ export const restoreSoftDelete = async ({ model, filter = {}, options = {} }) =>
     return await update({
         model,
         filter,
-        data: { isDeleted: false, deletedAt: null },
+        data: { 
+            isDeleted: false, 
+            deletedAt: null,
+            $inc: { __v: 1 } // Increment version on restore
+        },
         options
     });
 }
@@ -191,3 +221,20 @@ export const findManyNonDeleted = async ({ model, filter = {}, projection = {}, 
         select 
     });
 }
+
+// // NEW: Manual version control
+// export const incrementVersion = async ({ model, filter = {}, options = {} }) => {
+//     const updateOptions = { 
+//         new: true, 
+//         ...options 
+//     };
+    
+//     return await model.findOneAndUpdate(
+//         filter, 
+//         { 
+//             $inc: { __v: 1 },
+//             $set: { updatedAt: new Date() }
+//         }, 
+//         updateOptions
+//     );
+// }

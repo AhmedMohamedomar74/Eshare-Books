@@ -216,7 +216,6 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
             ...(email && { email }),
             ...(address && { address }),
             ...(profilePic && { profilePic }),
-            __v: {$inc:1}
         },
         options: { new: true }
     });
@@ -257,7 +256,7 @@ export const changePassword = asyncHandler(async (req, res, next) => {
     }
 
     // Hash new password
-    const hashedNewPassword = await genrateHash({ plainText: newPassword  , saltRound : process.env.SALT});
+    const hashedNewPassword = await genrateHash({ plainText: newPassword  , saltRound: parseInt(process.env.HASH_SALT_ROUND)});
 
     // Update password using findByIdAndUpdate
     await update({
