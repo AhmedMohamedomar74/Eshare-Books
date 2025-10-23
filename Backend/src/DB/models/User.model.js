@@ -66,12 +66,12 @@ userSchema.virtual("fullName").set(function (fullname) {
     this.secondName = fullname.split(" ")[1]
 })
 
-userSchema.virtual("age").get(function () {
-    let currentDate = new Date()
-    let DOB = new Date(this.DOB)
+// userSchema.virtual("age").get(function () {
+//     let currentDate = new Date()
+//     let DOB = new Date(this.DOB)
 
-    return currentDate.getFullYear() - DOB.getFullYear()
-})
+//     return currentDate.getFullYear() - DOB.getFullYear()
+// })
 const userModel = model("user", userSchema)
 
 export default userModel

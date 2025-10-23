@@ -5,6 +5,10 @@ import dotenv from "dotenv"
 import authRoute from "./modules/auth/auth.route.js"
 import imgController from "./modules/image/image.route.js"
 import operationRouter from "./modules/operation/operation.route.js";
+import userController from "./modules/user/user.route.js"
+import reportRouter from "./modules/report/report.route.js"
+import { glopalErrorHandling } from "./utils/glopalErrorHandling.js"
+
 
 async function bootstrap() {
     dotenv.config({
@@ -24,11 +28,23 @@ async function bootstrap() {
     app.use("/auth", authRoute);
     app.use("/operations", operationRouter);
     app.use("/image",imgController)
-    app.listen(port, () => {
-        console.log(`Server is running on port = ${port}`)
-    })
+    app.use("/user",userController)
+    app.use("/reports" ,reportRouter )
+
+  app.use(express.json());
+
+  app.get('/', (req, res) => {
+    res.json({ message: 'Eshare Books is running' });
+  });
+  app.use('/auth', authRoute);
+  app.use('/operations', operationRouter);
+  app.use('/image', imgController);
+  app.use('/reports', reportRouter);
+
+  app.use(glopalErrorHandling);
+  app.listen(port, () => {
+    console.log(`Server is running on port = ${port}`);
+  });
 }
-
-
 
 export default bootstrap;
