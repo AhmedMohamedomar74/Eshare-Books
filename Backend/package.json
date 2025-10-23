@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
     "dotenv": "^17.2.1",
@@ -18,7 +19,10 @@
     "google-auth-library": "^10.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.3",
-    "nodemailer": "^7.0.5"
+    "multer": "^2.0.2",
+    "nanoid": "^5.1.6",
+    "nodemailer": "^7.0.5",
+    "streamifier": "^0.1.1"
   },
   "description": ""
 }
