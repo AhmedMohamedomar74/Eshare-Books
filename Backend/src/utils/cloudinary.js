@@ -22,18 +22,15 @@ export const uploadfile = async ({ buffer, filePath } = {}) => {
                     return reject(error);
                 }
 
+                // Return the result object directly instead of wrapping it
                 return resolve({
-                    success: true,
-                    result: {
-                        url: result.secure_url,
-                        public_id: result.public_id,
-                        format: result.format,
-                        width: result.width,
-                        height: result.height
-                    }
+                    url: result.secure_url,
+                    public_id: result.public_id,
+                    format: result.format,
+                    width: result.width,
+                    height: result.height
                 });
             }
         ).end(buffer);
-    }
-    )
+    });
 }

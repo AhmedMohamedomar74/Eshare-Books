@@ -21,26 +21,17 @@ async function bootstrap() {
     testConnection()
     
     app.use(express.json())
-    
-    
-    app.get("/", (req, res) => {
-        res.json({ message: "Eshare Books is running" });
-    });
     app.use("/auth", authRoute);
     app.use("/operations", operationRouter);
     app.use("/image",imgController)
     app.use("/user",userController)
     app.use("/reports" ,reportRouter )
     app.use("/books",bookController)
-  app.use(express.json());
+  
 
   app.get('/', (req, res) => {
     res.json({ message: 'Eshare Books is running' });
   });
-  app.use('/auth', authRoute);
-  app.use('/operations', operationRouter);
-  app.use('/image', imgController);
-  app.use('/reports', reportRouter);
 
   app.use(glopalErrorHandling);
   app.listen(port, () => {
