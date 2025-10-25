@@ -27,9 +27,9 @@ export const createOperationSchema = Joi.object({
 
   // BORROW
   if (operationType === operationTypeEnum.BORROW) {
-    if (!book_dest_id)
+    if (!book_src_id)
       return helpers.error("any.invalid", {
-        message: "book_dest_id is required for borrow.",
+        message: "book_src_id is required for borrow.",
       });
     if (!startDate || !endDate)
       return helpers.error("any.invalid", {

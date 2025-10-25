@@ -6,6 +6,10 @@ import {
   updateOperation,
 } from "./operation.controller.js";
 import { auth } from "../../middelwares/auth.middleware.js";
+import {
+  validateCreateOperation,
+  validateUpdateOperation,
+} from "../../middelwares/validationOperation.middleware.js";
 
 const operationRouter = express.Router();
 operationRouter.use(auth);
@@ -16,11 +20,11 @@ operationRouter.get("/all", getAllOperation);
 
 // @desc    Create new operation
 // @route   POST /api/operations
-operationRouter.post("/", createOperation);
+operationRouter.post("/", validateCreateOperation, createOperation);
 
 // @desc    Update operation status
 // @route   PUT /api/operations/:id
-operationRouter.put("/:id", updateOperation);
+operationRouter.put("/:id", validateUpdateOperation, updateOperation);
 
 // @desc    Delete an operation
 // @route   DELETE /api/operations/:id

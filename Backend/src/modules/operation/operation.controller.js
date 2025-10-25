@@ -1,14 +1,9 @@
 import operationModel from "../../DB/models/operation.model.js";
-import { operationStatusEnum, operationTypeEnum } from "../../enum.js";
+import { operationStatusEnum } from "../../enum.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import {
-  createOperationSchema,
-  updateOperationSchema,
-} from "../../validations/operation.validation.js";
 
 // @desc    Get all operations
 // @route   GET /api/operations
-
 export const getAllOperation = asyncHandler(async (req, res) => {
   const operations = await operationModel
     .find({ isDeleted: false })
@@ -26,20 +21,7 @@ export const getAllOperation = asyncHandler(async (req, res) => {
 
 // @desc    Create new operation
 // @route   POST /api/operations
-
 export const createOperation = asyncHandler(async (req, res) => {
-  const { error, value } = createOperationSchema.validate(req.body, {
-    abortEarly: false,
-  });
-
-  if (error) {
-    return res.status(400).json({
-      success: false,
-      message: "Validation failed",
-      details: error.details.map((d) => d.message),
-    });
-  }
-
   const {
     user_dest,
     book_src_id,
@@ -47,7 +29,7 @@ export const createOperation = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     operationType,
-  } = value;
+  } = req.validatedBody;
   const user_src = req.user._id;
 
   //Check if a similar pending operation already exists
@@ -88,18 +70,9 @@ export const createOperation = asyncHandler(async (req, res) => {
 
 // @desc    Update operation status
 // @route   PUT /api/operations/:id
-
 export const updateOperation = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { error, value } = updateOperationSchema.validate(req.body);
-
-  if (error) {
-    return res.status(400).json({
-      success: false,
-      message: "Validation failed",
-      details: error.details.map((d) => d.message),
-    });
-  }
+  const value = req.validatedBody; 
 
   const updated = await operationModel.findByIdAndUpdate(id, value, {
     new: true,
@@ -121,7 +94,6 @@ export const updateOperation = asyncHandler(async (req, res) => {
 
 // @desc    Delete an operation
 // @route   DELETE /api/operations/:id
-
 export const deleteOperation = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
