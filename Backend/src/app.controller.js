@@ -7,6 +7,7 @@ import imgController from "./modules/image/image.route.js"
 import operationRouter from "./modules/operation/operation.route.js";
 import userController from "./modules/user/user.route.js"
 import reportRouter from "./modules/report/report.route.js"
+import bookController from "./modules/Book/book.contoroller.js"
 import { glopalErrorHandling } from "./utils/glopalErrorHandling.js"
 
 
@@ -30,7 +31,7 @@ async function bootstrap() {
     app.use("/image",imgController)
     app.use("/user",userController)
     app.use("/reports" ,reportRouter )
-
+    app.use("/books",bookController)
   app.use(express.json());
 
   app.get('/', (req, res) => {

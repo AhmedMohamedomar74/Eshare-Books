@@ -1,12 +1,7 @@
-export const asyncHandler = (fn)=>
-{
-    return async (req,res,next) =>
-    {
-        try {
-            await fn(req,res,next)
-        } catch (error) {
-            // console.log({status : error.cause})
-            next(error,{cause : error.cause})
-        }
-    }
+export const asyncHandler= (fn)=>{
+    return(req,res,next)=>{
+    fn(req,res,next).catch ((error)=>{
+        return next(error);
+    });
+    };
 }

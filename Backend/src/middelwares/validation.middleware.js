@@ -76,6 +76,7 @@ import {
  * custom validation messages defined in schema.
  */
 export const validateRequest = (schema, source = 'body') => {
+  console.log("Vaildation is running")
   return asyncHandler(async (req, res, next) => {
     const { error, value } = schema.validate(req[source], {
       abortEarly: false, // Show all errors, not just the first
@@ -121,6 +122,10 @@ export const validationMiddleware = (schema, property = 'body') => {
 };
 
 // Specific validation middlewares for each route
+
+
+
+
 export const validateSignup = validateRequest(signupSchema, 'body');
 export const validateLogin = validateRequest(loginSchema, 'body');
 export const validateUpdateProfile = validateRequest(updateProfileSchema, 'body');

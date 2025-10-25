@@ -74,23 +74,17 @@ export const signupSchema = Joi.object({
 export const loginSchema = Joi.object({
   email: Joi.string()
     .email()
-    .optional()
+    .required()
     .trim()
     .lowercase(),
 
-  userName: Joi.string()
-    .alphanum()
-    .optional(),
 
   password: Joi.string()
     .required()
     .messages({
       'string.empty': 'Password is required'
     })
-}).or('email', 'userName')
-  .messages({
-    'object.missing': 'Either email or username is required'
-  });
+})
 
 // User profile update validation schema
 export const updateProfileSchema = Joi.object({
