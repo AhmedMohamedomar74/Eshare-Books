@@ -14,10 +14,13 @@ const operationSchema = new mongoose.Schema({
     required: true,
   },
 
-  book_id: {
+  book_src_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Book",
-    required: true,
+  },
+  book_dest_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Book",
   },
 
   status: {

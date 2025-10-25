@@ -14,7 +14,8 @@ export const getAllOperation = asyncHandler(async (req, res) => {
     .find({ isDeleted: false })
     .populate("user_src", "firstName secondName email")
     .populate("user_dest", "firstName secondName email")
-    .populate("book_id", "title author");
+    .populate("book_src_id", "title author")
+    .populate("book_dest_id", "title author");
 
   res.status(200).json({
     success: true,
@@ -39,14 +40,25 @@ export const createOperation = asyncHandler(async (req, res) => {
     });
   }
 
-  const { user_dest, book_id, startDate, endDate, operationType } = value;
-
+  const {
+    user_dest,
+    book_src_id,
+    book_dest_id,
+    startDate,
+    endDate,
+    operationType,
+  } = value;
   const user_src = req.user._id;
+
+  //Check if a similar pending operation already exists
   const existingOperation = await operationModel.findOne({
     user_src,
     user_dest,
-    book_id,
-    status: "pending",
+    book_src_id,
+    book_dest_id,
+    operationType,
+    status: operationStatusEnum.PENDING,
+    isDeleted: false,
   });
 
   if (existingOperation) {
@@ -56,10 +68,12 @@ export const createOperation = asyncHandler(async (req, res) => {
     });
   }
 
+  // Create the new operation
   const newOperation = await operationModel.create({
     user_src,
     user_dest,
-    book_id,
+    book_src_id,
+    book_dest_id,
     operationType,
     startDate,
     endDate,
