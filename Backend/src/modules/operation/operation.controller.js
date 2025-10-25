@@ -1,7 +1,7 @@
 import operationModel from "../../DB/models/operation.model.js";
 import { operationStatusEnum } from "../../enum.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { findByIdAndUpdate } from "../../DB/db.services.js";
+import { findByIdAndUpdate, softDelete } from "../../DB/db.services.js";
 
 // @desc    Get all operations
 // @route   GET /api/operations
@@ -101,11 +101,11 @@ export const updateOperation = asyncHandler(async (req, res) => {
 export const deleteOperation = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const deleted = await operationModel.findByIdAndUpdate(
-    id,
-    { isDeleted: true },
-    { new: true }
-  );
+  const deleted = await softDelete({
+    model: operationModel,
+    filter: { _id: id },
+    options: { new: true },
+  });
 
   if (!deleted) {
     return res.status(404).json({
@@ -117,5 +117,6 @@ export const deleteOperation = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: "Operation deleted successfully",
+    data: deleted,
   });
 });
