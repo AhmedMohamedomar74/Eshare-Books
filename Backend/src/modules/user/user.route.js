@@ -11,6 +11,7 @@ import {
     confirmUser
 } from "./user.controller.js";
 import { auth, adminCheckmiddelware } from "./../../middelwares/auth.middleware.js";
+import { validateChangePassword, validateGetUsers, validateUpdateProfile, validateUserId } from "../../middelwares/validation.middleware.js";
 
 const router = Router();
 
@@ -19,12 +20,12 @@ const router = Router();
 router.use(auth); // Apply auth middleware to all routes below
 
 router.get("/profile", getProfile);
-router.put("/profile", updateProfile);
-router.patch("/change-password", changePassword);
+router.put("/profile", validateUpdateProfile,updateProfile);
+router.patch("/change-password", validateChangePassword,changePassword);
 
 // Admin only routes
-router.get("/", adminCheckmiddelware, getUsers);
-router.get("/:id", adminCheckmiddelware, getUserById);
+router.get("/", adminCheckmiddelware,validateGetUsers, getUsers);
+router.get("/:id", adminCheckmiddelware, validateUserId,getUserById);
 // router.put("/:id", adminCheckmiddelware, updateUser);
 
 
