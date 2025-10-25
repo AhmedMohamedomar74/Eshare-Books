@@ -5,7 +5,10 @@ import {
   getAllOperation,
   updateOperation,
 } from "./operation.controller.js";
+import { auth } from "../../middelwares/auth.middleware.js";
+
 const operationRouter = express.Router();
+operationRouter.use(auth);
 
 // @desc    Get all operations
 // @route   GET /api/operations

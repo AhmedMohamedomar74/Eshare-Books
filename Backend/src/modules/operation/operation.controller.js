@@ -1,7 +1,10 @@
 import operationModel from "../../DB/models/operation.model.js";
 import { operationStatusEnum, operationTypeEnum } from "../../enum.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { createOperationSchema } from "../../validations/operation.validation.js";
+import {
+  createOperationSchema,
+  updateOperationSchema,
+} from "../../validations/operation.validation.js";
 
 // @desc    Get all operations
 // @route   GET /api/operations
@@ -36,9 +39,9 @@ export const createOperation = asyncHandler(async (req, res) => {
     });
   }
 
-  const { user_src, user_dest, book_id, startDate, endDate, operationType } =
-    value;
+  const { user_dest, book_id, startDate, endDate, operationType } = value;
 
+  const user_src = req.user._id;
   const existingOperation = await operationModel.findOne({
     user_src,
     user_dest,
