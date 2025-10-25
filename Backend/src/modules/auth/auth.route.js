@@ -5,7 +5,7 @@ import { validateLogin, validateSignup, validateVerifyEmail } from "../../middel
 const router = Router()
 
 router.post("/signup",validateSignup,authServices.signup)
-router.get("/verify/:email",validateLogin,validateVerifyEmail,authServices.verfiyEmail)
-router.post("/login",validateLoginCredentials, validatePassword,authServices.login)
+router.get("/verify/:email",validateVerifyEmail,authServices.verfiyEmail)
+router.post("/login",validateLogin,validateLoginCredentials, validatePassword,authServices.login)
 
 export default router
