@@ -1,6 +1,7 @@
 import operationModel from "../../DB/models/operation.model.js";
 import { operationStatusEnum, operationTypeEnum } from "../../enum.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
+import { createOperationSchema } from "../../validations/operation.validation.js";
 
 // @desc    Get all operations
 // @route   GET /api/operations
@@ -23,62 +24,20 @@ export const getAllOperation = asyncHandler(async (req, res) => {
 // @route   POST /api/operations
 
 export const createOperation = asyncHandler(async (req, res) => {
+  const { error, value } = createOperationSchema.validate(req.body, {
+    abortEarly: false,
+  });
+
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation failed",
+      details: error.details.map((d) => d.message),
+    });
+  }
+
   const { user_src, user_dest, book_id, startDate, endDate, operationType } =
-    req.body;
-
-  if (!user_src || !user_dest || !book_id || !operationType) {
-    return res.status(400).json({
-      success: false,
-      message: "user_src, user_dest, book_id, and operationType are required.",
-    });
-  }
-
-  if (!Object.values(operationTypeEnum).includes(operationType)) {
-    return res.status(400).json({
-      success: false,
-      message: `Invalid operationType. Must be one of: ${Object.values(
-        operationTypeEnum
-      ).join(", ")}`,
-    });
-  }
-
-  if (operationType === operationTypeEnum.BORROW) {
-    if (!startDate || !endDate) {
-      return res.status(400).json({
-        success: false,
-        message: "startDate and endDate are required for borrowing.",
-      });
-    }
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (end <= start) {
-      return res.status(400).json({
-        success: false,
-        message: "endDate must be after startDate.",
-      });
-    }
-  }
-
-  if (operationType === operationTypeEnum.EXCHANGE) {
-    if (!user_dest) {
-      return res.status(400).json({
-        success: false,
-        message: "user_dest is required for exchange operation.",
-      });
-    }
-  }
-
-  if (operationType === operationTypeEnum.DONATE) {
-    if (startDate || endDate) {
-      return res.status(400).json({
-        success: false,
-        message: "startDate and endDate are not allowed for donation.",
-      });
-    }
-
-    console.log(user_dest ? "Direct donation" : "General donation");
-  }
+    value;
 
   const existingOperation = await operationModel.findOne({
     user_src,
@@ -99,8 +58,8 @@ export const createOperation = asyncHandler(async (req, res) => {
     user_dest,
     book_id,
     operationType,
-    startDate: operationType === "borrow" ? startDate : undefined,
-    endDate: operationType === "borrow" ? endDate : undefined,
+    startDate,
+    endDate,
   });
 
   res.status(201).json({
@@ -115,22 +74,19 @@ export const createOperation = asyncHandler(async (req, res) => {
 
 export const updateOperation = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { error, value } = updateOperationSchema.validate(req.body);
 
-  if (!Object.values(operationStatusEnum).includes(status)) {
+  if (error) {
     return res.status(400).json({
       success: false,
-      message: `Invalid status. Must be one of: ${Object.values(
-        operationStatusEnum
-      ).join(", ")}`,
+      message: "Validation failed",
+      details: error.details.map((d) => d.message),
     });
   }
 
-  const updated = await operationModel.findByIdAndUpdate(
-    id,
-    { status },
-    { new: true }
-  );
+  const updated = await operationModel.findByIdAndUpdate(id, value, {
+    new: true,
+  });
 
   if (!updated) {
     return res.status(404).json({
