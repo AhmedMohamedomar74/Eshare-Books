@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { operationStatusEnum, operationTypeEnum } from "../../enum.js";
 
 const operationSchema = new mongoose.Schema({
   user_src: {
@@ -21,13 +22,13 @@ const operationSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["pending", "accepted", "rejected", "completed"],
-    default: "pending",
+    enum: Object.values(operationStatusEnum),
+    default: operationStatusEnum.PENDING,
   },
 
   operationType: {
     type: String,
-    enum: ["borrow", "buy"],
+    enum: Object.values(operationTypeEnum),
     required: true,
   },
 
