@@ -1,6 +1,7 @@
 import operationModel from "../../DB/models/operation.model.js";
 import { operationStatusEnum } from "../../enum.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
+import { findByIdAndUpdate } from "../../DB/db.services.js";
 
 // @desc    Get all operations
 // @route   GET /api/operations
@@ -72,10 +73,13 @@ export const createOperation = asyncHandler(async (req, res) => {
 // @route   PUT /api/operations/:id
 export const updateOperation = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const value = req.validatedBody; 
+  const value = req.validatedBody;
 
-  const updated = await operationModel.findByIdAndUpdate(id, value, {
-    new: true,
+  const updated = await findByIdAndUpdate({
+    model: operationModel,
+    id,
+    data: value,
+    options: { new: true },
   });
 
   if (!updated) {
