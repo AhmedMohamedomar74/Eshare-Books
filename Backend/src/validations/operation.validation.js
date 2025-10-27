@@ -1,10 +1,7 @@
 import Joi from "joi";
-import { operationStatusEnum, operationTypeEnum } from "../enum.js";
+import { operationTypeEnum, operationStatusEnum } from "../enum.js";
 
 export const createOperationSchema = Joi.object({
-  user_src: Joi.string().required().messages({
-    "any.required": "user_src is required",
-  }),
   user_dest: Joi.string().required().messages({
     "any.required": "user_dest is required",
   }),
@@ -16,69 +13,61 @@ export const createOperationSchema = Joi.object({
   startDate: Joi.date().optional(),
   endDate: Joi.date().optional(),
 }).custom((value, helpers) => {
-  const {
-    operationType,
-    startDate,
-    endDate,
-    user_dest,
-    book_src_id,
-    book_dest_id,
-  } = value;
+  const { operationType, book_src_id, book_dest_id, startDate, endDate } =
+    value;
 
-  // BORROW
-  if (operationType === operationTypeEnum.BORROW) {
-    if (!book_src_id)
-      return helpers.error("any.invalid", {
-        message: "book_src_id is required for borrow.",
-      });
-    if (!startDate || !endDate)
-      return helpers.error("any.invalid", {
-        message: "startDate and endDate are required for borrow.",
-      });
-    if (new Date(endDate) <= new Date(startDate))
-      return helpers.error("any.invalid", {
-        message: "endDate must be after startDate.",
-      });
-  }
+  switch (operationType) {
+    case operationTypeEnum.BORROW:
+      if (!book_src_id)
+        return helpers.error("any.invalid", {
+          message: "book_src_id is required for borrow.",
+        });
+      if (!startDate || !endDate)
+        return helpers.error("any.invalid", {
+          message: "startDate and endDate are required for borrow.",
+        });
+      if (new Date(endDate) <= new Date(startDate))
+        return helpers.error("any.invalid", {
+          message: "endDate must be after startDate.",
+        });
+      break;
 
-  // EXCHANGE
-  if (operationType === operationTypeEnum.EXCHANGE) {
-    if (!book_src_id || !book_dest_id)
-      return helpers.error("any.invalid", {
-        message: "Both book_src_id and book_dest_id are required for exchange.",
-      });
-    if (book_src_id === book_dest_id)
-      return helpers.error("any.invalid", {
-        message: "Books for exchange must be different.",
-      });
-  }
+    case operationTypeEnum.EXCHANGE:
+      if (!book_src_id || !book_dest_id)
+        return helpers.error("any.invalid", {
+          message: "Both books are required for exchange.",
+        });
+      if (book_src_id === book_dest_id)
+        return helpers.error("any.invalid", {
+          message: "Books for exchange must be different.",
+        });
+      break;
 
-  // DONATE
-  if (operationType === operationTypeEnum.DONATE) {
-    if (!book_src_id)
-      return helpers.error("any.invalid", {
-        message: "book_src_id is required for donate.",
-      });
-    if (startDate || endDate)
-      return helpers.error("any.invalid", {
-        message: "startDate and endDate are not allowed for donate.",
-      });
-  }
+    case operationTypeEnum.DONATE:
+      if (!book_src_id)
+        return helpers.error("any.invalid", {
+          message: "book_src_id is required for donate.",
+        });
+      if (startDate || endDate)
+        return helpers.error("any.invalid", {
+          message: "Dates are not allowed for donate.",
+        });
+      break;
 
-  // BUY
-  if (operationType === operationTypeEnum.BUY) {
-    if (!book_src_id)
-      return helpers.error("any.invalid", {
-        message: "book_src_id is required for buy.",
-      });
-    if (book_dest_id)
-      return helpers.error("any.invalid", {
-        message: "book_dest_id is not allowed for buy.",
-      });
-    if (startDate || endDate)
-      return helpers.error("any.invalid", {
-        message: "startDate and endDate are not allowed for buy.",
-      });
+    case operationTypeEnum.BUY:
+      if (!book_src_id)
+        return helpers.error("any.invalid", {
+          message: "book_src_id is required for buy.",
+        });
+      if (book_dest_id)
+        return helpers.error("any.invalid", {
+          message: "book_dest_id not allowed for buy.",
+        });
+      if (startDate || endDate)
+        return helpers.error("any.invalid", {
+          message: "Dates are not allowed for buy.",
+        });
+      break;
   }
 
   return value;
