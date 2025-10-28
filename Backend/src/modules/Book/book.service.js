@@ -4,9 +4,8 @@ import streamifier from "streamifier";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { nanoid } from "nanoid";
 
- 
-  // Helper Function: Upload to Cloudinary
- const uploadToCloudinary = (fileBuffer, folder) => {
+// Helper Function: Upload to Cloudinary
+const uploadToCloudinary = (fileBuffer, folder) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       { folder },
@@ -23,19 +22,13 @@ import { nanoid } from "nanoid";
    📘 Add New Book
 ────────────────────────────── */
 export const addBook = asyncHandler(async (req, res) => {
-  // 🔹 مؤقتًا إلى أن يتم ربط الـ JWT
-  const userId = "670f12a42f6f8b7e5c123456";
-//   const userId = req.user._id;
+  const userId = req.user._id; // ✅ جاي من التوكن
+
   const data = req.body;
   const bookData = { ...data, UserID: userId };
-
-  let customId = nanoid(6); // معرف عشوائي للكتاب داخل فولدر المستخدم
-
-  // 🔹 لو الصورة موجودة في الطلب
+  const customId = nanoid(6);
   if (req.file) {
-    // 📁 نخزن الصورة داخل فولدر خاص بالمستخدم
     const folderPath = `Books/${userId}/book_${customId}`;
-
     const upload = await uploadToCloudinary(req.file.buffer, folderPath);
 
     bookData.image = {
@@ -45,7 +38,6 @@ export const addBook = asyncHandler(async (req, res) => {
   }
 
   const newBook = await Book.create(bookData);
-
   res.status(201).json({
     message: "✅ Book added successfully",
     book: newBook,
@@ -53,7 +45,7 @@ export const addBook = asyncHandler(async (req, res) => {
 });
 
 /* ──────────────────────────────
-   📘 Get All Books (with filter & pagination)
+   📘 Get All Books (Admin Only)
 ────────────────────────────── */
 export const getAllBooks = asyncHandler(async (req, res) => {
   const { category, title, page = 1, limit = 10 } = req.query;
@@ -78,8 +70,9 @@ export const getAllBooks = asyncHandler(async (req, res) => {
    📘 Get Book by ID
 ────────────────────────────── */
 export const getBookById = asyncHandler(async (req, res) => {
-//   const book = await Book.findById(req.params.id).populate("UserID", "name email");
-    const book = await Book.findById(req.params.id) ;
+  const book = await Book.findById(req.params.id);
+ //const book = await Book.findById(req.params.id).populate("UserID", "name email");
+
 
   if (!book) return res.status(404).json({ message: "❌ Book not found" });
   res.json({ message: "✅ Book fetched successfully", book });
@@ -90,8 +83,7 @@ export const getBookById = asyncHandler(async (req, res) => {
 ────────────────────────────── */
 export const updateBook = asyncHandler(async (req, res) => {
   const { id } = req.params;
-//   const userId = req.user._id;
-  const userId = "670f12a42f6f8b7e5c123456"; // مؤقت لغاية ما يتربط التوكن
+  const userId = req.user._id; // ✅ من التوكن
 
   const book = await Book.findById(id);
 
@@ -100,12 +92,12 @@ export const updateBook = asyncHandler(async (req, res) => {
     return res.status(403).json({ message: "⛔ Unauthorized to edit this book" });
   }
 
-  // لو في صورة جديدة
+  // ✅ لو في صورة جديدة
   if (req.file) {
     if (book.image?.public_id) {
       await cloudinary.uploader.destroy(book.image.public_id);
     }
-    const upload = await uploadToCloudinary(req.file.buffer, "books");
+    const upload = await uploadToCloudinary(req.file.buffer, `Books/${userId}/book_${nanoid(6)}`);
     req.body.image = {
       secure_url: upload.secure_url,
       public_id: upload.public_id,
@@ -121,17 +113,16 @@ export const updateBook = asyncHandler(async (req, res) => {
 ────────────────────────────── */
 export const deleteBook = asyncHandler(async (req, res) => {
   const { id } = req.params;
-//   const userId = req.user._id;
-const userId = "670f12a42f6f8b7e5c123456";
-
+  const userId = req.user._id; // ✅ من التوكن
 
   const book = await Book.findById(id);
   if (!book) return res.status(404).json({ message: "❌ Book not found" });
+
   if (book.UserID.toString() !== userId.toString()) {
     return res.status(403).json({ message: "⛔ Unauthorized to delete this book" });
   }
 
-  // حذف الصورة من Cloudinary
+  // ✅ حذف الصورة من Cloudinary
   if (book.image?.public_id) {
     await cloudinary.uploader.destroy(book.image.public_id);
   }
