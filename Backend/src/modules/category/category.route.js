@@ -31,6 +31,7 @@ categoryRouter.get("/:id", getCategoryById);
 // @route   POST /api/categories
 // @access  Admin only
 categoryRouter.post(
+  "/",
   adminCheckmiddelware,
   validationMiddleware(createCategorySchema),
   createCategory

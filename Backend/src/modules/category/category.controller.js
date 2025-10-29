@@ -2,7 +2,7 @@ import { findByIdAndUpdate, softDelete, update } from "../../DB/db.services.js";
 import categoryModel from "../../DB/models/category.model.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponce } from "../../utils/Response.js";
-import { AppError } from "../utils/AppError.js";
+import { AppError } from "../../utils/AppError.js";
 
 // @desc    Get all categories
 // @route   GET /api/categories
@@ -44,7 +44,7 @@ export const createCategory = asyncHandler(async (req, res, next) => {
     return next(new AppError("Category already exists", 400));
   }
 
-  const newCategory = await Category.create({ name });
+  const newCategory = await categoryModel.create({ name });
   return successResponce({
     res,
     status: 201,
@@ -82,7 +82,7 @@ export const deleteCategory = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
   const deleted = await softDelete({
-    model: Category,
+    model: categoryModel,
     filter: { _id: id },
     options: { new: true },
   });
