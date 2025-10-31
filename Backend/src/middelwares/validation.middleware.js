@@ -13,7 +13,7 @@ import { changePasswordSchema, createUserSchema, getUsersSchema, updateProfileSc
  * custom validation messages defined in schema.
  */
 export const validateRequest = (schema, source = 'body') => {
-  console.log("Vaildation is running")
+  // console.log("Vaildation is running")
   return asyncHandler(async (req, res, next) => {
     const { error, value } = schema.validate(req[source], {
       abortEarly: false, // Show all errors, not just the first
