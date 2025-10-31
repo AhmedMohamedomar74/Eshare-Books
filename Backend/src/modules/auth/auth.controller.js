@@ -30,8 +30,8 @@ export const signup = asyncHandler(async (req, res, next) => {
     })
 
     if (findUser) {
-        console.log("duplicate user",findUser)
-        next(new Error("User already Exsits",{ cause: 409 }))
+        console.log("duplicate user", findUser)
+        next(new Error("User already Exsits", { cause: 409 }))
         return
     }
     if (password) {
@@ -56,22 +56,55 @@ export const signup = asyncHandler(async (req, res, next) => {
 
 export const login = asyncHandler(async (req, res, next) => {
     const tokens = generateAuthTokens(req.user);
-    console.log({tokens})
+    console.log({ tokens })
     successResponce({ res, data: tokens });
 })
 
 
 export const verfiyEmail = asyncHandler(async (req, res, next) => {
     let decode = verify({ token: req.params.email, key: process.env.EMAIL_TOKEN_SIGNATURE })
-    console.log({decode})
+    console.log({ decode })
     if (!decode) {
         next(new Error("unvalid token", { cause: 401 }))
         return
     }
-    const findUser = await userModel.findOneAndUpdate({email : decode.email}, { isConfirmed: true })
+    const findUser = await userModel.findOneAndUpdate({ email: decode.email }, { isConfirmed: true })
     if (!findUser) {
         next(new Error("User not found", { cause: 400 }))
         return
     }
     successResponce({ res: res, status: 200, message: "Success to verify email", data: findUser })
+})
+
+
+
+export const refreshToken = asyncHandler(async (req, res, next) => {
+    // The user is already attached to req by refreshAuth middleware
+    const user = req.user;
+
+    if (!user) {
+        return next(new Error("Invalid refresh token", { cause: 401 }));
+    }
+
+    // Check if user still exists and is confirmed
+    const currentUser = await findOne({
+        model: userModel,
+        filter: {
+            _id: user._id,
+            isConfirmed: true
+        }
+    });
+
+    if (!currentUser) {
+        return next(new Error("User not found or not confirmed", { cause: 404 }));
+    }
+
+    // Generate new tokens
+    const tokens = generateAuthTokens(currentUser);
+
+    successResponce({
+        res,
+        message: "Tokens refreshed successfully",
+        data: tokens
+    });
 })
