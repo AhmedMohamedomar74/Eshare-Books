@@ -6,14 +6,14 @@ export const authorizeOperation = asyncHandler(async (req, res, next) => {
   const operation = await operationModel.findById(id);
 
   if (!operation) {
-    return res.status(404).json({ message: "Operation not found" });
+    return next(new AppError("Operation not found", 404));
   }
 
   if (
     operation.user_src.toString() !== req.user._id.toString() &&
     req.user.role !== "admin"
   ) {
-    return res.status(403).json({ message: "Not authorized" });
+    return next(new AppError("Not authorized to perform this action", 403));
   }
 
   next();

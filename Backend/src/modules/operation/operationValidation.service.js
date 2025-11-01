@@ -1,5 +1,8 @@
-import { checkActiveBookOperation, checkExistingOperation } from "../../utils/dbHelpers.js";
-
+import { AppError } from "../../utils/AppError.js";
+import {
+  checkActiveBookOperation,
+  checkExistingOperation,
+} from "../../utils/dbHelpers.js";
 
 export const validateOperationOwnership = async ({
   operationType,
@@ -11,7 +14,7 @@ export const validateOperationOwnership = async ({
   switch (operationType) {
     case "buy":
       if (srcBook.UserID.toString() !== user_dest.toString()) {
-        throw new Error(
+        throw new AppError(
           "The seller (destination user) does not own this book."
         );
       }
@@ -19,13 +22,13 @@ export const validateOperationOwnership = async ({
 
     case "donate":
       if (srcBook.UserID.toString() !== user_src.toString()) {
-        throw new Error("You can only donate a book you own.");
+        throw new AppError("You can only donate a book you own.");
       }
       break;
 
     case "borrow":
       if (srcBook.UserID.toString() !== user_dest.toString()) {
-        throw new Error(
+        throw new AppError(
           "The lender (destination user) does not own this book."
         );
       }
@@ -33,10 +36,12 @@ export const validateOperationOwnership = async ({
 
     case "exchange":
       if (srcBook.UserID.toString() !== user_src.toString()) {
-        throw new Error("You do not own the source book.");
+        throw new AppError("You do not own the source book.");
       }
       if (!destBook || destBook.UserID.toString() !== user_dest.toString()) {
-        throw new Error("The destination user does not own the exchange book.");
+        throw new AppError(
+          "The destination user does not own the exchange book."
+        );
       }
       break;
   }
@@ -49,12 +54,12 @@ export const validateActiveStatus = async ({
 }) => {
   const srcBookActive = await checkActiveBookOperation(book_src_id);
   if (srcBookActive)
-    throw new Error("Source book is already in an active operation.");
+    throw new AppError("Source book is already in an active operation.");
 
   if (operationType === "exchange" && book_dest_id) {
     const destBookActive = await checkActiveBookOperation(book_dest_id);
     if (destBookActive) {
-      throw new Error("Destination book is already in an active operation.");
+      throw new AppError("Destination book is already in an active operation.");
     }
   }
 };
@@ -74,6 +79,6 @@ export const validateDuplicateOperation = async ({
     operationType,
   });
   if (existing) {
-    throw new Error("This operation already exists and is pending.");
+    throw new AppError("This operation already exists and is pending.");
   }
 };

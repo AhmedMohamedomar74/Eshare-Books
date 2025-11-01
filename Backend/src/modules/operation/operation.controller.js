@@ -9,6 +9,7 @@ import {
   validateDuplicateOperation,
   validateOperationOwnership,
 } from "./operationValidation.service.js";
+import { successResponce } from "../../utils/Response.js";
 
 // Helper Functions
 
@@ -60,7 +61,7 @@ export const getAllOperation = asyncHandler(async (req, res) => {
     .populate("book_src_id", "title author")
     .populate("book_dest_id", "title author");
 
-  res.status(200).json({
+  return successResponce({
     success: true,
     message: "All operations retrieved successfully",
     data: operations,
@@ -148,9 +149,10 @@ export const createOperation = asyncHandler(async (req, res) => {
 
   const newOperation = await operationModel.create(newOperationData);
 
-  return res.status(201).json({
-    success: true,
-    message: "Operation created successfully.",
+  return successResponce({
+    res,
+    status: 201,
+    message: "Operation created successfully",
     data: newOperation,
   });
 });
@@ -175,8 +177,9 @@ export const updateOperation = asyncHandler(async (req, res) => {
     });
   }
 
-  res.status(200).json({
-    success: true,
+  return successResponce({
+    res,
+    status: 200,
     message: "Operation updated successfully",
     data: updated,
   });
@@ -200,8 +203,9 @@ export const deleteOperation = asyncHandler(async (req, res) => {
     });
   }
 
-  res.status(200).json({
-    success: true,
+  return successResponce({
+    res,
+    status: 200,
     message: "Operation deleted successfully",
     data: deleted,
   });

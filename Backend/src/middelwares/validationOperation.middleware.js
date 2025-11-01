@@ -1,3 +1,4 @@
+import { AppError } from "../utils/AppError.js";
 import {
   createOperationSchema,
   updateOperationSchema,
@@ -9,11 +10,9 @@ export const validateCreateOperation = (req, res, next) => {
   });
 
   if (error) {
-    return res.status(400).json({
-      success: false,
-      message: "Validation failed",
-      details: error.details.map((d) => d.message),
-    });
+    return next(
+      new AppError(error.details.map((d) => d.message).join(", "), 400)
+    );
   }
 
   req.validatedBody = value;
@@ -24,11 +23,9 @@ export const validateUpdateOperation = (req, res, next) => {
   const { error, value } = updateOperationSchema.validate(req.body);
 
   if (error) {
-    return res.status(400).json({
-      success: false,
-      message: "Validation failed",
-      details: error.details.map((d) => d.message),
-    });
+    return next(
+      new AppError(error.details.map((d) => d.message).join(", "), 400)
+    );
   }
 
   req.validatedBody = value;
