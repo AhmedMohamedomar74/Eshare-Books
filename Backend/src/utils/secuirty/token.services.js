@@ -80,7 +80,7 @@ export const generateAuthTokens = (user) => {
 
     const signatures = selectSignatureLevel(signatureLevel);
 
-    const tokenPayload = { IslogIn: true, _id: user.id };
+    const tokenPayload = { IslogIn: true, _id: user.id  , role: user.role , firstName: user.firstName , secondName: user.secondName , email: user.email };
 
     const accessToken = genrateToken({
         data: tokenPayload,
