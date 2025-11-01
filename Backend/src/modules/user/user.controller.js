@@ -467,6 +467,7 @@ export const listFriendRequests = asyncHandler(async (req, res, next) => {
 // Accept Friend Request
 export const acceptFriendRequest = asyncHandler(async (req, res, next) => {
     const { requestId } = req.params;
+    console.log({ requestId })
     const userId = req.user._id;
 
     // Get current user
@@ -480,7 +481,9 @@ export const acceptFriendRequest = asyncHandler(async (req, res, next) => {
     }
 
     // Find the friend request
-    const friendRequest = user.receivedFriendRequests.id(requestId);
+
+    console.log(user.receivedFriendRequests)
+    const friendRequest = user.receivedFriendRequests[0];
 
     if (!friendRequest) {
         return next(new AppError("Friend request not found", 404));
