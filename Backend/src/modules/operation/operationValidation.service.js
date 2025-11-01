@@ -4,6 +4,45 @@ import {
   checkExistingOperation,
 } from "../../utils/dbHelpers.js";
 
+export const validateBookTransactionType = ({
+  operationType,
+  srcBook,
+  destBook,
+}) => {
+  switch (operationType) {
+    case "buy":
+      if (srcBook.TransactionType !== "toSale") {
+        throw new AppError("This book is not available for sale", 400);
+      }
+      break;
+
+    case "borrow":
+      if (srcBook.TransactionType !== "toBorrow") {
+        throw new AppError("This book is not available for borrowing", 400);
+      }
+      break;
+
+    case "donate":
+      if (srcBook.TransactionType !== "toDonate") {
+        throw new AppError("This book is not available for donation.", 400);
+      }
+      break;
+
+    case "exchange":
+      if (srcBook.TransactionType !== "toExchange") {
+        throw new AppError("Source book is not available for exchange.", 400);
+      }
+
+      if (!destBook || destBook.TransactionType !== "toExchange") {
+        throw new AppError(
+          "Destination book is not available for exchange",
+          400
+        );
+      }
+      break;
+  }
+};
+
 export const validateOperationOwnership = async ({
   operationType,
   user_src,
@@ -78,6 +117,7 @@ export const validateDuplicateOperation = async ({
     book_dest_id,
     operationType,
   });
+
   if (existing) {
     throw new AppError("This operation already exists and is pending.");
   }

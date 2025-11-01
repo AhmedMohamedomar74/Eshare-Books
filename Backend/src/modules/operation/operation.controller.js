@@ -6,10 +6,12 @@ import userModel from "../../DB/models/User.model.js";
 import bookmodel from "../../DB/models/bookmodel.js";
 import {
   validateActiveStatus,
+  validateBookTransactionType,
   validateDuplicateOperation,
   validateOperationOwnership,
 } from "./operationValidation.service.js";
 import { successResponce } from "../../utils/Response.js";
+import { AppError } from "../../utils/AppError.js";
 
 // Helper Functions
 
@@ -20,34 +22,34 @@ const findBookById = async (bookId) => await bookmodel.findById(bookId);
 const findUserById = async (userId) => await userModel.findById(userId);
 
 // Check if user owns a specific book
-const checkBookOwnership = async (bookId, userId) =>
-  await bookmodel.findOne({ _id: bookId, UserID: userId });
+// const checkBookOwnership = async (bookId, userId) =>
+//   await bookmodel.findOne({ _id: bookId, UserID: userId });
 
-// Check if book is already in another pending operation
-const checkActiveBookOperation = async (bookId) =>
-  await operationModel.findOne({
-    $or: [{ book_src_id: bookId }, { book_dest_id: bookId }],
-    status: operationStatusEnum.PENDING,
-    isDeleted: false,
-  });
+// // Check if book is already in another pending operation
+// const checkActiveBookOperation = async (bookId) =>
+//   await operationModel.findOne({
+//     $or: [{ book_src_id: bookId }, { book_dest_id: bookId }],
+//     status: operationStatusEnum.PENDING,
+//     isDeleted: false,
+//   });
 
 // Check if same operation already exists
-const checkExistingOperation = async ({
-  user_src,
-  user_dest,
-  book_src_id,
-  book_dest_id,
-  operationType,
-}) =>
-  await operationModel.findOne({
-    user_src,
-    user_dest,
-    book_src_id,
-    book_dest_id,
-    operationType,
-    status: operationStatusEnum.PENDING,
-    isDeleted: false,
-  });
+// const checkExistingOperation = async ({
+//   user_src,
+//   user_dest,
+//   book_src_id,
+//   book_dest_id,
+//   operationType,
+// }) =>
+//   await operationModel.findOne({
+//     user_src,
+//     user_dest,
+//     book_src_id,
+//     book_dest_id,
+//     operationType,
+//     status: operationStatusEnum.PENDING,
+//     isDeleted: false,
+//   });
 
 // Controllers
 
@@ -84,28 +86,19 @@ export const createOperation = asyncHandler(async (req, res) => {
 
   // Prevent user from performing an operation with themselves
   if (user_src.toString() === user_dest.toString()) {
-    return res.status(400).json({
-      success: false,
-      message: "You cannot perform an operation with yourself.",
-    });
+    throw new AppError("You cannot perform an operation with yourself.", 400);
   }
 
   // Verify destination user
   const destUser = await findUserById(user_dest);
   if (!destUser) {
-    return res.status(404).json({
-      success: false,
-      message: "Destination user does not exist.",
-    });
+    throw new AppError("Destination user does not exist.", 404);
   }
 
   // Verify source book
   const srcBook = await findBookById(book_src_id);
   if (!srcBook) {
-    return res.status(404).json({
-      success: false,
-      message: "Source book does not exist.",
-    });
+    throw new AppError("Source book does not exist.", 404);
   }
 
   // Verify destination book (only for exchange)
@@ -113,6 +106,13 @@ export const createOperation = asyncHandler(async (req, res) => {
     operationType === "exchange" && book_dest_id
       ? await findBookById(book_dest_id)
       : null;
+
+  // validate transaction type
+  await validateBookTransactionType({
+    operationType,
+    srcBook,
+    destBook,
+  });
 
   // Validate ownership logic
   await validateOperationOwnership({
@@ -171,10 +171,7 @@ export const updateOperation = asyncHandler(async (req, res) => {
   });
 
   if (!updated) {
-    return res.status(404).json({
-      success: false,
-      message: "Operation not found",
-    });
+    throw new AppError("Operation not found.", 404);
   }
 
   return successResponce({
@@ -197,10 +194,7 @@ export const deleteOperation = asyncHandler(async (req, res) => {
   });
 
   if (!deleted) {
-    return res.status(404).json({
-      success: false,
-      message: "Operation not found",
-    });
+    throw new AppError("Operation not found.", 404);
   }
 
   return successResponce({
