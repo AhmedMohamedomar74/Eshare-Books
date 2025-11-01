@@ -13,7 +13,7 @@ import categoryRouter from "./modules/category/category.route.js";
 
 async function bootstrap() {
   dotenv.config({
-    path: path.resolve("./config/dev.env"),
+    // path: path.resolve("./config/dev.env"),
   });
   const port = process.env.PORT;
   const app = express();
