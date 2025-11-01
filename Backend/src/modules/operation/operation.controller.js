@@ -64,7 +64,8 @@ export const getAllOperation = asyncHandler(async (req, res) => {
     .populate("book_dest_id", "title author");
 
   return successResponce({
-    success: true,
+    res,
+    status: 200,
     message: "All operations retrieved successfully",
     data: operations,
   });
