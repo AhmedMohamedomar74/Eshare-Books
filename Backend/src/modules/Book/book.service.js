@@ -118,20 +118,39 @@ export const addBook = asyncHandler(async (req, res, next) => {
    📘 Get All Books (Ignore Deleted)
 ────────────────────────────── */
 export const getAllBooks = asyncHandler(async (req, res, next) => {
-  const { category, title, page = 1, limit = 10 } = req.query;
+  const { title, page = 1, limit = 10 } = req.query;
   const filter = { isDeleted: false };
-
-  if (category) filter.Category = { $regex: category, $options: 'i' };
-  if (title) filter.Title = { $regex: title, $options: 'i' };
+  if (title) filter.Title = { $regex: title, $options: "i" };
 
   const skip = (page - 1) * limit;
-  const books = await Book.find(filter).skip(skip).limit(Number(limit));
+  const books = await Book.find(filter)
+    .populate("UserID", "name email")
+    .populate("categoryId", "name")
+    .skip(skip)
+    .limit(Number(limit));
+
   const count = await Book.countDocuments(filter);
 
   res.json({
-    message: '✅ Books fetched successfully',
+    message: "✅ Books fetched successfully",
     total: count,
     page: Number(page),
+    books,
+  });
+});
+/* ──────────────────────────────
+   📘 Get Books by Category
+────────────────────────────── */
+export const getBooksByCategory = asyncHandler(async (req, res) => {
+  const { categoryId } = req.params;
+
+  const books = await Book.find({ categoryId, isDeleted: false })
+    .populate("UserID", "name email")
+    .populate("categoryId", "name");
+
+  res.json({
+    message: "✅ Books fetched successfully for this category",
+    total: books.length,
     books,
   });
 });
@@ -140,12 +159,14 @@ export const getAllBooks = asyncHandler(async (req, res, next) => {
    📘 Get Book by ID
 ────────────────────────────── */
  
-export const getBookById = asyncHandler(async (req, res, next) => {
-  const book = await Book.findOne({ _id: req.params.id, isDeleted: false }).populate("UserID", "name email");;
-  if (!book) throw new AppError("❌ Book not found", 404);
+export const getBookById = asyncHandler(async (req, res) => {
+  const book = await Book.findOne({ _id: req.params.id, isDeleted: false })
+    .populate("UserID", "name email")
+    .populate("categoryId", "name");
 
+  if (!book) throw new AppError("❌ Book not found", 404);
   res.json({ message: "✅ Book fetched successfully", book });
- });
+});
 
 /* ──────────────────────────────
    📘 Update Book
@@ -157,8 +178,7 @@ export const updateBook = asyncHandler(async (req, res, next) => {
   const book = await Book.findOne({ _id: id, isDeleted: false });
   if (!book) throw new AppError("❌ Book not found", 404);
 
-   if (!book) return res.status(404).json({ message: '❌ Book not found' });
-  
+   
    if (book.UserID.toString() !== userId.toString()) {
     throw new AppError("⛔ Unauthorized to edit this book", 403);
    }
