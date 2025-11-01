@@ -1,9 +1,11 @@
-import Book from '../../DB/models/bookmodel.js';
-import cloudinary from '../../utils/file Uploadind/cloudinaryConfig.js';
-import streamifier from 'streamifier';
-import { asyncHandler } from '../../utils/asyncHandler.js';
-import { nanoid } from 'nanoid';
-
+ 
+import Book from "../../DB/models/bookmodel.js";
+import cloudinary from "../../utils/file Uploadind/cloudinaryConfig.js";
+import streamifier from "streamifier";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { AppError } from "../../utils/AppError.js";
+import { nanoid } from "nanoid";
+ 
 // Helper Function: Upload to Cloudinary
 const uploadToCloudinary = (fileBuffer, folder) => {
   return new Promise((resolve, reject) => {
@@ -58,11 +60,12 @@ const deleteFromCloudinary = async (fileUrl) => {
 /* ──────────────────────────────
    Add New Book (with AI Moderation)
 ────────────────────────────── */
-export const addBook = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
+ 
+export const addBook = asyncHandler(async (req, res, next) => {
+   const userId = req.user._id;
   const data = req.body;
   const customId = nanoid(6);
-  let uploadedImage = null;
+   let uploadedImage = null;
 
   // Check the text first
   const textModeration = await moderateText(data.Title || '', data.Description || '');
@@ -112,11 +115,11 @@ export const addBook = asyncHandler(async (req, res) => {
 });
 
 /* ──────────────────────────────
-   📘 Get All Books (Admin Only)
+   📘 Get All Books (Ignore Deleted)
 ────────────────────────────── */
-export const getAllBooks = asyncHandler(async (req, res) => {
+export const getAllBooks = asyncHandler(async (req, res, next) => {
   const { category, title, page = 1, limit = 10 } = req.query;
-  const filter = {};
+  const filter = { isDeleted: false };
 
   if (category) filter.Category = { $regex: category, $options: 'i' };
   if (title) filter.Title = { $regex: title, $options: 'i' };
@@ -136,29 +139,30 @@ export const getAllBooks = asyncHandler(async (req, res) => {
 /* ──────────────────────────────
    📘 Get Book by ID
 ────────────────────────────── */
-export const getBookById = asyncHandler(async (req, res) => {
-  const book = await Book.findById(req.params.id);
-  //const book = await Book.findById(req.params.id).populate("UserID", "name email");
+ 
+export const getBookById = asyncHandler(async (req, res, next) => {
+  const book = await Book.findOne({ _id: req.params.id, isDeleted: false }).populate("UserID", "name email");;
+  if (!book) throw new AppError("❌ Book not found", 404);
 
-  if (!book) return res.status(404).json({ message: '❌ Book not found' });
-  res.json({ message: '✅ Book fetched successfully', book });
-});
+  res.json({ message: "✅ Book fetched successfully", book });
+ });
 
 /* ──────────────────────────────
    📘 Update Book
 ────────────────────────────── */
-export const updateBook = asyncHandler(async (req, res) => {
+export const updateBook = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const userId = req.user._id; // ✅ من التوكن
+  const userId = req.user._id;
 
-  const book = await Book.findById(id);
+  const book = await Book.findOne({ _id: id, isDeleted: false });
+  if (!book) throw new AppError("❌ Book not found", 404);
 
-  if (!book) return res.status(404).json({ message: '❌ Book not found' });
-  if (book.UserID.toString() !== userId.toString()) {
-    return res.status(403).json({ message: '⛔ Unauthorized to edit this book' });
-  }
+   if (!book) return res.status(404).json({ message: '❌ Book not found' });
+  
+   if (book.UserID.toString() !== userId.toString()) {
+    throw new AppError("⛔ Unauthorized to edit this book", 403);
+   }
 
-  // ✅ لو في صورة جديدة
   if (req.file) {
     if (book.image?.public_id) {
       await cloudinary.uploader.destroy(book.image.public_id);
@@ -175,24 +179,23 @@ export const updateBook = asyncHandler(async (req, res) => {
 });
 
 /* ──────────────────────────────
-   📘 Delete Book
+   📘 Soft Delete Book
 ────────────────────────────── */
-export const deleteBook = asyncHandler(async (req, res) => {
+export const deleteBook = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const userId = req.user._id; // ✅ من التوكن
+  const userId = req.user._id;
 
-  const book = await Book.findById(id);
-  if (!book) return res.status(404).json({ message: '❌ Book not found' });
+ 
+  const book = await Book.findOne({ _id: id, isDeleted: false });
+  if (!book) throw new AppError("❌ Book not found", 404);
 
   if (book.UserID.toString() !== userId.toString()) {
-    return res.status(403).json({ message: '⛔ Unauthorized to delete this book' });
+    throw new AppError("⛔ Unauthorized to delete this book", 403);
+ 
   }
 
-  // ✅ حذف الصورة من Cloudinary
-  if (book.image?.public_id) {
-    await cloudinary.uploader.destroy(book.image.public_id);
-  }
-
-  await Book.findByIdAndDelete(id);
-  res.json({ message: '✅ Book deleted successfully' });
+  book.isDeleted = true;
+  await book.save();
+   res.json({ message: '✅ Book deleted successfully' });
+ 
 });
