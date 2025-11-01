@@ -5,6 +5,7 @@ import {
   getBookById,
   updateBook,
   deleteBook,
+  getBooksByCategory,
 } from "./book.service.js";
 import {
   upload,
@@ -29,7 +30,10 @@ router.post(
 
     //📘 Get All Books  
  router.get("/allbooks", auth,  getAllBooks);
-
+ /* ──────────────────────────────
+   📘 Get Books by Category ID
+────────────────────────────── */
+router.get("/category/:categoryId", auth,getBooksByCategory);
  
 router.get("/:id", auth, getBookById);
 

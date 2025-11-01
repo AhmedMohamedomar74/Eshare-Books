@@ -38,9 +38,9 @@ const bookSchema = new mongoose.Schema(
     // },
     TransactionType: {
       type: String,
-      enum: ["toSale", "toBorrow", "toExchange,toDonate"],  
+      enum: ["toSale", "toBorrow", "toExchange", "toDonate"],
       required: true,
-      default: "Sale",
+      default: "toSale",
     },
     image:{
       secure_url: {type:String},
