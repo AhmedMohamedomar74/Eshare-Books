@@ -2,6 +2,7 @@ import Report from '../../DB/models/report.model.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { AppError } from '../../utils/AppError.js';
 import { successResponce } from '../../utils/Response.js';
+import { findManyNonDeleted, restoreSoftDelete, softDelete } from '../../DB/db.services.js';
 
 /**
  * @desc Create a new report (Book or User)
@@ -37,14 +38,16 @@ export const createReport = asyncHandler(async (req, res, next) => {
  * @access Admin
  */
 export const getAllReports = asyncHandler(async (req, res, next) => {
-  const reports = await Report.find()
-    .populate('reporterId')
-    .populate('targetId')
-    .sort({ createdAt: -1 });
+  const reports = await findManyNonDeleted({
+    model: Report,
+    sort: { createdAt: -1 },
+  });
+
+  if (!reports.length) return next(new AppError('No reports found.', 404));
 
   return successResponce({
     res,
-    message: 'All reports fetched successfully.',
+    message: 'Reports fetched successfully.',
     data: reports,
   });
 });
@@ -56,11 +59,17 @@ export const getAllReports = asyncHandler(async (req, res, next) => {
  */
 export const getReportsByUser = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
+  const requester = req.user;
 
-  const reports = await Report.find({ reporterId: userId })
-    .populate('reporterId')
-    .populate('targetId')
-    .sort({ createdAt: -1 });
+  if (requester.role !== 'admin' && requester._id.toString() !== userId) {
+    return next(new AppError('You are not authorized to view these reports.', 403));
+  }
+
+  const reports = await findManyNonDeleted({
+    model: Report,
+    filter: { reporterId: userId },
+    sort: { createdAt: -1 },
+  });
 
   if (!reports.length) {
     return next(new AppError('No reports found for this user.', 404));
@@ -81,7 +90,7 @@ export const getReportsByUser = asyncHandler(async (req, res, next) => {
 export const getReportsAgainstUser = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
 
-  const reports = await Report.find({ targetType: 'User', targetId: userId })
+  const reports = await Report.find({ targetType: 'user', targetId: userId })
     .populate('reporterId')
     .populate('targetId')
     .sort({ createdAt: -1 });
@@ -155,18 +164,49 @@ export const cancelReport = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @desc Delete a report (Admin only)
+ * @desc Soft delete a report (Admin only)
  * @route DELETE /reports/:id
  * @access Admin
  */
 export const deleteReport = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
-  const report = await Report.findByIdAndDelete(id);
-  if (!report) return next(new AppError('Report not found.', 404));
+  const deletedReport = await softDelete({
+    model: Report,
+    filter: { _id: id },
+  });
+
+  if (!deletedReport) {
+    return next(new AppError('Report not found or already deleted.', 404));
+  }
 
   return successResponce({
     res,
-    message: 'Report deleted successfully.',
+    message: 'Report soft deleted successfully.',
+    data: deletedReport,
+  });
+});
+
+/**
+ * @desc Restore a soft deleted report (Admin only)
+ * @route PATCH /reports/restore/:id
+ * @access Admin
+ */
+export const restoreReport = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const restoredReport = await restoreSoftDelete({
+    model: Report,
+    filter: { _id: id },
+  });
+
+  if (!restoredReport) {
+    return next(new AppError('Report not found or already active.', 404));
+  }
+
+  return successResponce({
+    res,
+    message: 'Report restored successfully.',
+    data: restoredReport,
   });
 });

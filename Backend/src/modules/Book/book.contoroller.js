@@ -11,8 +11,8 @@ import {
   fileValidation,
 } from "../../utils/file Uploadind/multerCloud.js";
 import { auth, adminCheckmiddelware } from "../../middelwares/auth.middleware.js";
-import { validateRequest } from "../../middelwares/validation.middleware.js"; // ✅ استيراد الفاليديشن
-import { BookValidation } from "./book.validation.js"; // ✅ استيراد سكيمة Joi
+import { validateRequest } from "../../middelwares/validation.middleware.js";  
+import { BookValidation } from "./book.validation.js";  
 
 const router = Router();
 
@@ -23,12 +23,12 @@ router.post(
   "/addbook",
   auth,
   upload(fileValidation.images).single("image"),
-  validateRequest(BookValidation, "body"), // ✅ التحقق من البيانات قبل الإضافة
+  validateRequest(BookValidation, "body"), 
   addBook
 );
 
-    //📘 Get All Books (Admin Only)
- router.get("/allbooks", auth, adminCheckmiddelware, getAllBooks);
+    //📘 Get All Books  
+ router.get("/allbooks", auth,  getAllBooks);
 
  
 router.get("/:id", auth, getBookById);

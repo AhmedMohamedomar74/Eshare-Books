@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 
 const bookSchema = new mongoose.Schema(
   {
-    ISBN: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
+    // ISBN: {
+    //   type: String,
+    //   required: true,
+    //   unique: true,
+    //   trim: true,
+    // },
     Title: {
       type: String,
       required: true,
@@ -17,10 +17,10 @@ const bookSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    Category: {
-      type: String,
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category", // reference
       required: true,
-      trim: true,
     },
     IsModerated: {
       type: Boolean,
@@ -31,17 +31,17 @@ const bookSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    Condition: {
-      type: String,
-      enum: ["New", "Like New", "Used", "Very Used"],
-      default: "Used",
-    },
-    // TransactionType: {
+    // Condition: {
     //   type: String,
-    //   enum: ["Sale", "Borrow"], // بيع أو اقتراض
-    //   required: true,
-    //   default: "Sale",
+    //   enum: ["New", "Like New", "Used", "Very Used"],
+    //   default: "Used",
     // },
+    TransactionType: {
+      type: String,
+      enum: ["toSale", "toBorrow", "toExchange,toDonate"],  
+      required: true,
+      default: "Sale",
+    },
     image:{
       secure_url: {type:String},
       public_id: {type:String}
@@ -54,6 +54,11 @@ const bookSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+    },
+        // ✅ Soft Delete flag
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
     // Status: {
     //   type: String,
