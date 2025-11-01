@@ -62,6 +62,16 @@ const reportSchema = new mongoose.Schema(
       },
       default: 'Pending',
     },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

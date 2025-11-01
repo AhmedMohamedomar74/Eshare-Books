@@ -2,6 +2,53 @@ import operationModel from "../../DB/models/operation.model.js";
 import { operationStatusEnum } from "../../enum.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { findByIdAndUpdate, softDelete } from "../../DB/db.services.js";
+import userModel from "../../DB/models/User.model.js";
+import bookmodel from "../../DB/models/bookmodel.js";
+import {
+  validateActiveStatus,
+  validateDuplicateOperation,
+  validateOperationOwnership,
+} from "./operationValidation.service.js";
+
+// Helper Functions
+
+// Find book by ID
+const findBookById = async (bookId) => await bookmodel.findById(bookId);
+
+// Find user by ID
+const findUserById = async (userId) => await userModel.findById(userId);
+
+// Check if user owns a specific book
+const checkBookOwnership = async (bookId, userId) =>
+  await bookmodel.findOne({ _id: bookId, UserID: userId });
+
+// Check if book is already in another pending operation
+const checkActiveBookOperation = async (bookId) =>
+  await operationModel.findOne({
+    $or: [{ book_src_id: bookId }, { book_dest_id: bookId }],
+    status: operationStatusEnum.PENDING,
+    isDeleted: false,
+  });
+
+// Check if same operation already exists
+const checkExistingOperation = async ({
+  user_src,
+  user_dest,
+  book_src_id,
+  book_dest_id,
+  operationType,
+}) =>
+  await operationModel.findOne({
+    user_src,
+    user_dest,
+    book_src_id,
+    book_dest_id,
+    operationType,
+    status: operationStatusEnum.PENDING,
+    isDeleted: false,
+  });
+
+// Controllers
 
 // @desc    Get all operations
 // @route   GET /api/operations
@@ -15,12 +62,12 @@ export const getAllOperation = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Get all operations successfully",
+    message: "All operations retrieved successfully",
     data: operations,
   });
 });
 
-// @desc    Create new operation
+// @desc    Create new operation (exchange / borrow)
 // @route   POST /api/operations
 export const createOperation = asyncHandler(async (req, res) => {
   const {
@@ -31,40 +78,79 @@ export const createOperation = asyncHandler(async (req, res) => {
     endDate,
     operationType,
   } = req.validatedBody;
+
   const user_src = req.user._id;
 
-  //Check if a similar pending operation already exists
-  const existingOperation = await operationModel.findOne({
-    user_src,
-    user_dest,
-    book_src_id,
-    book_dest_id,
-    operationType,
-    status: operationStatusEnum.PENDING,
-    isDeleted: false,
-  });
-
-  if (existingOperation) {
+  // Prevent user from performing an operation with themselves
+  if (user_src.toString() === user_dest.toString()) {
     return res.status(400).json({
       success: false,
-      message: "This operation already exists and is pending.",
+      message: "You cannot perform an operation with yourself.",
     });
   }
 
-  // Create the new operation
-  const newOperation = await operationModel.create({
+  // Verify destination user
+  const destUser = await findUserById(user_dest);
+  if (!destUser) {
+    return res.status(404).json({
+      success: false,
+      message: "Destination user does not exist.",
+    });
+  }
+
+  // Verify source book
+  const srcBook = await findBookById(book_src_id);
+  if (!srcBook) {
+    return res.status(404).json({
+      success: false,
+      message: "Source book does not exist.",
+    });
+  }
+
+  // Verify destination book (only for exchange)
+  const destBook =
+    operationType === "exchange" && book_dest_id
+      ? await findBookById(book_dest_id)
+      : null;
+
+  // Validate ownership logic
+  await validateOperationOwnership({
+    operationType,
+    user_src,
+    user_dest,
+    srcBook,
+    destBook,
+  });
+
+  // Validate that involved books are not already in another active operation
+  await validateActiveStatus({ operationType, book_src_id, book_dest_id });
+
+  // Validate that the same operation is not already pending
+  await validateDuplicateOperation({
     user_src,
     user_dest,
     book_src_id,
     book_dest_id,
     operationType,
-    startDate,
-    endDate,
   });
 
-  res.status(201).json({
+  // Create the operation
+  const newOperationData = {
+    user_src,
+    user_dest,
+    book_src_id,
+    operationType,
+    startDate,
+    endDate,
+  };
+
+  if (book_dest_id) newOperationData.book_dest_id = book_dest_id;
+
+  const newOperation = await operationModel.create(newOperationData);
+
+  return res.status(201).json({
     success: true,
-    message: "Operation created successfully",
+    message: "Operation created successfully.",
     data: newOperation,
   });
 });
@@ -96,7 +182,7 @@ export const updateOperation = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Delete an operation
+// @desc    Soft delete an operation
 // @route   DELETE /api/operations/:id
 export const deleteOperation = asyncHandler(async (req, res) => {
   const { id } = req.params;

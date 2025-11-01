@@ -1,5 +1,5 @@
 // user.controller.js
-import userModel, { roleEnum } from "./../../DB/models/User.model.js";
+import userModel from "./../../DB/models/User.model.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponce } from "../../utils/Response.js";
 import { 
@@ -13,6 +13,8 @@ import {
     findWithPagination 
 } from "../../DB/db.services.js";
 import { compareHash, genrateHash } from "../../utils/secuirty/hash.services.js";
+import { AppError } from "../../utils/AppError.js";
+import { friendRequestStatusEnum, roleEnum } from "../../enum.js";
 
 // Create User
 export const createUser = asyncHandler(async (req, res, next) => {
@@ -334,5 +336,339 @@ export const confirmUser = asyncHandler(async (req, res, next) => {
         res,
         message: "User confirmed successfully",
         data: userResponse
+    });
+});
+
+
+export const sendFriendRequest = asyncHandler(async (req, res, next) => {
+    const { friendId } = req.body;
+    const userId = req.user._id;
+
+    // Prevent sending friend request to yourself
+    if (userId.toString() === friendId) {
+        return next(new AppError("You cannot send a friend request to yourself", 400));
+    }
+
+    // Check if friend exists
+    const friend = await findById({
+        model: userModel,
+        id: friendId
+    });
+
+    if (!friend) {
+        return next(new AppError("User not found", 404));
+    }
+
+    // Get current user
+    const currentUser = await findById({
+        model: userModel,
+        id: userId
+    });
+
+    // Check if already friends
+    if (currentUser.friends.includes(friendId)) {
+        return next(new AppError("You are already friends with this user", 400));
+    }
+
+    // Check if friend request already exists (pending)
+    const existingRequest = currentUser.sentFriendRequests.find(
+        req => req.userId.toString() === friendId && req.status === friendRequestStatusEnum.pending
+    );
+
+    if (existingRequest) {
+        return next(new AppError("Friend request already sent", 400));
+    }
+
+    // Check if there's a pending request from the friend
+    const incomingRequest = currentUser.receivedFriendRequests.find(
+        req => req.userId.toString() === friendId && req.status === friendRequestStatusEnum.pending
+    );
+
+    if (incomingRequest) {
+        return next(new AppError("This user has already sent you a friend request. Please accept or reject it.", 400));
+    }
+
+    // Add to sent requests for current user
+    currentUser.sentFriendRequests.push({
+        userId: friendId,
+        status: friendRequestStatusEnum.pending,
+        requestedAt: new Date()
+    });
+
+    // Add to received requests for friend
+    friend.receivedFriendRequests.push({
+        userId: userId,
+        status: friendRequestStatusEnum.pending,
+        requestedAt: new Date()
+    });
+
+    await currentUser.save();
+    await friend.save();
+
+    return successResponce({
+        res,
+        status: 201,
+        message: "Friend request sent successfully",
+        data: {
+            requestedTo: {
+                _id: friend._id,
+                firstName: friend.firstName,
+                secondName: friend.secondName,
+                email: friend.email,
+                profilePic: friend.profilePic
+            }
+        }
+    });
+});
+
+// List Friend Requests (with status filter)
+export const listFriendRequests = asyncHandler(async (req, res, next) => {
+    const { status } = req.query;
+    const userId = req.user._id;
+
+    // Get current user with populated friend requests
+    const user = await userModel.findById(userId)
+        .populate({
+            path: 'receivedFriendRequests.userId',
+            select: 'firstName secondName email profilePic'
+        })
+        .select('-password');
+
+    if (!user) {
+        return next(new AppError("User not found", 404));
+    }
+
+    // Filter received friend requests based on status
+    let friendRequests = user.receivedFriendRequests;
+
+    if (status) {
+        friendRequests = friendRequests.filter(req => req.status === status);
+    }
+
+    // Format the response
+    const formattedRequests = friendRequests.map(req => ({
+        requestId: req._id,
+        user: req.userId,
+        status: req.status,
+        requestedAt: req.requestedAt,
+        respondedAt: req.respondedAt
+    }));
+
+    return successResponce({
+        res,
+        message: "Friend requests retrieved successfully",
+        data: {
+            friendRequests: formattedRequests,
+            total: formattedRequests.length
+        }
+    });
+});
+
+// Accept Friend Request
+export const acceptFriendRequest = asyncHandler(async (req, res, next) => {
+    const { requestId } = req.params;
+    console.log({ requestId })
+    const userId = req.user._id;
+
+    // Get current user
+    const user = await findById({
+        model: userModel,
+        id: userId
+    });
+
+    if (!user) {
+        return next(new AppError("User not found", 404));
+    }
+
+    // Find the friend request
+
+    console.log(user.receivedFriendRequests)
+    const friendRequest = user.receivedFriendRequests[0];
+
+    if (!friendRequest) {
+        return next(new AppError("Friend request not found", 404));
+    }
+
+    if (friendRequest.status !== friendRequestStatusEnum.pending) {
+        return next(new AppError("Friend request has already been responded to", 400));
+    }
+
+    const friendId = friendRequest.userId;
+
+    // Get the friend
+    const friend = await findById({
+        model: userModel,
+        id: friendId
+    });
+
+    if (!friend) {
+        return next(new AppError("User not found", 404));
+    }
+
+    // Update the request status in received requests
+    friendRequest.status = friendRequestStatusEnum.accepted;
+    friendRequest.respondedAt = new Date();
+
+    // Update the request status in friend's sent requests
+    const sentRequest = friend.sentFriendRequests.find(
+        req => req.userId.toString() === userId.toString()
+    );
+    
+    if (sentRequest) {
+        sentRequest.status = friendRequestStatusEnum.accepted;
+        sentRequest.respondedAt = new Date();
+    }
+
+    // Add to friends list for both users
+    if (!user.friends.includes(friendId)) {
+        user.friends.push(friendId);
+    }
+    if (!friend.friends.includes(userId)) {
+        friend.friends.push(userId);
+    }
+
+    await user.save();
+    await friend.save();
+
+    return successResponce({
+        res,
+        message: "Friend request accepted successfully",
+        data: {
+            friend: {
+                _id: friend._id,
+                firstName: friend.firstName,
+                secondName: friend.secondName,
+                email: friend.email,
+                profilePic: friend.profilePic
+            }
+        }
+    });
+});
+
+// Reject Friend Request
+export const rejectFriendRequest = asyncHandler(async (req, res, next) => {
+    const { requestId } = req.params;
+    const userId = req.user._id;
+
+    // Get current user
+    const user = await findById({
+        model: userModel,
+        id: userId
+    });
+
+    if (!user) {
+        return next(new AppError("User not found", 404));
+    }
+
+    // Find the friend request
+    const friendRequest = user.receivedFriendRequests.id(requestId);
+
+    if (!friendRequest) {
+        return next(new AppError("Friend request not found", 404));
+    }
+
+    if (friendRequest.status !== friendRequestStatusEnum.pending) {
+        return next(new AppError("Friend request has already been responded to", 400));
+    }
+
+    const friendId = friendRequest.userId;
+
+    // Get the friend
+    const friend = await findById({
+        model: userModel,
+        id: friendId
+    });
+
+    if (!friend) {
+        return next(new AppError("User not found", 404));
+    }
+
+    // Update the request status in received requests
+    friendRequest.status = friendRequestStatusEnum.rejected;
+    friendRequest.respondedAt = new Date();
+
+    // Update the request status in friend's sent requests
+    const sentRequest = friend.sentFriendRequests.find(
+        req => req.userId.toString() === userId.toString()
+    );
+    
+    if (sentRequest) {
+        sentRequest.status = friendRequestStatusEnum.rejected;
+        sentRequest.respondedAt = new Date();
+    }
+
+    await user.save();
+    await friend.save();
+
+    return successResponce({
+        res,
+        message: "Friend request rejected successfully"
+    });
+});
+
+// Get Friends List
+export const getFriendsList = asyncHandler(async (req, res, next) => {
+    const userId = req.user._id;
+
+    const user = await userModel.findById(userId)
+        .populate({
+            path: 'friends',
+            select: 'firstName secondName email profilePic'
+        })
+        .select('-password');
+
+    if (!user) {
+        return next(new AppError("User not found", 404));
+    }
+
+    return successResponce({
+        res,
+        message: "Friends list retrieved successfully",
+        data: {
+            friends: user.friends,
+            total: user.friends.length
+        }
+    });
+});
+
+// Remove Friend
+export const removeFriend = asyncHandler(async (req, res, next) => {
+    const { friendId } = req.params;
+    const userId = req.user._id;
+
+    // Get both users
+    const user = await findById({
+        model: userModel,
+        id: userId
+    });
+
+    if (!user) {
+        return next(new AppError("User not found", 404));
+    }
+
+    const friend = await findById({
+        model: userModel,
+        id: friendId
+    });
+
+    if (!friend) {
+        return next(new AppError("User not found", 404));
+    }
+
+    // Check if they are actually friends
+    if (!user.friends.includes(friendId)) {
+        return next(new AppError("You are not friends with this user", 400));
+    }
+
+    // Remove from friends list
+    user.friends = user.friends.filter(id => id.toString() !== friendId);
+    friend.friends = friend.friends.filter(id => id.toString() !== userId.toString());
+
+    await user.save();
+    await friend.save();
+
+    return successResponce({
+        res,
+        message: "Friend removed successfully"
     });
 });
