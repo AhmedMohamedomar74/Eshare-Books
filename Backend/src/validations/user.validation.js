@@ -1,6 +1,7 @@
 // user.validation.js
 import Joi from 'joi';
-import { roleEnum } from '../DB/models/User.model.js';
+import { roleEnum } from '../enum.js';
+
 
 // Common validation patterns
 const objectIdPattern = /^[0-9a-fA-F]{24}$/;

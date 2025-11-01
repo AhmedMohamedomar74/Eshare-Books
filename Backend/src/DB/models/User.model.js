@@ -1,7 +1,28 @@
 import { Schema, model } from "mongoose";
+import { friendRequestStatusEnum, roleEnum } from "../../enum.js";
 
-export const genderEnum = { male: "male", female: "female" }
-export const roleEnum = { admin: "admin", user: "user" }
+
+
+const friendRequestSchema = new Schema({
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: "user",
+        required: true
+    },
+    status: {
+        type: String,
+        enum: Object.values(friendRequestStatusEnum),
+        default: friendRequestStatusEnum.pending
+    },
+    requestedAt: {
+        type: Date,
+        default: Date.now
+    },
+    respondedAt: {
+        type: Date
+    }
+});
+
 const userSchema = new Schema({
     firstName: {
         type: String,
@@ -21,57 +42,54 @@ const userSchema = new Schema({
         required: true,
         trim: true,
     },
-    password:
-    {
+    password: {
         type: String,
         required: true
     },
-    address:
-    {
+    address: {
         type: String
     },
-    role:
-    {
+    role: {
         type: String,
         enum: Object.values(roleEnum),
         default: roleEnum.user
     },
-    isConfirmed:
-    {
+    isConfirmed: {
         type: Boolean,
         default: false
     },
-    profilePic:
-    {
+    profilePic: {
         type: String,
-    }
+    },
+    // Friend requests sent by this user
+    sentFriendRequests: [friendRequestSchema],
+    // Friend requests received by this user
+    receivedFriendRequests: [friendRequestSchema],
+    // List of accepted friends (for quick access)
+    friends: [{
+        type: Schema.Types.ObjectId,
+        ref: "user"
+    }]
 },
-    {
-        timestamps: true,
-        toObject: {
-            virtuals: true
-        },
-        toJSON: {
-            virtuals: false
-        }
-    })
-
-userSchema.virtual("fullName").get(function () {
-    return `${this.firstName}  ${this.secondName}`
+{
+    timestamps: true,
+    toObject: {
+        virtuals: true
+    },
+    toJSON: {
+        virtuals: true
+    }
 })
 
+userSchema.virtual("fullName").get(function () {
+    return `${this.firstName} ${this.secondName}`
+})
 
 userSchema.virtual("fullName").set(function (fullname) {
     this.firstName = fullname.split(" ")[0]
     this.secondName = fullname.split(" ")[1]
 })
 
-// userSchema.virtual("age").get(function () {
-//     let currentDate = new Date()
-//     let DOB = new Date(this.DOB)
-
-//     return currentDate.getFullYear() - DOB.getFullYear()
-// })
 const userModel = model("user", userSchema)
 
 export default userModel

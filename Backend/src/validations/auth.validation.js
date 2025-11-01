@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { genderEnum, roleEnum } from '../DB/models/User.model.js';
+import { roleEnum } from '../enum.js';
 
 
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
