@@ -74,7 +74,7 @@ export const validateOperationOwnership = async ({
       break;
 
     case "exchange":
-      if (srcBook.UserID.toString() !== user_src.toString()) {
+      if (srcBook.UserID.toString() !== user_dest.toString()) {
         throw new AppError("You do not own the source book.");
       }
       if (!destBook || destBook.UserID.toString() !== user_dest.toString()) {
