@@ -10,11 +10,10 @@ import reportRouter from "./modules/report/report.route.js";
 import bookController from "./modules/Book/book.contoroller.js";
 import { glopalErrorHandling } from "./utils/glopalErrorHandling.js";
 import categoryRouter from "./modules/category/category.route.js";
+import { intializer } from "./Gateways/soketio.gateway.js";
 
 async function bootstrap() {
-  dotenv.config({
-    // path: path.resolve("./config/dev.env"),
-  });
+  dotenv.config();
   const port = process.env.PORT;
   const app = express();
   // DB
@@ -34,9 +33,10 @@ async function bootstrap() {
   });
 
   app.use(glopalErrorHandling);
-  app.listen(port, () => {
+  const httpServer = app.listen(port, () => {
     console.log(`Server is running on port = ${port}`);
   });
+  intializer(httpServer)
 }
 
 export default bootstrap;
