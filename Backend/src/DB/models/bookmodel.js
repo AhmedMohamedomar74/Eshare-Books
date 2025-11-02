@@ -42,9 +42,9 @@ const bookSchema = new mongoose.Schema(
       required: true,
       default: "toSale",
     },
-    image:{
-      secure_url: {type:String},
-      public_id: {type:String}
+    image: {
+      secure_url: { type: String },
+      public_id: { type: String },
     },
     // Image: {
     //   type: String, // store image URL or file path
@@ -55,7 +55,7 @@ const bookSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-        // ✅ Soft Delete flag
+    // ✅ Soft Delete flag
     isDeleted: {
       type: Boolean,
       default: false,
