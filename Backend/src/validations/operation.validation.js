@@ -18,9 +18,9 @@ export const createOperationSchema = Joi.object({
 
   switch (operationType) {
     case operationTypeEnum.BORROW:
-      if (!book_src_id)
+      if (!book_dest_id)
         return helpers.error("any.invalid", {
-          message: "book_src_id is required for borrow.",
+          message: "book_dest_id is required for borrow.",
         });
       if (!startDate || !endDate)
         return helpers.error("any.invalid", {
@@ -44,9 +44,9 @@ export const createOperationSchema = Joi.object({
       break;
 
     case operationTypeEnum.DONATE:
-      if (!book_src_id)
+      if (!book_dest_id)
         return helpers.error("any.invalid", {
-          message: "book_src_id is required for donate.",
+          message: "book_dest_id is required for donate.",
         });
       if (startDate || endDate)
         return helpers.error("any.invalid", {
@@ -55,13 +55,13 @@ export const createOperationSchema = Joi.object({
       break;
 
     case operationTypeEnum.BUY:
-      if (!book_src_id)
+      if (!book_dest_id)
         return helpers.error("any.invalid", {
-          message: "book_src_id is required for buy.",
+          message: "book_dest_id is required for buy.",
         });
-      if (book_dest_id)
+      if (book_src_id)
         return helpers.error("any.invalid", {
-          message: "book_dest_id not allowed for buy.",
+          message: "book_src_id not allowed for buy.",
         });
       if (startDate || endDate)
         return helpers.error("any.invalid", {

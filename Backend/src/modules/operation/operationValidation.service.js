@@ -60,7 +60,7 @@ export const validateOperationOwnership = async ({
       break;
 
     case "donate":
-      if (srcBook.UserID.toString() !== user_src.toString()) {
+      if (srcBook.UserID.toString() !== user_dest.toString()) {
         throw new AppError("You can only donate a book you own.");
       }
       break;
@@ -91,7 +91,7 @@ export const validateActiveStatus = async ({
   book_src_id,
   book_dest_id,
 }) => {
-  const srcBookActive = await checkActiveBookOperation(book_src_id);
+  const srcBookActive = await checkActiveBookOperation(book_dest_id);
   if (srcBookActive)
     throw new AppError("Source book is already in an active operation.");
 

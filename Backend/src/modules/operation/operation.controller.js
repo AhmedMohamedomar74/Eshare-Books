@@ -97,7 +97,7 @@ export const createOperation = asyncHandler(async (req, res) => {
   }
 
   // Verify source book
-  const srcBook = await findBookById(book_src_id);
+  const srcBook = await findBookById(book_dest_id);
   if (!srcBook) {
     throw new AppError("Source book does not exist.", 404);
   }
