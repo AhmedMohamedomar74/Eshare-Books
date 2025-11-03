@@ -10,7 +10,7 @@ import reportRouter from "./modules/report/report.route.js";
 import bookController from "./modules/Book/book.contoroller.js";
 import { glopalErrorHandling } from "./utils/glopalErrorHandling.js";
 import categoryRouter from "./modules/category/category.route.js";
-import { intializer } from "./Gateways/soketio.gateway.js";
+import { initializeSocketIO } from "./Gateways/soketio.gateway.js";
 
 async function bootstrap() {
   dotenv.config();
@@ -36,7 +36,7 @@ async function bootstrap() {
   const httpServer = app.listen(port, () => {
     console.log(`Server is running on port = ${port}`);
   });
-  intializer(httpServer)
+  initializeSocketIO(httpServer)
 }
 
 export default bootstrap;
