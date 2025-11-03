@@ -3,7 +3,15 @@ import {
   FavoriteBorderOutlined,
   OutlinedFlag,
 } from "@mui/icons-material";
-import { Avatar, Box, Button, Chip, Typography } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Typography,
+  Breadcrumbs,
+  Link as MuiLink,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 
 const BookDetails = () => {
@@ -46,158 +54,142 @@ const BookDetails = () => {
         padding: { xs: "20px 10px", md: "50px 20px" },
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: { xs: "20px", md: "40px" },
-          maxWidth: "1000px",
-          width: "100%",
-        }}
-      >
-        {/* Book Image */}
-        <Box
-          component="img"
-          src={book.image}
-          alt={book.Title}
-          sx={{
-            width: { xs: "100%", sm: "250px", md: "300px" },
-            height: "auto",
-            borderRadius: "12px",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-            alignSelf: { xs: "center", md: "flex-start" },
-          }}
-        />
-
-        {/* Book Content */}
-        <Box sx={{ flex: 1 }}>
-          <Typography
-            variant="h4"
-            fontWeight="bold"
-            sx={{ fontSize: { xs: "1.8rem", md: "2.3rem" } }}
-          >
-            {book.Title}
-          </Typography>
-
-          <Typography
-            variant="subtitle1"
-            color="text.secondary"
-            mb={2}
-            sx={{ fontSize: { xs: "0.9rem", md: "1rem" } }}
-          >
-            by Matt Haig
-          </Typography>
-
-          {/* Category + Pricing Type */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: "10px",
-              mb: 2,
-              flexWrap: "wrap",
-            }}
-          >
-            <Chip label={book.categoryId} variant="outlined" />
-            <Chip
-              label={getTransactionLabel(book.TransactionType)}
-              color="success"
-            />
-          </Box>
-
-          <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
-
-          {/* Description */}
-          <Typography
-            sx={{
-              mb: 3,
-              lineHeight: 1.7,
-              textAlign: "justify",
-              fontSize: { xs: "0.95rem", md: "1rem" },
-            }}
-          >
-            {book.Description}
-          </Typography>
-
-          <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
-
-          {/* Owner Info */}
-          <Typography fontWeight="bold" mb={1}>
-            Listed By:
-          </Typography>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <Avatar src={book.User.avatar} />
-            <Box>
-              <Typography sx={{ fontWeight: "bold" }}>
-                {book.User.name}
-              </Typography>
-              <Typography sx={{ fontSize: "14px", color: "gray" }}>
-                ⭐ {book.User.rating}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/*  Action Buttons */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: "15px",
-              mt: 4,
-              flexDirection: { xs: "column", sm: "row" },
-            }}
-          >
-            <Button
-              variant="contained"
-              fullWidth={true}
-              startIcon={<ChatBubbleOutline sx={{ fontWeight: "bold" }} />}
-              sx={{
-                backgroundColor: "#2e7d32",
-                textTransform: "none",
-                padding: "10px 25px",
-                borderRadius: "8px",
-                fontWeight: "bold",
-              }}
-            >
-              Contact Owner
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={
-                <FavoriteBorderOutlined
-                  sx={{ color: "black", fontWeight: "bold" }}
-                />
-              }
-              fullWidth={true}
-              sx={{
-                textTransform: "none",
-                padding: "10px 25px",
-                borderRadius: "8px",
-                backgroundColor: "#f5f5dc",
-                color: "black",
-                fontWeight: "bold",
-                borderColor: "#c0a427ff",
-              }}
-            >
-              Add to Wishlist
-            </Button>
-          </Box>
-          <Box
+      <Box sx={{ width: "100%", maxWidth: "1000px" }}>
+        {/* Breadcrumb */}
+        <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 3, fontSize: "0.9rem" }}>
+          <MuiLink component={Link} to="/" underline="hover" color="inherit">
+            Home
+          </MuiLink>
+          <MuiLink
             component={Link}
-            to="/report"
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "6px",
-              fontSize: "0.8rem",
-              color: "#0e0101ff",
-              marginTop: "32px",
-              fontWeight: "bold",
-              textDecoration: "none",
-            }}
+            to={`/category/${book.categoryId.toLowerCase()}`}
+            underline="hover"
+            color="inherit"
           >
-            <OutlinedFlag sx={{ fontSize: "18px" }} />
-            Report this book
+            {book.categoryId}
+          </MuiLink>
+          <Typography color="text.primary">{book.Title}</Typography>
+        </Breadcrumbs>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: { xs: "20px", md: "40px" },
+          }}
+        >
+          {/* Book Image */}
+          <Box
+            component="img"
+            src={book.image}
+            alt={book.Title}
+            sx={{
+              width: { xs: "100%", sm: "250px", md: "300px" },
+              borderRadius: "12px",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+            }}
+          />
+
+          {/* Book Details */}
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h4" fontWeight="bold">
+              {book.Title}
+            </Typography>
+
+            <Typography variant="subtitle1" color="text.secondary" mb={2}>
+              by Matt Haig
+            </Typography>
+
+            {/* Category + Price */}
+            <Box sx={{ display: "flex", gap: "10px", mb: 2, flexWrap: "wrap" }}>
+              <Chip label={book.categoryId} variant="outlined" />
+              <Chip
+                label={getTransactionLabel(book.TransactionType)}
+                color="success"
+              />
+            </Box>
+
+            <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
+
+            {/* Description */}
+            <Typography sx={{ mb: 3, lineHeight: 1.7, textAlign: "justify" }}>
+              {book.Description}
+            </Typography>
+
+            <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
+
+            {/* Owner Info */}
+            <Typography fontWeight="bold" mb={1}>
+              Listed By:
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <Avatar src={book.User.avatar} />
+              <Box>
+                <Typography sx={{ fontWeight: "bold" }}>
+                  {book.User.name}
+                </Typography>
+                <Typography sx={{ fontSize: "14px", color: "gray" }}>
+                  ⭐ {book.User.rating}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Buttons */}
+            <Box
+              sx={{
+                display: "flex",
+                gap: "15px",
+                mt: 4,
+                flexDirection: { xs: "column", sm: "row" },
+              }}
+            >
+              <Button
+                variant="contained"
+                fullWidth
+                startIcon={<ChatBubbleOutline />}
+                sx={{
+                  backgroundColor: "#2e7d32",
+                  textTransform: "none",
+                  fontWeight: "bold",
+                }}
+              >
+                Contact Owner
+              </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<FavoriteBorderOutlined sx={{ color: "black" }} />}
+                sx={{
+                  textTransform: "none",
+                  backgroundColor: "#f5f5dc",
+                  borderColor: "#c0a427ff",
+                  color: "black",
+                  fontWeight: "bold",
+                }}
+              >
+                Add to Wishlist
+              </Button>
+            </Box>
+
+            {/* Report Link */}
+            <Box
+              component={Link}
+              to="/report"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px",
+                fontSize: "0.8rem",
+                color: "#0e0101",
+                marginTop: "32px",
+                fontWeight: "bold",
+                textDecoration: "none",
+              }}
+            >
+              <OutlinedFlag sx={{ fontSize: "18px" }} />
+              Report this book
+            </Box>
           </Box>
         </Box>
       </Box>
