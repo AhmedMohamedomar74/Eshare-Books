@@ -1,3 +1,4 @@
-Backend/.env
-node_modules
-Backend/notes.json
+Backend/node_modules
+/node_modules
+Backend/config/dev.env
+*.env

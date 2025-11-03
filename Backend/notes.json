@@ -1,0 +1,20 @@
+{
+  "users": [
+    {
+      "firstName": "Moahemd",
+      "secondName": "Ahmed",
+      "email": "c99c337879@webxios.pro",
+      "password": "Abc@1234",
+      "address": "123 Main Street, City, Country",
+      "userId" : "6905f7a037d4103e8908ac77"
+    },
+    {
+      "firstName": "Aya",
+      "secondName": "Fathy",
+      "email": "fb5b5d1ecb@webxios.pro",
+      "password": "Abc@1234",
+      "address": "123 Main Street, City, Country",
+      "userId" : "6905f7d937d4103e8908ac7b"
+    }
+  ]
+}
