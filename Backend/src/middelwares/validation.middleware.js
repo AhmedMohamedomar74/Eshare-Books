@@ -1,12 +1,21 @@
 import reportSchema from '../modules/report/report.validation.js';
+import { wishlistSchema } from '../modules/wishlist/wishlist.validation.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { loginSchema, signupSchema, verifyEmailSchema } from '../validations/auth.validation.js';
 import {
-  loginSchema,
-  signupSchema,
-  verifyEmailSchema,
-} from '../validations/auth.validation.js';
-import { changePasswordSchema, createUserSchema, getUsersSchema, updateProfileSchema, updateUserSchema, userIdSchema } from '../validations/user.validation.js';
-import { friendIdSchema, listFriendRequestsSchema, requestIdSchema, sendFriendRequestSchema } from './../validations/friend-request.validation.js';
+  changePasswordSchema,
+  createUserSchema,
+  getUsersSchema,
+  updateProfileSchema,
+  updateUserSchema,
+  userIdSchema,
+} from '../validations/user.validation.js';
+import {
+  friendIdSchema,
+  listFriendRequestsSchema,
+  requestIdSchema,
+  sendFriendRequestSchema,
+} from './../validations/friend-request.validation.js';
 // import { changePasswordSchema, createUserSchema, getUsersSchema, updateProfileSchema, updateUserSchema, userIdSchema } from './../validations/user.validation.js';
 
 /**
@@ -39,11 +48,11 @@ export const validateRequest = (schema, source = 'body') => {
       req[source] = value;
     } else {
       // For query params, merge the validated values back
-      Object.keys(value).forEach(key => {
+      Object.keys(value).forEach((key) => {
         req.query[key] = value[key];
       });
     }
-    
+
     next();
   });
 };
@@ -62,17 +71,17 @@ export const validationMiddleware = (schema, property = 'body') => {
         errors: messages,
       });
     }
-    
+
     // Only replace request data if it's not query
     if (property !== 'query') {
       req[property] = value;
     } else {
       // For query params, merge the validated values back
-      Object.keys(value).forEach(key => {
+      Object.keys(value).forEach((key) => {
         req.query[key] = value[key];
       });
     }
-    
+
     next();
   };
 };
@@ -94,3 +103,5 @@ export const validateSendFriendRequest = validateRequest(sendFriendRequestSchema
 export const validateListFriendRequests = validateRequest(listFriendRequestsSchema, 'query');
 export const validateRequestId = validateRequest(requestIdSchema, 'params');
 export const validateFriendId = validateRequest(friendIdSchema, 'params');
+
+export const validateWishlist = validateRequest(wishlistSchema, 'body');
