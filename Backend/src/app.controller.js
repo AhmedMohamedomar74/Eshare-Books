@@ -2,6 +2,7 @@ import { testConnection } from "./DB/connection.db.js";
 import express from "express";
 import path from "node:path";
 import dotenv from "dotenv";
+import cors from "cors"; // Import CORS package
 import authRoute from "./modules/auth/auth.route.js";
 import imgController from "./modules/image/image.route.js";
 import operationRouter from "./modules/operation/operation.route.js";
@@ -16,8 +17,16 @@ async function bootstrap() {
   dotenv.config();
   const port = process.env.PORT;
   const app = express();
+  
   // DB
   testConnection();
+
+  // Simple CORS configuration - allow all origins
+  app.use(cors({
+    origin: "*", // Allow all origins
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
+  }));
 
   app.use(express.json());
   app.use("/auth", authRoute);
@@ -36,7 +45,7 @@ async function bootstrap() {
   const httpServer = app.listen(port, () => {
     console.log(`Server is running on port = ${port}`);
   });
-  initializeSocketIO(httpServer)
+  initializeSocketIO(httpServer);
 }
 
 export default bootstrap;

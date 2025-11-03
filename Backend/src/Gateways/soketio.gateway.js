@@ -5,8 +5,11 @@ import {
     socketAuthMiddleware,
     getUserSockets 
 } from "../middelwares/socket.auth.middleware.js";
+import { ChatEvents } from "./chat.events.js";
+import { ChatService } from "./chat.service.js";
 
 let ioServer = null;
+let chatService = null;
 
 // Get the connectedSockets map from the middleware
 const connectedSockets = getConnectedSockets();
@@ -36,21 +39,16 @@ const connectionHandler = (socket) => {
         message: "Successfully connected to socket server"
     });
     
-    // Example event handlers
-    socket.on("say-hello", (data) => {
-        console.log("Hello from client:", data);
-        console.log("Socket user data:", socket.data);
-        
-        // Echo back to client
-        socket.emit("hello-response", { 
-            message: "Hello received!", 
-            timestamp: new Date().toISOString() 
-        });
-    });
-    
-    // Add more event handlers as needed
+    // Initialize chat events
+    initializeChatEvents(socket);
     
     disconnectHandler(socket);
+};
+
+// Initialize chat events for the connected socket
+const initializeChatEvents = (socket) => {
+    const chatEvents = new ChatEvents(socket, chatService);
+    chatEvents.initialize();
 };
 
 export const initializeSocketIO = (httpServer) => {
@@ -60,6 +58,9 @@ export const initializeSocketIO = (httpServer) => {
             methods: ["GET", "POST"]
         }
     });
+    
+    // Initialize chat service
+    chatService = new ChatService(ioServer);
     
     // Apply authentication middleware
     ioServer.use(socketAuthMiddleware);
@@ -76,6 +77,13 @@ export const getIo = () => {
         throw new Error("Socket.IO not initialized", { cause: 500 });
     }
     return ioServer;
+};
+
+export const getChatService = () => {
+    if (!chatService) {
+        throw new Error("Chat service not initialized");
+    }
+    return chatService;
 };
 
 // Helper to get all sockets for a user
