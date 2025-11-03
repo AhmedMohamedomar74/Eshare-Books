@@ -1,5 +1,10 @@
-import { ChatBubbleOutline, FavoriteBorderOutlined } from "@mui/icons-material";
+import {
+  ChatBubbleOutline,
+  FavoriteBorderOutlined,
+  OutlinedFlag,
+} from "@mui/icons-material";
 import { Avatar, Box, Button, Chip, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
 
 const BookDetails = () => {
   const book = {
@@ -99,6 +104,8 @@ const BookDetails = () => {
             />
           </Box>
 
+          <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
+
           {/* Description */}
           <Typography
             sx={{
@@ -110,6 +117,8 @@ const BookDetails = () => {
           >
             {book.Description}
           </Typography>
+
+          <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
 
           {/* Owner Info */}
           <Typography fontWeight="bold" mb={1}>
@@ -171,6 +180,24 @@ const BookDetails = () => {
             >
               Add to Wishlist
             </Button>
+          </Box>
+          <Box
+            component={Link}
+            to="/report"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              fontSize: "0.8rem",
+              color: "#0e0101ff",
+              marginTop: "32px",
+              fontWeight: "bold",
+              textDecoration: "none",
+            }}
+          >
+            <OutlinedFlag sx={{ fontSize: "18px" }} />
+            Report this book
           </Box>
         </Box>
       </Box>
