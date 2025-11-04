@@ -2,7 +2,6 @@ Backend/node_modules
 /node_modules
 Backend/config/dev.env
 *.env
-Backend/config/dev.env
-Backend/config/dev.env
-notes.json
 frontend-user/node_modules
+notes.json
+frontend-user/.vite
