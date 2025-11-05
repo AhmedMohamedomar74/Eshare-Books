@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import BookDetails from "./pages/Book-Details/BookDetails";
-import Navbar from "./components/Navbar";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import BookDetails from './pages/Book-Details/BookDetails';
+import Navbar from './components/Navbar';
+import Wishlist from './pages/Wishlist/Wishlist';
 
 function App() {
   return (
@@ -8,6 +9,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/details/:id" element={<BookDetails />} />
+        <Route path="/wishlist" element={<Wishlist />} />
       </Routes>
     </BrowserRouter>
   );
