@@ -1,3 +1,4 @@
+import { ChatBubbleOutline, EmailOutlined } from "@mui/icons-material";
 import {
   Box,
   Typography,
@@ -14,9 +15,12 @@ const OrderPage = () => {
   const book = {
     title: "The Midnight Library",
     author: "Matt Haig",
+    Description:
+      "Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices... Would you have done anything different, if you had the chance to undo your regrets? A novel about all the choices that go into a life well lived.",
     image:
       "https://diwanegypt.com/wp-content/uploads/2021/02/9781786892737-663x1024.jpg",
     price: 12,
+    categoryId: "Fiction",
     shipping: 4.5,
     owner: {
       name: "Jane Doe",
@@ -37,15 +41,7 @@ const OrderPage = () => {
       }}
     >
       {/* Left Content */}
-      <Box sx={{ flex: 2 }}>
-        {/* Breadcrumb */}
-        <Typography sx={{ fontSize: "0.9rem", color: "gray", mb: 2 }}>
-          Home / Search Results /{" "}
-          <span style={{ fontWeight: "bold", color: "black" }}>
-            {book.title}
-          </span>
-        </Typography>
-
+      <Box sx={{ flex: 1 }}>
         <Box
           sx={{
             display: "flex",
@@ -95,16 +91,6 @@ const OrderPage = () => {
                 </Typography>
               </Box>
             </Box>
-
-            {/* Description */}
-            <Typography
-              color="text.secondary"
-              sx={{ fontSize: "1rem", lineHeight: 1.6 }}
-            >
-              "Between life and death there is a library, and within that
-              library, the shelves go on forever. Every book provides a chance
-              to try another life you could have lived..."
-            </Typography>
           </Box>
         </Box>
       </Box>
@@ -112,14 +98,14 @@ const OrderPage = () => {
       {/* Right Content (Order Summary) */}
       <Box
         sx={{
-          flex: 1,
+          flex: 0.4,
           border: "1px solid #e0e0e0",
           borderRadius: "12px",
           padding: "20px",
           backgroundColor: "#fafafa",
         }}
       >
-        <Typography variant="h6" fontWeight="bold" mb={3}>
+        <Typography variant="h6" fontWeight="bold" mb={3} textAlign="center">
           Order Summary
         </Typography>
 
@@ -198,7 +184,7 @@ const OrderPage = () => {
           </Box>
         </RadioGroup>
 
-        <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 4 }} />
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
           <Typography>Book Price</Typography>
@@ -209,6 +195,7 @@ const OrderPage = () => {
           <Typography>${book.shipping.toFixed(2)}</Typography>
         </Box>
 
+        <Divider sx={{ my: 2 }} />
         <Typography
           fontWeight="bold"
           sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}
@@ -216,24 +203,41 @@ const OrderPage = () => {
           Total <span>${(book.price + book.shipping).toFixed(2)}</span>
         </Typography>
 
-        <Button
-          variant="contained"
-          fullWidth
-          sx={{ py: "12px", fontWeight: "bold" }}
-        >
-          Complete Purchase
-        </Button>
-
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
-            mt: 2,
-            fontSize: "0.9rem",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+            mt: 3,
           }}
         >
-          <Typography>♡ Add to Wishlist</Typography>
-          <Typography>✉ Contact Owner</Typography>
+          <Button
+            variant="contained"
+            sx={{
+              py: "12px",
+              fontWeight: "bold",
+              backgroundColor: "#004d40",
+              width: "80%",
+              borderRadius: "15px",
+            }}
+          >
+            Complete Purchase
+          </Button>
+
+          <Button
+            variant="contained"
+            startIcon={<EmailOutlined />}
+            sx={{
+              backgroundColor: "#c0ca33",
+              textTransform: "none",
+              fontWeight: "bold",
+              width: "80%",
+              borderRadius: "12px",
+            }}
+          >
+            Contact Owner
+          </Button>
         </Box>
       </Box>
     </Box>

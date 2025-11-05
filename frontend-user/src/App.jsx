@@ -5,7 +5,6 @@ import BookCycleLogin from "./pages/login/Login.jsx";
 import BookShareRegister from "./pages/register/Register.jsx";
 
 import OrderPage from "./pages/Order/OrderPage.jsx";
-import Orders from "./pages/Order/OrderPage.jsx";
 
 function App() {
   return (
