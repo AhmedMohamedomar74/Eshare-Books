@@ -3,7 +3,9 @@ import BookDetails from './pages/Book-Details/BookDetails';
 import Navbar from './components/Navbar';
 import BookCycleLogin from './pages/login/Login.jsx';
 import BookShareRegister from './pages/register/Register.jsx';
-import Report from './pages/Report/Report.jsx';
+import MyReports from './pages/MyReports/MyReports.jsx';
+
+import OrderPage from "./pages/Order/OrderPage.jsx";
 
 function App() {
   return (
@@ -11,9 +13,9 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/details/:id" element={<BookDetails />} />
+        <Route path="/order" element={<OrderPage />} />
         <Route path="/login" element={<BookCycleLogin />} />
         <Route path="/register" element={<BookShareRegister />} />
-        <Route path="/report" element={<Report />} />
       </Routes>
     </BrowserRouter>
   );

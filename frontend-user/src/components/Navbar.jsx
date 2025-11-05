@@ -31,7 +31,7 @@ const Navbar = () => {
 
         {/* Links */}
         <Box sx={{ display: "flex", gap: "20px" }}>
-          {["Home", "Wishlist", "Profile", "Chat"].map((page) => (
+          {["Home", "Wishlist", "Profile", "Chat", "Order"].map((page) => (
             <Button
               key={page}
               component={Link}
