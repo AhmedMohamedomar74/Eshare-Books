@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PasswordInput from '../../components/form/passwordInputComponent.jsx';
 import Button from '../../components/form/buttonComponent.jsx';
 import Input from '../../components/form/inputComponents.jsx';
-import { validateEmail, validateRequired } from '../../components/form/validation.js';
+import { validateLoginForm } from '../../components/form/validation.js';
 
 const BookCycleLogin = () => {
   const [formData, setFormData] = useState({
@@ -28,26 +28,13 @@ const BookCycleLogin = () => {
     const { name } = e.target;
     setTouched(prev => ({ ...prev, [name]: true }));
     
-    // Validate on blur
-    let error = '';
-    if (name === 'email') {
-      error = validateEmail(formData.email);
-    } else if (name === 'password') {
-      error = validateRequired(formData.password, 'Password');
-    }
-    
-    setErrors(prev => ({ ...prev, [name]: error }));
+    // Validate on blur using the centralized form validation
+    const newErrors = validateLoginForm(formData);
+    setErrors(newErrors);
   };
 
   const validateForm = () => {
-    const newErrors = {};
-    ``
-    const emailError = validateEmail(formData.email);
-    if (emailError) newErrors.email = emailError;
-    
-    const passwordError = validateRequired(formData.password, 'Password');
-    if (passwordError) newErrors.password = passwordError;
-    
+    const newErrors = validateLoginForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

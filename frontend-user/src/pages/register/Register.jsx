@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Button from '../../components/form/buttonComponent.jsx';
 import PasswordInput from '../../components/form/passwordInputComponent.jsx';
 import Input from '../../components/form/inputComponents.jsx';
-import { validateConfirmPassword, validateEmail, validateFullName, validatePassword } from '../../components/form/validation.js';
+import {validateRegisterForm } from '../../components/form/validation.js';
 
 const BookShareRegister = () => {
   const [formData, setFormData] = useState({
@@ -30,13 +30,9 @@ const BookShareRegister = () => {
     const { name } = e.target;
     setTouched(prev => ({ ...prev, [name]: true }));
     
-    let error = '';
-    if (name === 'fullName') error = validateFullName(formData.fullName);
-    else if (name === 'email') error = validateEmail(formData.email);
-    else if (name === 'password') error = validatePassword(formData.password);
-    else if (name === 'confirmPassword') error = validateConfirmPassword(formData.password, formData.confirmPassword);
-    
-    setErrors(prev => ({ ...prev, [name]: error }));
+    // Validate on blur using the centralized form validation
+    const newErrors = validateRegisterForm(formData);
+    setErrors(newErrors);
   };
 
   const handleImageUpload = (e) => {
@@ -51,20 +47,7 @@ const BookShareRegister = () => {
   };
 
   const validateForm = () => {
-    const newErrors = {};
-    
-    const nameError = validateFullName(formData.fullName);
-    if (nameError) newErrors.fullName = nameError;
-    
-    const emailError = validateEmail(formData.email);
-    if (emailError) newErrors.email = emailError;
-    
-    const passwordError = validatePassword(formData.password);
-    if (passwordError) newErrors.password = passwordError;
-    
-    const confirmPasswordError = validateConfirmPassword(formData.password, formData.confirmPassword);
-    if (confirmPasswordError) newErrors.confirmPassword = confirmPasswordError;
-    
+    const newErrors = validateRegisterForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
