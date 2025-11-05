@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Container, Box } from '@mui/material';
-import MyReportsHeader from '../../components/ReportsComponents/MyReportsHeader';
-import MyReportsFilters from '../../components/ReportsComponents/MyReportsFilters';
-import MyReportsTable from '../../components/ReportsComponents/MyReportsTable';
-import MyReportsPagination from '../../components/ReportsComponents/MyReportsPagination';
+import MyReportsHeader from '../../components/MyReportsComponents/MyReportsHeader';
+import MyReportsFilters from '../../components/MyReportsComponents/MyReportsFilters';
+import MyReportsTable from '../../components/MyReportsComponents/MyReportsTable';
+import MyReportsPagination from '../../components/MyReportsComponents/MyReportsPagination';
 
 const MyReports = () => {
   const [statusFilter, setStatusFilter] = useState('All');
