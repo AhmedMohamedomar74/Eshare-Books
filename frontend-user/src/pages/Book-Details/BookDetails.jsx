@@ -112,7 +112,10 @@ const BookDetails = () => {
             <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
 
             {/* Description */}
-            <Typography sx={{ mb: 3, lineHeight: 1.7, textAlign: "justify" }}>
+            <Typography
+              color="text.secondary"
+              sx={{ mb: 3, lineHeight: 1.7, textAlign: "justify" }}
+            >
               {book.Description}
             </Typography>
 
