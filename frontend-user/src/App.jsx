@@ -5,7 +5,9 @@ import BookCycleLogin from './pages/login/Login.jsx';
 import BookShareRegister from './pages/register/Register.jsx';
 import MyReports from './pages/MyReports/MyReports.jsx';
 
-import OrderPage from "./pages/Order/OrderPage.jsx";
+import OrderPage from './pages/Order/OrderPage.jsx';
+import Wishlist from './pages/Wishlist/Wishlist.jsx';
+import Report from './pages/Report/Report.jsx';
 
 function App() {
   return (
@@ -16,6 +18,9 @@ function App() {
         <Route path="/order" element={<OrderPage />} />
         <Route path="/login" element={<BookCycleLogin />} />
         <Route path="/register" element={<BookShareRegister />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/report" element={<Report />} />
+        <Route path="/myreports" element={<MyReports />} />
       </Routes>
     </BrowserRouter>
   );
