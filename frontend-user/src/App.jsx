@@ -5,15 +5,17 @@ import BookCycleLogin from './pages/login/Login.jsx';
 import BookShareRegister from './pages/register/Register.jsx';
 import MyReports from './pages/MyReports/MyReports.jsx';
 
+import OrderPage from "./pages/Order/OrderPage.jsx";
+
 function App() {
   return (
     <BrowserRouter>
       <Navbar />
       <Routes>
         <Route path="/details/:id" element={<BookDetails />} />
+        <Route path="/order" element={<OrderPage />} />
         <Route path="/login" element={<BookCycleLogin />} />
         <Route path="/register" element={<BookShareRegister />} />
-        <Route path="/reports" element={<MyReports />} />
       </Routes>
     </BrowserRouter>
   );
