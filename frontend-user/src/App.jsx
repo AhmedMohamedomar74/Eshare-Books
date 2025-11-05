@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import BookDetails from "./pages/Book-Details/BookDetails";
-import Navbar from "./components/Navbar";
-import BookCycleLogin from "./pages/login/Login.jsx";
-import BookShareRegister from "./pages/register/Register.jsx";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import BookDetails from './pages/Book-Details/BookDetails';
+import Navbar from './components/Navbar';
+import BookCycleLogin from './pages/login/Login.jsx';
+import BookShareRegister from './pages/register/Register.jsx';
+import MyReports from './pages/MyReports/MyReports.jsx';
 
 import OrderPage from "./pages/Order/OrderPage.jsx";
 
