@@ -16,16 +16,25 @@ const PasswordInput = ({
     if (!password) return { strength: 0, label: '', color: '' };
     
     let strength = 0;
+    
+    // Length requirement (8+ characters)
     if (password.length >= 8) strength++;
+    
+    // Contains lowercase and uppercase letters
     if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    
+    // Contains numbers
     if (/[0-9]/.test(password)) strength++;
-    if (/[^a-zA-Z0-9]/.test(password)) strength++;
-
+    
+    // Contains special characters
+    if (/[@$!%*?&]/.test(password)) strength++;
+    
     const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
     const colors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
     
     return { strength, label: labels[strength], color: colors[strength] };
-  };
+};
+
 
   const passwordStrength = showStrength ? getPasswordStrength(value) : null;
 

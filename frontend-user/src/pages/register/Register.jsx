@@ -3,16 +3,16 @@ import Button from "../../components/form/buttonComponent.jsx";
 import Input from "../../components/form/inputComponents.jsx";
 import PasswordInput from "../../components/form/passwordInputComponent.jsx";
 import { validateRegisterForm } from "../../components/form/validation.js";
+import { register } from "../../services/auth/auth.service.js";
 
 const BookShareRegister = () => {
-  console.log('BookShareRegister');
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    secondName : '',
     email: '',
     password: '',
     confirmPassword: '',
-    accountType: 'Reader'
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -53,15 +53,19 @@ const BookShareRegister = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = (e) => {
+  const handleNext = async(e) => {
     e.preventDefault();
     
-    setTouched({ fullName: true, email: true, password: true, confirmPassword: true });
+    setTouched({ firstName: true , secondName: true, email: true, password: true, confirmPassword: true });
     
     if (!validateForm()) {
       return;
     }
-
+    try {
+      const response = await register(formData.firstName, formData.secondName, formData.email, formData.password);
+    } catch (error) {
+      
+    }
     setStep(2);
   };
 
@@ -111,13 +115,24 @@ const BookShareRegister = () => {
             {step === 1 ? (
               <div className="flex flex-col gap-4">
                 <Input
-                  label="Full Name"
-                  name="fullName"
-                  placeholder="Enter your full name"
-                  value={formData.fullName}
+                  label="First Name"
+                  name="firstName"
+                  placeholder="Enter your first name"
+                  value={formData.firstName}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  error={touched.fullName ? errors.fullName : ''}
+                  error={touched.firstName ? errors.firstName : ''}
+                  required
+                />
+
+                <Input
+                  label="Second Name"
+                  name="secondName"
+                  placeholder="Enter your second name"
+                  value={formData.secondName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={touched.secondName ? errors.secondName : ''}
                   required
                 />
 
