@@ -67,11 +67,13 @@ api.interceptors.response.use(
 
             try {
                 // Call refresh token endpoint
-                const response = await axios.post('/auth/refresh', {
-                    refreshToken: refreshToken
+                const response = await axios.post('/auth/refresh-token', {},{
+                    headers: {
+                        Authorization: `${signatureLevelEnum.user} ${refreshToken}`
+                    }
                 });
 
-                const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
+                const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
 
                 // Update tokens
                 accessToken = newAccessToken;
