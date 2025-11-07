@@ -3,20 +3,8 @@ import PasswordInput from "../../components/form/passwordInputComponent.jsx";
 import Button from "../../components/form/buttonComponent.jsx";
 import Input from "../../components/form/inputComponents.jsx";
 import { validateLoginForm } from "../../components/form/validation.js";
-import api, { setTokens } from "../../axiosInstance/axiosInstance.js";
-
-const login = async (email, password) => {
-  try {
-    const response = await api.post("/auth/login", { email, password });
-    const { accessToken, refreshToken } = response.data.data;
-    console.log({ accessToken, refreshToken });
-    setTokens(accessToken, refreshToken);
-    return response.data.data;
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-};
+import { useNavigate } from "react-router-dom";
+import { login } from "../../services/auth/auth.service.js";
 
 const BookCycleLogin = () => {
   const [formData, setFormData] = useState({
@@ -27,7 +15,7 @@ const BookCycleLogin = () => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -62,18 +50,15 @@ const BookCycleLogin = () => {
     if (!validateForm()) {
       return;
     }
-
-    setLoading(true);
-
-    // Simulate API call
-    // setTimeout(() => {
-    //   console.log('Login attempted with:', { ...formData, rememberMe });
-    //   alert('Login successful! (This is a demo)');
-    //   setLoading(false);
-    // }, 1500);
-
-    await login(formData.email, formData.password);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const toekn = await login(formData.email, formData.password);
+      setLoading(false);
+      navigate("/")
+      console.log(toekn);
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   return (
