@@ -1,60 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Box, Button, Container, Grid } from '@mui/material';
 import WishlistHeader from '../../components/WishlistComponents/WishlistHeader';
 import WishlistEmptyState from '../../components/WishlistComponents/WishlistEmptyState';
 import BookCardGrid from '../../components/WishlistComponents/BookCardGrid';
 import BookCardList from '../../components/WishlistComponents/BookCardList';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import { fetchWishlist, removeFromWishlist } from '../../redux/slices/wishlist.slice';
+import { useNavigate } from 'react-router-dom';
+import ClearWishlistButton from '../../components/WishlistComponents/ClearWishlistButton';
 
 export default function Wishlist() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { items: wishlistBooks, loading } = useSelector((state) => state.wishlist);
   const [viewMode, setViewMode] = useState('grid');
-  const [wishlistBooks, setWishlistBooks] = useState([
-    {
-      id: '1',
-      Title: 'The Midnight Library',
-      author: 'Matt Haig',
-      image: 'https://diwanegypt.com/wp-content/uploads/2021/02/9781786892737-663x1024.jpg',
-      Price: 100,
-      TransactionType: 'toSale',
-    },
-    {
-      id: '2',
-      Title: 'Project Hail Mary',
-      author: 'Andy Weir',
-      image: 'https://m.media-amazon.com/images/I/91ENQs2KLAL._SL1500_.jpg',
-      Price: 120,
-      TransactionType: 'toSale',
-    },
-    {
-      id: '3',
-      Title: 'Klara and the Sun',
-      author: 'Kazuo Ishiguro',
-      image: 'https://m.media-amazon.com/images/I/61tqFlvlU3L._SL1500_.jpg',
-      Price: 95,
-      TransactionType: 'toSale',
-    },
-    {
-      id: '4',
-      Title: 'The Four Winds',
-      author: 'Kristin Hannah',
-      image: 'https://m.media-amazon.com/images/I/91TM7gPW0uL._SL1500_.jpg',
-      Price: 110,
-      TransactionType: 'toSale',
-    },
-  ]);
+
+  useEffect(() => {
+    dispatch(fetchWishlist());
+  }, [dispatch]);
 
   const handleDelete = (id) => {
-    setWishlistBooks((prev) => prev.filter((book) => book.id !== id));
+    dispatch(removeFromWishlist(id));
   };
 
   const handleView = (id) => {
-    console.log('View book:', id);
-    // Navigate to book details page
+    navigate(`/details/${id}`);
   };
 
   const handleBrowse = () => {
-    console.log('Navigating to books...');
+    navigate('/');
   };
+
+  if (loading) {
+    return <p style={{ textAlign: 'center' }}>Loading wishlist...</p>;
+  }
 
   return (
     <Box
@@ -68,6 +48,7 @@ export default function Wishlist() {
     >
       <Container maxWidth="lg" sx={{ py: 4, flex: 1 }}>
         <WishlistHeader viewMode={viewMode} onViewChange={setViewMode} />
+        <ClearWishlistButton />
 
         {wishlistBooks.length === 0 ? (
           <WishlistEmptyState onBrowse={handleBrowse} />
@@ -86,7 +67,7 @@ export default function Wishlist() {
                 sm={6}
                 md={3}
                 lg={3}
-                key={book.id}
+                key={book._id}
                 sx={{
                   display: 'flex',
                   height: '100%',
@@ -99,7 +80,12 @@ export default function Wishlist() {
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {wishlistBooks.map((book) => (
-              <BookCardList key={book.id} book={book} onDelete={handleDelete} onView={handleView} />
+              <BookCardList
+                key={book._id}
+                book={book}
+                onDelete={handleDelete}
+                onView={handleView}
+              />
             ))}
           </Box>
         )}
