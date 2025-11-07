@@ -21,6 +21,15 @@ async function bootstrap() {
   // DB
   testConnection();
 
+  app.use(
+    cors({
+      origin: "*", // Allow all origins
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
+      credentials: true,
+    })
+  );
+
   app.use(express.json());
   app.use('/auth', authRoute);
   app.use('/operations', operationRouter);
