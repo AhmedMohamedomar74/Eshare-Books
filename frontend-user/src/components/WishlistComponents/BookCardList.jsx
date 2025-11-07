@@ -1,6 +1,9 @@
 import { Card, CardContent, Typography, Button, Box } from '@mui/material';
+import notFoundImage from '/src/assets/not_foundimage.png';
 
 export default function BookCardList({ book, onView, onDelete }) {
+  const imageSrc = book.image || notFoundImage;
+
   return (
     <Card
       sx={{
@@ -12,7 +15,7 @@ export default function BookCardList({ book, onView, onDelete }) {
     >
       <Box
         component="img"
-        src={book.image}
+        src={imageSrc}
         alt={book.Title}
         sx={{ width: 120, height: 160, objectFit: 'cover' }}
         loading="lazy"

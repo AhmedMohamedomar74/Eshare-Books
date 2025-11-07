@@ -1,7 +1,10 @@
 import { Card, CardMedia, CardContent, Typography, Button, IconButton } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
+import notFoundImage from '/src/assets/not_foundimage.png';
 
 export default function BookCardGrid({ book, onDelete, onView }) {
+  const imageSrc = book.image || notFoundImage;
+
   return (
     <Card
       sx={{
@@ -47,7 +50,7 @@ export default function BookCardGrid({ book, onDelete, onView }) {
       <CardMedia
         component="img"
         height="280"
-        image={book.image}
+        image={imageSrc}
         alt={book.Title}
         sx={{ objectFit: 'cover' }}
         loading="lazy"
