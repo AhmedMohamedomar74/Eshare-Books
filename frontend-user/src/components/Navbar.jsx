@@ -33,7 +33,7 @@ const Navbar = () => {
           <ListItem
             key={page}
             component={Link}
-            to={`/${page.toLowerCase()}`}
+            to={page === "Home" ? "/" : `/${page.toLowerCase()}`}
             sx={{ textAlign: "center" }}
           >
             <ListItemText primary={page} />
