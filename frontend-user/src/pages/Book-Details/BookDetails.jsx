@@ -11,25 +11,16 @@ import {
   Typography,
   Breadcrumbs,
   Link as MuiLink,
+  CircularProgress,
 } from "@mui/material";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import api from "../../axiosInstance/axiosInstance.js";
 
 const BookDetails = () => {
-  const book = {
-    Title: "The Midnight Library",
-    Description:
-      "Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices... Would you have done anything different, if you had the chance to undo your regrets? A novel about all the choices that go into a life well lived.",
-    TransactionType: "toSale",
-    Price: 100,
-    categoryId: "Fiction",
-    User: {
-      name: "Jane Doe",
-      avatar: "https://i.pravatar.cc/300",
-      rating: 4.8,
-    },
-    image:
-      "https://diwanegypt.com/wp-content/uploads/2021/02/9781786892737-663x1024.jpg",
-  };
+  const { id } = useParams();
+  const [book, setBook] = useState(null);
+  const [loading, setloading] = useState(true);
 
   const getTransactionLabel = (type) => {
     switch (type) {
@@ -46,6 +37,39 @@ const BookDetails = () => {
     }
   };
 
+  useEffect(() => {
+    api
+      .get(`/books/${id}`)
+      .then((res) => {
+        console.log(res.data.book);
+        setBook(res.data.book);
+      })
+
+      .catch((err) => console.error("Error fetching book details:", err))
+      .finally(() => setloading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "70vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+  if (!book) {
+    return (
+      <Typography textAlign="center" mt={5} color="error">
+        Book not found or unavailable.
+      </Typography>
+    );
+  }
   return (
     <Box
       sx={{
@@ -62,11 +86,11 @@ const BookDetails = () => {
           </MuiLink>
           <MuiLink
             component={Link}
-            to={`/category/${book.categoryId.toLowerCase()}`}
+            to={`/category/${book.categoryId?._id || book.categoryId}`}
             underline="hover"
             color="inherit"
           >
-            {book.categoryId}
+            {book.categoryId?.name || "Category"}
           </MuiLink>
           <Typography color="text.primary">{book.Title}</Typography>
         </Breadcrumbs>
@@ -81,7 +105,7 @@ const BookDetails = () => {
           {/* Book Image */}
           <Box
             component="img"
-            src={book.image}
+            src={book.image?.secure_url}
             alt={book.Title}
             sx={{
               width: { xs: "100%", sm: "250px", md: "300px" },
@@ -97,14 +121,17 @@ const BookDetails = () => {
             </Typography>
 
             <Typography variant="subtitle1" color="text.secondary" mb={2}>
-              by Matt Haig
+              by {book.UserID?.name || "Unknown Author"}
             </Typography>
 
             {/* Category + Price */}
             <Box sx={{ display: "flex", gap: "10px", mb: 2, flexWrap: "wrap" }}>
-              <Chip label={book.categoryId} variant="outlined" />
               <Chip
-                label={getTransactionLabel(book.TransactionType)}
+                label={book.categoryId?.name || "General"}
+                variant="outlined"
+              />
+              <Chip
+                label={getTransactionLabel(book.TransactionType, book.Price)}
                 color="success"
               />
             </Box>
@@ -126,13 +153,10 @@ const BookDetails = () => {
               Listed By:
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <Avatar src={book.User.avatar} />
+              <Avatar src={book.UserID?.avatar} />
               <Box>
                 <Typography sx={{ fontWeight: "bold" }}>
-                  {book.User.name}
-                </Typography>
-                <Typography sx={{ fontSize: "14px", color: "gray" }}>
-                  ⭐ {book.User.rating}
+                  {book.UserID?.name || "Unknown"}
                 </Typography>
               </Box>
             </Box>
