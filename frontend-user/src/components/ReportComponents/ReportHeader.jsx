@@ -1,4 +1,3 @@
-// components/Report/ReportHeader.jsx
 import { Typography, Box } from '@mui/material';
 
 export default function ReportHeader() {

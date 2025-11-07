@@ -1,4 +1,3 @@
-// components/Report/ReportActions.jsx
 import { Button, Box } from '@mui/material';
 
 export default function ReportActions({ onCancel, onSend }) {

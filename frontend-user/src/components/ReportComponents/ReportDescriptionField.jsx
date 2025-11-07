@@ -1,4 +1,3 @@
-// components/Report/ReportDescriptionField.jsx
 import { Typography, TextField, Box } from '@mui/material';
 
 export default function ReportDescriptionField({ value, onChange, error, charCount }) {
