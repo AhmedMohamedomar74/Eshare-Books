@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Button, Container, Grid } from '@mui/material';
+import { Box, Button, Container } from '@mui/material';
 import WishlistHeader from '../../components/WishlistComponents/WishlistHeader';
 import WishlistEmptyState from '../../components/WishlistComponents/WishlistEmptyState';
 import BookCardGrid from '../../components/WishlistComponents/BookCardGrid';
@@ -9,6 +9,7 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { fetchWishlist, removeFromWishlist } from '../../redux/slices/wishlist.slice';
 import { useNavigate } from 'react-router-dom';
 import ClearWishlistButton from '../../components/WishlistComponents/ClearWishlistButton';
+import Grid from '@mui/material/Grid2';
 
 export default function Wishlist() {
   const dispatch = useDispatch();
@@ -62,11 +63,7 @@ export default function Wishlist() {
           >
             {wishlistBooks.map((book) => (
               <Grid
-                item
-                xs={12}
-                sm={6}
-                md={3}
-                lg={3}
+                size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
                 key={book._id}
                 sx={{
                   display: 'flex',
