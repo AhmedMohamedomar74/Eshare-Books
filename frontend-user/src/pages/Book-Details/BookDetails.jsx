@@ -1,21 +1,12 @@
-import {
-  ChatBubbleOutline,
-  FavoriteBorderOutlined,
-  OutlinedFlag,
-} from "@mui/icons-material";
-import {
-  Avatar,
-  Box,
-  Button,
-  Chip,
-  Typography,
-  Breadcrumbs,
-  Link as MuiLink,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Chip, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import api from "../../axiosInstance/axiosInstance.js";
+import Spinner from "../../components/Spinner.jsx";
+import BreadcrumbNav from "../../components/Book-detalis/BreadcrumbNav.jsx";
+import BookImage from "../../components/Book-detalis/BookImage.jsx";
+import BookOwner from "../../components/Book-detalis/BookOwner.jsx";
+import BookActions from "../../components/Book-detalis/BookActions.jsx";
 
 const BookDetails = () => {
   const { id } = useParams();
@@ -41,27 +32,14 @@ const BookDetails = () => {
     api
       .get(`/books/${id}`)
       .then((res) => {
-        console.log(res.data.book);
         setBook(res.data.book);
       })
-
       .catch((err) => console.error("Error fetching book details:", err))
       .finally(() => setloading(false));
   }, [id]);
 
   if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "70vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <Spinner />;
   }
   if (!book) {
     return (
@@ -79,22 +57,7 @@ const BookDetails = () => {
       }}
     >
       <Box sx={{ width: "100%", maxWidth: "1000px" }}>
-        {/* Breadcrumb */}
-        <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 3, fontSize: "0.9rem" }}>
-          <MuiLink component={Link} to="/" underline="hover" color="inherit">
-            Home
-          </MuiLink>
-          <MuiLink
-            component={Link}
-            to={`/category/${book.categoryId?._id || book.categoryId}`}
-            underline="hover"
-            color="inherit"
-          >
-            {book.categoryId?.name || "Category"}
-          </MuiLink>
-          <Typography color="text.primary">{book.Title}</Typography>
-        </Breadcrumbs>
-
+        <BreadcrumbNav title={book.Title} categoryId={book.categoryId} />
         <Box
           sx={{
             display: "flex",
@@ -102,121 +65,34 @@ const BookDetails = () => {
             gap: { xs: "20px", md: "40px" },
           }}
         >
-          {/* Book Image */}
-          <Box
-            component="img"
-            src={book.image?.secure_url}
-            alt={book.Title}
-            sx={{
-              width: { xs: "100%", sm: "250px", md: "300px" },
-              borderRadius: "12px",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-            }}
-          />
-
-          {/* Book Details */}
+          <BookImage src={book.image?.secure_url} alt={book.Title} />
           <Box sx={{ flex: 1 }}>
             <Typography variant="h4" fontWeight="bold">
               {book.Title}
             </Typography>
-
             <Typography variant="subtitle1" color="text.secondary" mb={2}>
               by {book.UserID?.name || "Unknown Author"}
             </Typography>
-
-            {/* Category + Price */}
             <Box sx={{ display: "flex", gap: "10px", mb: 2, flexWrap: "wrap" }}>
               <Chip
                 label={book.categoryId?.name || "General"}
                 variant="outlined"
               />
               <Chip
-                label={getTransactionLabel(book.TransactionType, book.Price)}
+                label={getTransactionLabel(book.TransactionType)}
                 color="success"
               />
             </Box>
-
             <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
-
-            {/* Description */}
             <Typography
               color="text.secondary"
               sx={{ mb: 3, lineHeight: 1.7, textAlign: "justify" }}
             >
               {book.Description}
             </Typography>
-
             <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
-
-            {/* Owner Info */}
-            <Typography fontWeight="bold" mb={1}>
-              Listed By:
-            </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <Avatar src={book.UserID?.avatar} />
-              <Box>
-                <Typography sx={{ fontWeight: "bold" }}>
-                  {book.UserID?.name || "Unknown"}
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Buttons */}
-            <Box
-              sx={{
-                display: "flex",
-                gap: "15px",
-                mt: 4,
-                flexDirection: { xs: "column", sm: "row" },
-              }}
-            >
-              <Button
-                variant="contained"
-                fullWidth
-                startIcon={<ChatBubbleOutline />}
-                sx={{
-                  backgroundColor: "#2e7d32",
-                  textTransform: "none",
-                  fontWeight: "bold",
-                }}
-              >
-                Contact Owner
-              </Button>
-              <Button
-                variant="outlined"
-                fullWidth
-                startIcon={<FavoriteBorderOutlined sx={{ color: "black" }} />}
-                sx={{
-                  textTransform: "none",
-                  backgroundColor: "#f5f5dc",
-                  borderColor: "#c0a427ff",
-                  color: "black",
-                  fontWeight: "bold",
-                }}
-              >
-                Add to Wishlist
-              </Button>
-            </Box>
-
-            {/* Report Link */}
-            <Box
-              component={Link}
-              to="/report"
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px",
-                fontSize: "0.8rem",
-                color: "#0e0101",
-                marginTop: "32px",
-                fontWeight: "bold",
-                textDecoration: "none",
-              }}
-            >
-              <OutlinedFlag sx={{ fontSize: "18px" }} />
-              Report this book
-            </Box>
+            <BookOwner avatar={book.UserID?.avatar} name={book.UserID?.name} />
+            <BookActions />
           </Box>
         </Box>
       </Box>
