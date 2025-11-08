@@ -47,6 +47,39 @@ export const createReport = asyncHandler(async (req, res, next) => {
 });
 
 /**
+ * @desc Get all my reports
+ * @route GET /reports/my
+ * @access User
+ */
+export const getMyReports = asyncHandler(async (req, res, next) => {
+  const userId = req.user._id;
+
+  const reports = await findManyNonDeleted({
+    model: Report,
+    filter: { reporterId: userId },
+    sort: { createdAt: -1 },
+  });
+
+  if (!reports.length) {
+    return next(new AppError('No reports found.', 404));
+  }
+
+  for (let report of reports) {
+    if (report.targetType === 'user') {
+      await report.populate({ path: 'targetId', select: 'firstName secondName', model: 'user' });
+    } else if (report.targetType === 'Book') {
+      await report.populate({ path: 'targetId', select: 'Title', model: 'Book' });
+    }
+  }
+
+  return successResponce({
+    res,
+    message: 'Your reports fetched successfully.',
+    data: reports,
+  });
+});
+
+/**
  * @desc Get all reports (Admin only)
  * @route GET /reports
  * @access Admin
@@ -69,15 +102,10 @@ export const getAllReports = asyncHandler(async (req, res, next) => {
 /**
  * @desc Get reports created by a specific user
  * @route GET /reports/user/:userId
- * @access User/Admin
+ * @access Admin
  */
 export const getReportsByUser = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
-  const requester = req.user;
-
-  if (requester.role !== 'admin' && requester._id.toString() !== userId) {
-    return next(new AppError('You are not authorized to view these reports.', 403));
-  }
 
   const reports = await findManyNonDeleted({
     model: Report,
@@ -89,13 +117,7 @@ export const getReportsByUser = asyncHandler(async (req, res, next) => {
     return next(new AppError('No reports found for this user.', 404));
   }
 
-  for (let report of reports) {
-    if (report.targetType === 'user') {
-      await report.populate({ path: 'targetId', select: 'firstName secondName', model: 'user' });
-    } else if (report.targetType === 'Book') {
-      await report.populate({ path: 'targetId', select: 'Title', model: 'Book' });
-    }
-  }
+  await populateReports(reports);
 
   return successResponce({
     res,
