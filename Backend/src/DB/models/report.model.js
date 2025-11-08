@@ -76,10 +76,10 @@ const reportSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-reportSchema.index(
-  { reporterId: 1, targetId: 1, targetType: 1 },
-  { unique: true, message: 'You have already reported this target.' }
-);
+// reportSchema.index(
+//   { reporterId: 1, targetId: 1, targetType: 1 },
+//   { unique: true, message: 'You have already reported this target.' }
+// );
 
 const Report = mongoose.model('Report', reportSchema);
 export default Report;
