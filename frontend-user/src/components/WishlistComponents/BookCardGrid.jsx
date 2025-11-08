@@ -132,7 +132,6 @@ export default function BookCardGrid({ book, onDelete, onView }) {
         </CardContent>
       </Card>
 
-      {/* Dialog */}
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}

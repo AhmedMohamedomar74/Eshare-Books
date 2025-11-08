@@ -106,7 +106,6 @@ export default function BookCardList({ book, onView, onDelete }) {
         </CardContent>
       </Card>
 
-      {/* Dialog */}
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}
