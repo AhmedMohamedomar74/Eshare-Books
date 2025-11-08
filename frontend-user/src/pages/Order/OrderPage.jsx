@@ -1,239 +1,162 @@
-import { ChatBubbleOutline, EmailOutlined } from "@mui/icons-material";
+import { EmailOutlined } from "@mui/icons-material";
 import {
   Box,
   Typography,
-  Chip,
-  Avatar,
   Radio,
   RadioGroup,
   FormControlLabel,
   Button,
   Divider,
 } from "@mui/material";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  createOperation,
+  fetchBookId,
+  completeOperation,
+} from "../../redux/slices/OrderSlice";
+import Spinner from "../../components/Spinner";
+import { useParams } from "react-router-dom";
 
 const OrderPage = () => {
-  const book = {
-    title: "The Midnight Library",
-    author: "Matt Haig",
-    Description:
-      "Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices... Would you have done anything different, if you had the chance to undo your regrets? A novel about all the choices that go into a life well lived.",
-    image:
-      "https://diwanegypt.com/wp-content/uploads/2021/02/9781786892737-663x1024.jpg",
-    price: 12,
-    categoryId: "Fiction",
-    shipping: 4.5,
-    owner: {
-      name: "Jane Doe",
-      avatar: "https://i.pravatar.cc/300",
-      rating: "4.9 (121 reviews)",
-    },
-    tags: ["Fantasy Fiction", "Philosophical Fiction", "Contemporary"],
-    condition: "Like New",
+  const { id } = useParams();
+  const dispatch = useDispatch();
+
+  const { book, loading, error, successMessage } = useSelector(
+    (state) => state.orders
+  );
+
+  useEffect(() => {
+    if (id) dispatch(fetchBookId(id));
+  }, [id, dispatch]);
+
+  if (loading) return <Spinner />;
+  if (!book)
+    return (
+      <Typography textAlign="center" mt={4}>
+        No book found.
+      </Typography>
+    );
+
+  const operationType =
+    book.TransactionType === "toSale"
+      ? "buy"
+      : book.TransactionType === "toBorrow"
+      ? "borrow"
+      : book.TransactionType === "toExchange"
+      ? "exchange"
+      : "donate";
+
+  const currentUserId = "6900c6fa1121ca51e4588227";
+
+  const handleComplete = async () => {
+    const operationData = {
+      user_dest: book.UserID?._id,
+      book_dest_id: book._id,
+      operationType,
+    };
+
+    const result = await dispatch(createOperation(operationData));
+    const operationId = result.payload?._id;
+    if (operationId) {
+      dispatch(completeOperation(operationId));
+    }
   };
 
   return (
     <Box
       sx={{
-        padding: { xs: "20px", md: "40px 60px" },
+        p: 4,
         display: "flex",
-        gap: "40px",
         flexDirection: { xs: "column", md: "row" },
+        gap: 4,
       }}
     >
-      {/* Left Content */}
+      {/* Book Info */}
       <Box sx={{ flex: 1 }}>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            gap: "30px",
-          }}
-        >
-          {/* Book Image */}
-          <Box
-            component="img"
-            src={book.image}
-            sx={{
-              width: { xs: "100%", md: "300px" },
-              borderRadius: "12px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            }}
-          />
+        <Typography variant="h4" fontWeight="bold" mb={1}>
+          {book.Title}
+        </Typography>
+        <Typography color="text.secondary" mb={2}>
+          {book.Description}
+        </Typography>
 
-          {/* Book Details */}
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h4" fontWeight="bold">
-              {book.title}
-            </Typography>
-            <Typography color="text.secondary" mb={2}>
-              by {book.author}
-            </Typography>
-
-            <Box sx={{ display: "flex", gap: "10px", flexWrap: "wrap", mb: 2 }}>
-              {book.tags.map((tag, index) => (
-                <Chip key={index} label={tag} variant="outlined" />
-              ))}
-            </Box>
-
-            <Typography fontWeight="bold">Condition:</Typography>
-            <Typography mb={2}> {book.condition}</Typography>
-
-            {/* Owner */}
-            <Typography fontWeight="bold">Owner:</Typography>
-            <Box
-              sx={{ display: "flex", alignItems: "center", gap: "10px", mb: 3 }}
-            >
-              <Avatar src={book.owner.avatar} />
-              <Box>
-                <Typography fontWeight="bold">{book.owner.name}</Typography>
-                <Typography fontSize="0.9rem" color="gray">
-                  ⭐ {book.owner.rating}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
+        <Typography variant="body1" mb={1}>
+          <strong>Category:</strong> {book.categoryId?.name || "N/A"}
+        </Typography>
+        <Typography variant="body1" mb={1}>
+          <strong>Type:</strong> {book.TransactionType}
+        </Typography>
+        <Typography variant="body1" mb={1}>
+          <strong>Price:</strong>{" "}
+          {book.TransactionType === "toDonate" ? "Free" : `${book.Price} EGP`}
+        </Typography>
       </Box>
 
-      {/* Right Content (Order Summary) */}
+      {/* Operation Box */}
       <Box
         sx={{
           flex: 0.4,
           border: "1px solid #e0e0e0",
           borderRadius: "12px",
-          padding: "20px",
+          p: "20px",
           backgroundColor: "#fafafa",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
         }}
       >
-        <Typography variant="h6" fontWeight="bold" mb={3} textAlign="center">
-          Order Summary
+        <Typography variant="h6" fontWeight="bold" mb={2}>
+          Operation Summary
         </Typography>
 
-        <RadioGroup defaultValue="purchase">
-          <Box
-            sx={{
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              mb: 2,
-              p: "15px",
-            }}
-          >
-            <FormControlLabel
-              value="purchase"
-              control={<Radio />}
-              label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                  }}
-                >
-                  <Typography fontWeight="bold">Purchase</Typography>
-                  <Typography>${book.price.toFixed(2)}</Typography>
-                </Box>
-              }
-            />
-          </Box>
-
-          <Box
-            sx={{
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              mb: 2,
-              p: "15px",
-            }}
-          >
-            <FormControlLabel
-              value="borrow"
-              control={<Radio />}
-              label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                  }}
-                >
-                  <Typography fontWeight="bold">Borrow</Typography>
-                  <Typography>$3.00</Typography>
-                </Box>
-              }
-            />
-          </Box>
-
-          <Box
-            sx={{ border: "1px solid #ccc", borderRadius: "10px", p: "15px" }}
-          >
-            <FormControlLabel
-              value="donate"
-              control={<Radio />}
-              label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                  }}
-                >
-                  <Typography fontWeight="bold">Receive Donation</Typography>
-                  <Typography sx={{ color: "green" }}>$0.00</Typography>
-                </Box>
-              }
-            />
-          </Box>
+        <RadioGroup defaultValue={operationType}>
+          <FormControlLabel
+            value={operationType}
+            control={<Radio />}
+            label={`Operation: ${operationType}`}
+          />
         </RadioGroup>
 
-        <Divider sx={{ my: 4 }} />
-
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-          <Typography>Book Price</Typography>
-          <Typography>${book.price.toFixed(2)}</Typography>
-        </Box>
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-          <Typography>Shipping</Typography>
-          <Typography>${book.shipping.toFixed(2)}</Typography>
-        </Box>
-
         <Divider sx={{ my: 2 }} />
-        <Typography
-          fontWeight="bold"
-          sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}
-        >
-          Total <span>${(book.price + book.shipping).toFixed(2)}</span>
+
+        <Typography fontWeight="bold" mb={3}>
+          Total:{" "}
+          {book.TransactionType === "toDonate" ? "Free" : `${book.Price} EGP`}
         </Typography>
 
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 2,
-            mt: 3,
-          }}
-        >
+        <Box sx={{ textAlign: "center" }}>
           <Button
             variant="contained"
+            onClick={handleComplete}
             sx={{
-              py: "12px",
+              py: 1.5,
+              px: 3,
               fontWeight: "bold",
               backgroundColor: "#004d40",
-              width: "80%",
-              borderRadius: "15px",
+              borderRadius: "8px",
+              width: "300px",
+              "&:hover": { backgroundColor: "#00695c" },
             }}
           >
-            Complete Purchase
+            Complete {operationType}
           </Button>
+
+          {successMessage && (
+            <Typography mt={2} color="green" fontWeight="bold">
+              {successMessage}
+            </Typography>
+          )}
 
           <Button
             variant="contained"
             startIcon={<EmailOutlined />}
             sx={{
+              mt: 2,
               backgroundColor: "#c0ca33",
-              textTransform: "none",
+              color: "black",
               fontWeight: "bold",
-              width: "80%",
-              borderRadius: "12px",
+              textTransform: "none",
+              width: "300px",
+              "&:hover": { backgroundColor: "#afb42b" },
             }}
           >
             Contact Owner
