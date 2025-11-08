@@ -11,13 +11,15 @@ export default function MyReportsTableRow({ row, getStatusColor, getStatusTextCo
 
       <TableCell align="center">
         <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
-          {row.targetType === 'User' ? (
+          {row.targetType === 'user' ? (
             <PersonIcon fontSize="small" />
           ) : (
             <MenuBookIcon fontSize="small" />
           )}
           <Typography variant="body2" component="span">
-            {row.target?.username || row.target?.title || row.target || 'N/A'}
+            {row.targetType === 'user'
+              ? row.targetId?.fullName || 'N/A'
+              : row.targetId?.Title || 'N/A'}
           </Typography>
         </Stack>
       </TableCell>
@@ -47,7 +49,7 @@ export default function MyReportsTableRow({ row, getStatusColor, getStatusTextCo
           <Button
             variant="text"
             sx={{ color: '#2563EB', textTransform: 'capitalize' }}
-            onClick={() => onCancel(row._id)}
+            onClick={() => onCancel(row)}
           >
             Cancel
           </Button>

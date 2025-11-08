@@ -35,7 +35,7 @@ export default function MyReportsFilters({
           sx={{ backgroundColor: '#fff', borderRadius: 1 }}
         >
           <MenuItem value="All">All</MenuItem>
-          <MenuItem value="User">User</MenuItem>
+          <MenuItem value="user">User</MenuItem>
           <MenuItem value="Book">Book</MenuItem>
         </Select>
       </FormControl>

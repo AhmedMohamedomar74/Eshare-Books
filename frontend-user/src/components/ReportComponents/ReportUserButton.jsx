@@ -6,7 +6,7 @@ export default function ReportUserButton({ userId }) {
   const navigate = useNavigate();
 
   const handleReport = () => {
-    navigate(`/report/user/${userId}`);
+    navigate(`/reports/user/${userId}`);
   };
 
   return (

@@ -49,20 +49,43 @@ export default function ReportForm({ targetType, targetId }) {
       return;
     }
 
-    dispatch(createNewReport({ reason, description, targetType, targetId }));
+    const reportData = {
+      targetType,
+      targetId,
+      reason,
+      description: description || '',
+    };
+
+    dispatch(createNewReport(reportData));
   };
 
   useEffect(() => {
     if (successMessage) {
       setSnackbarType('success');
-      setSnackbarMsg(successMessage);
+      setSnackbarMsg('Report sent successfully! It will be reviewed shortly.');
       setOpenSnackbar(true);
       setReason('');
       setDescription('');
       setTimeout(() => dispatch(clearReportMessage()), 3000);
     } else if (error) {
+      let userFriendlyError = 'Failed to send report. Please try again.';
+
+      if (error.response) {
+        const status = error.response.status;
+
+        if (status === 400) {
+          userFriendlyError = 'You have already submitted this exact report.';
+        } else if (status === 403) {
+          userFriendlyError = 'You cannot report yourself.';
+        } else if (status === 404) {
+          userFriendlyError = 'Book or user not found.';
+        } else if (status === 500) {
+          userFriendlyError = 'Server error. Please try again later.';
+        }
+      }
+
       setSnackbarType('error');
-      setSnackbarMsg(error);
+      setSnackbarMsg(userFriendlyError);
       setOpenSnackbar(true);
       setTimeout(() => dispatch(clearReportMessage()), 3000);
     }
@@ -91,12 +114,18 @@ export default function ReportForm({ targetType, targetId }) {
 
       <Stack spacing={3}>
         <ReportHeader />
-        <ReportReasonSelect reason={reason} onChange={handleReasonChange} error={errors.reason} />
+        <ReportReasonSelect
+          reason={reason}
+          onChange={handleReasonChange}
+          error={errors.reason}
+          disabled={loading}
+        />
         <ReportDescriptionField
           value={description}
           onChange={handleDescriptionChange}
           error={errors.description}
           charCount={description.length}
+          disabled={loading}
         />
         <ReportActions onCancel={handleCancel} onSend={handleSendReport} loading={loading} />
       </Stack>

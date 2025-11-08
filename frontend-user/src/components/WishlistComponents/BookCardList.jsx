@@ -2,7 +2,7 @@ import { Card, CardContent, Typography, Button, Box } from '@mui/material';
 import notFoundImage from '/src/assets/not_foundimage.png';
 
 export default function BookCardList({ book, onView, onDelete }) {
-  const imageSrc = book.image || notFoundImage;
+  const imageSrc = book.image?.secure_url || notFoundImage;
 
   return (
     <Card

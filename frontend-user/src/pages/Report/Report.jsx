@@ -3,8 +3,28 @@ import { useParams } from 'react-router-dom';
 import ReportForm from '../../components/ReportComponents/ReportForm';
 
 export default function Report() {
-  const { targetType, targetId } = useParams();
+  const { type, targetId } = useParams();
 
+  const targetType = type === 'book' ? 'Book' : type === 'user' ? 'user' : null;
+
+  if (!targetType || !targetId) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f5f5f5',
+          p: 3,
+        }}
+      >
+        <Typography color="error" variant="h6" align="center">
+          Invalid report target.
+        </Typography>
+      </Box>
+    );
+  }
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
       <Container maxWidth="sm" sx={{ py: 6 }}>

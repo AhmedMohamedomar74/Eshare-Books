@@ -1,4 +1,3 @@
-// components/MyReports/MyReportsEmptyState.jsx
 import { Box, Typography, Button } from '@mui/material';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +6,7 @@ export default function MyReportsEmptyState() {
   const navigate = useNavigate();
 
   const handleBrowseBooks = () => {
-    navigate('/books');
+    navigate('/');
   };
 
   return (

@@ -1,15 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import reportService from '../../services/report.service.js';
 
-// Create new report
 export const createNewReport = createAsyncThunk(
   'reports/createNewReport',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await reportService.createReport(data);
-      return response.message || 'Report created successfully.';
+      await reportService.createReport(data);
+      return true;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create report.');
+      return rejectWithValue(error);
     }
   }
 );

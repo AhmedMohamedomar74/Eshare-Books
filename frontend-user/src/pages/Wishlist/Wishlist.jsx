@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Button, Container, Grid } from '@mui/material';
+import { Box, Button, CircularProgress, Container, Grid, Typography } from '@mui/material';
 import WishlistHeader from '../../components/WishlistComponents/WishlistHeader';
 import WishlistEmptyState from '../../components/WishlistComponents/WishlistEmptyState';
 import BookCardGrid from '../../components/WishlistComponents/BookCardGrid';
@@ -33,7 +33,23 @@ export default function Wishlist() {
   };
 
   if (loading) {
-    return <p style={{ textAlign: 'center' }}>Loading wishlist...</p>;
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '200px',
+          mt: 4,
+        }}
+      >
+        <CircularProgress />
+        <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+          Loading wishlist...
+        </Typography>
+      </Box>
+    );
   }
 
   return (

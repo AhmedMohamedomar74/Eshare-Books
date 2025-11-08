@@ -1,10 +1,11 @@
 import { Button, Box } from '@mui/material';
 
-export default function ReportActions({ onCancel, onSend }) {
+export default function ReportActions({ onCancel, onSend, loading }) {
   return (
     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', pt: 2 }}>
       <Button
         onClick={onCancel}
+        disabled={loading}
         sx={{
           color: '#000',
           textTransform: 'none',
@@ -20,6 +21,7 @@ export default function ReportActions({ onCancel, onSend }) {
       </Button>
       <Button
         onClick={onSend}
+        disabled={loading}
         sx={{
           backgroundColor: '#2563eb',
           color: 'white',
@@ -31,7 +33,7 @@ export default function ReportActions({ onCancel, onSend }) {
           '&:hover': { backgroundColor: '#1d4ed8' },
         }}
       >
-        Send Report
+        {loading ? 'Sending...' : 'Send Report'}{' '}
       </Button>
     </Box>
   );

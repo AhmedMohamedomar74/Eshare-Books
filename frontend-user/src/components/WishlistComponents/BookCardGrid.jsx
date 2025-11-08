@@ -3,7 +3,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 import notFoundImage from '/src/assets/not_foundimage.png';
 
 export default function BookCardGrid({ book, onDelete, onView }) {
-  const imageSrc = book.image || notFoundImage;
+  const imageSrc = book.image?.secure_url || notFoundImage;
 
   return (
     <Card
@@ -52,7 +52,13 @@ export default function BookCardGrid({ book, onDelete, onView }) {
         height="280"
         image={imageSrc}
         alt={book.Title}
-        sx={{ objectFit: 'cover' }}
+        sx={{
+          objectFit: 'cover',
+          width: '100%',
+          height: 280,
+          minHeight: 280,
+          maxHeight: 280,
+        }}
         loading="lazy"
       />
 

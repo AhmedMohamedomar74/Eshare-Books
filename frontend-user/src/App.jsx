@@ -23,7 +23,7 @@ function App() {
         <Route path="/profile" element={<BookShareDashboard />} />
         <Route path="/order" element={<OrderPage />} />
         <Route path="/wishlist" element={<Wishlist />} />
-        <Route path="/report/:targetType/:targetId" element={<Report />} />
+        <Route path="/reports/:type/:targetId" element={<Report />} />
         <Route path="/myreports" element={<MyReports />} />
       </Routes>
     </BrowserRouter>

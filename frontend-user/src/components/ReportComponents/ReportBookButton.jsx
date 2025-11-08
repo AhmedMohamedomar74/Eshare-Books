@@ -6,7 +6,7 @@ export default function ReportBookButton({ bookId }) {
   const navigate = useNavigate();
 
   const handleReport = () => {
-    navigate(`/report/book/${bookId}`);
+    navigate(`/reports/book/${bookId}`);
   };
 
   return (

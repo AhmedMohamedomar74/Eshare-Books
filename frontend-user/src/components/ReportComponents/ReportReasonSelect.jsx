@@ -9,7 +9,7 @@ const reportReasons = [
   'Other',
 ];
 
-export default function ReportReasonSelect({ reason, onChange, error }) {
+export default function ReportReasonSelect({ reason, onChange, error, disabled }) {
   return (
     <Box>
       <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#000', mb: 1 }}>
@@ -19,6 +19,7 @@ export default function ReportReasonSelect({ reason, onChange, error }) {
         <Select
           value={reason}
           onChange={onChange}
+          disabled={disabled}
           displayEmpty
           sx={{
             backgroundColor: '#fff',
