@@ -1,4 +1,3 @@
-// components/MyReports/MyReportsPagination.jsx
 import { Box, Typography, Stack, Pagination } from '@mui/material';
 
 export default function MyReportsPagination({

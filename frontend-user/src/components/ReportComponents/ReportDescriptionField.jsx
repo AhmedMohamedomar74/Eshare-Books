@@ -1,6 +1,6 @@
 import { Typography, TextField, Box } from '@mui/material';
 
-export default function ReportDescriptionField({ value, onChange, error, charCount }) {
+export default function ReportDescriptionField({ value, onChange, error, charCount, disabled }) {
   return (
     <Box>
       <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#000', mb: 1 }}>
@@ -15,6 +15,7 @@ export default function ReportDescriptionField({ value, onChange, error, charCou
         onChange={onChange}
         error={Boolean(error)}
         helperText={error}
+        disabled={disabled}
         sx={{
           backgroundColor: '#fff',
           borderRadius: '6px',

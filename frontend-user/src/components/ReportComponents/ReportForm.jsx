@@ -1,15 +1,22 @@
-import { useState } from 'react';
-import { Stack, CardContent, Alert, Box } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Stack, Box, Snackbar, Alert } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
 import ReportHeader from './ReportHeader';
 import ReportReasonSelect from './ReportReasonSelect';
 import ReportDescriptionField from './ReportDescriptionField';
 import ReportActions from './ReportActions';
+import { createNewReport, clearReportMessage } from '../../redux/slices/report.slice.js';
 
-export default function ReportForm() {
+export default function ReportForm({ targetType, targetId }) {
+  const dispatch = useDispatch();
+  const { loading, successMessage, error } = useSelector((state) => state.reports);
+
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarType, setSnackbarType] = useState('success');
+  const [snackbarMsg, setSnackbarMsg] = useState('');
 
   const handleReasonChange = (e) => {
     setReason(e.target.value);
@@ -33,7 +40,6 @@ export default function ReportForm() {
     setReason('');
     setDescription('');
     setErrors({});
-    setSuccess(false);
   };
 
   const handleSendReport = () => {
@@ -43,49 +49,85 @@ export default function ReportForm() {
       return;
     }
 
-    console.log('Report submitted:', { reason, description });
+    const reportData = {
+      targetType,
+      targetId,
+      reason,
+      description: description || '',
+    };
 
-    setSuccess(true);
-    setReason('');
-    setDescription('');
-    setErrors({});
-
-    setTimeout(() => {
-      setSuccess(false);
-    }, 4000);
+    dispatch(createNewReport(reportData));
   };
+
+  useEffect(() => {
+    if (successMessage) {
+      setSnackbarType('success');
+      setSnackbarMsg('Report sent successfully! It will be reviewed shortly.');
+      setOpenSnackbar(true);
+      setReason('');
+      setDescription('');
+      setTimeout(() => dispatch(clearReportMessage()), 3000);
+    } else if (error) {
+      let userFriendlyError = 'Failed to send report. Please try again.';
+
+      if (error.response) {
+        const status = error.response.status;
+
+        if (status === 400) {
+          userFriendlyError = 'You have already submitted this exact report.';
+        } else if (status === 403) {
+          userFriendlyError = 'You cannot report yourself.';
+        } else if (status === 404) {
+          userFriendlyError = 'Book or user not found.';
+        } else if (status === 500) {
+          userFriendlyError = 'Server error. Please try again later.';
+        }
+      }
+
+      setSnackbarType('error');
+      setSnackbarMsg(userFriendlyError);
+      setOpenSnackbar(true);
+      setTimeout(() => dispatch(clearReportMessage()), 3000);
+    }
+  }, [successMessage, error, dispatch]);
 
   return (
     <Box sx={{ position: 'relative' }}>
-      {success && (
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
         <Alert
-          severity="success"
+          severity={snackbarType}
+          onClose={() => setOpenSnackbar(false)}
           sx={{
-            mb: 3,
+            width: '100%',
             borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            animation: 'fadeIn 0.4s ease-out',
-            '@keyframes fadeIn': {
-              from: { opacity: 0, transform: 'translateY(-10px)' },
-              to: { opacity: 1, transform: 'translateY(0)' },
-            },
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
           }}
-          onClose={() => setSuccess(false)}
         >
-          Your report has been sent successfully. Thank you for helping keep our community safe!
+          {snackbarMsg}
         </Alert>
-      )}
+      </Snackbar>
 
       <Stack spacing={3}>
         <ReportHeader />
-        <ReportReasonSelect reason={reason} onChange={handleReasonChange} error={errors.reason} />
+        <ReportReasonSelect
+          reason={reason}
+          onChange={handleReasonChange}
+          error={errors.reason}
+          disabled={loading}
+        />
         <ReportDescriptionField
           value={description}
           onChange={handleDescriptionChange}
           error={errors.description}
           charCount={description.length}
+          disabled={loading}
         />
-        <ReportActions onCancel={handleCancel} onSend={handleSendReport} />
+        <ReportActions onCancel={handleCancel} onSend={handleSendReport} loading={loading} />
       </Stack>
     </Box>
   );

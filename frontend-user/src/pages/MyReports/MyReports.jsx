@@ -1,143 +1,66 @@
-import { useState, useMemo } from 'react';
-import { Container, Box } from '@mui/material';
+import { useEffect, useState, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  getMyReports,
+  cancelUserReport,
+  clearReportMessage,
+} from '../../redux/slices/report.slice';
+import { Box, CircularProgress, Snackbar, Alert } from '@mui/material';
+
 import MyReportsHeader from '../../components/MyReportsComponents/MyReportsHeader';
 import MyReportsFilters from '../../components/MyReportsComponents/MyReportsFilters';
 import MyReportsTable from '../../components/MyReportsComponents/MyReportsTable';
 import MyReportsPagination from '../../components/MyReportsComponents/MyReportsPagination';
 
-const MyReports = () => {
+export default function MyReports() {
+  const dispatch = useDispatch();
+  const { reports, loading, successMessage, error } = useSelector((state) => state.reports);
+
+  const [snackbar, setSnackbar] = useState({ open: false, msg: '', type: 'success' });
   const [statusFilter, setStatusFilter] = useState('All');
   const [targetTypeFilter, setTargetTypeFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
-
   const itemsPerPage = 5;
 
-  const reportsData = [
-    {
-      id: 1,
-      targetType: 'User',
-      target: 'InappropriateName123',
-      reason: 'Inappropriate Username',
-      dateSubmitted: '2023-10-26',
-      status: 'Pending',
-    },
-    {
-      id: 2,
-      targetType: 'Book',
-      target: 'The Midnight Library',
-      reason: 'Spam',
-      dateSubmitted: '2023-10-25',
-      status: 'Reviewed',
-    },
-    {
-      id: 3,
-      targetType: 'User',
-      target: 'MisleadingProfile',
-      reason: 'Misinformation',
-      dateSubmitted: '2023-10-22',
-      status: 'Dismissed',
-    },
-    {
-      id: 4,
-      targetType: 'User',
-      target: 'HarassingUser45',
-      reason: 'Harassment',
-      dateSubmitted: '2023-10-20',
-      status: 'Cancelled',
-    },
-    {
-      id: 5,
-      targetType: 'Book',
-      target: 'A Tale of Two Cities',
-      reason: 'Hate Speech',
-      dateSubmitted: '2023-10-19',
-      status: 'Reviewed',
-    },
-    {
-      id: 6,
-      targetType: 'User',
-      target: 'SpamBot2025',
-      reason: 'Spam',
-      dateSubmitted: '2023-10-18',
-      status: 'Pending',
-    },
-    {
-      id: 7,
-      targetType: 'Book',
-      target: '1984',
-      reason: 'Offensive Content',
-      dateSubmitted: '2023-10-17',
-      status: 'Reviewed',
-    },
-    {
-      id: 8,
-      targetType: 'User',
-      target: 'TrollKing',
-      reason: 'Harassment',
-      dateSubmitted: '2023-10-15',
-      status: 'Dismissed',
-    },
-    {
-      id: 9,
-      targetType: 'Book',
-      target: 'Brave New World',
-      reason: 'Misinformation',
-      dateSubmitted: '2023-10-14',
-      status: 'Pending',
-    },
-    {
-      id: 10,
-      targetType: 'User',
-      target: 'FakeUser99',
-      reason: 'Scam',
-      dateSubmitted: '2023-10-12',
-      status: 'Reviewed',
-    },
-    {
-      id: 11,
-      targetType: 'Book',
-      target: 'Pride and Prejudice',
-      reason: 'Inappropriate Cover',
-      dateSubmitted: '2023-10-10',
-      status: 'Pending',
-    },
-    {
-      id: 12,
-      targetType: 'User',
-      target: 'ScammerPro',
-      reason: 'Fraud',
-      dateSubmitted: '2023-10-08',
-      status: 'Reviewed',
-    },
-    {
-      id: 13,
-      targetType: 'Book',
-      target: 'To Kill a Mockingbird',
-      reason: 'Offensive Language',
-      dateSubmitted: '2023-10-05',
-      status: 'Dismissed',
-    },
-  ];
+  useEffect(() => {
+    console.log('Dispatching getMyReports...');
+    dispatch(getMyReports());
+  }, [dispatch]);
 
-  const filteredData = useMemo(() => {
-    return reportsData.filter((report) => {
+  useEffect(() => {
+    if (successMessage) {
+      setSnackbar({ open: true, msg: successMessage, type: 'success' });
+      setTimeout(() => dispatch(clearReportMessage()), 3000);
+    } else if (error) {
+      setSnackbar({ open: true, msg: error, type: 'error' });
+      setTimeout(() => dispatch(clearReportMessage()), 3000);
+    }
+  }, [successMessage, error, dispatch]);
+
+  const handleCancel = (report) => {
+    if (report.status !== 'Pending') return;
+    dispatch(cancelUserReport(report._id));
+  };
+
+  const filteredReports = useMemo(() => {
+    return reports.filter((report) => {
       const matchesStatus = statusFilter === 'All' || report.status === statusFilter;
       const matchesType = targetTypeFilter === 'All' || report.targetType === targetTypeFilter;
       return matchesStatus && matchesType;
     });
-  }, [statusFilter, targetTypeFilter]);
+  }, [reports, statusFilter, targetTypeFilter]);
 
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage, itemsPerPage]);
-
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, targetTypeFilter]);
+
+  const paginatedReports = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredReports.slice(startIndex, endIndex);
+  }, [filteredReports, currentPage]);
+
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
 
   const getStatusColor = (status) => {
     const colors = {
@@ -160,35 +83,61 @@ const MyReports = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <MyReportsHeader />
+    <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5', p: 4 }}>
+      <MyReportsHeader />
 
-        <MyReportsFilters
-          statusFilter={statusFilter}
-          targetTypeFilter={targetTypeFilter}
-          onStatusChange={setStatusFilter}
-          onTargetTypeChange={setTargetTypeFilter}
-        />
+      <MyReportsFilters
+        statusFilter={statusFilter}
+        targetTypeFilter={targetTypeFilter}
+        onStatusChange={setStatusFilter}
+        onTargetTypeChange={setTargetTypeFilter}
+      />
 
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : filteredReports.length === 0 ? (
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Alert severity="info">No reports found.</Alert>
+        </Box>
+      ) : (
         <MyReportsTable
-          reportsData={paginatedData}
+          reportsData={paginatedReports}
           getStatusColor={getStatusColor}
           getStatusTextColor={getStatusTextColor}
+          onCancel={handleCancel}
         />
+      )}
 
-        {filteredData.length > 0 && (
-          <MyReportsPagination
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-            totalPages={totalPages}
-            totalItems={filteredData.length}
-            itemsPerPage={itemsPerPage}
-          />
-        )}
-      </Container>
+      {filteredReports.length > 0 && (
+        <MyReportsPagination
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          totalPages={totalPages}
+          totalItems={filteredReports.length}
+          itemsPerPage={itemsPerPage}
+        />
+      )}
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          severity={snackbar.type}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          sx={{
+            width: '100%',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          }}
+        >
+          {snackbar.msg}
+        </Alert>
+      </Snackbar>
     </Box>
   );
-};
-
-export default MyReports;
+}

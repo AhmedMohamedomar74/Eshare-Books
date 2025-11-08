@@ -3,7 +3,12 @@ import MyReportsTableHead from './MyReportsTableHead';
 import MyReportsTableRow from './MyReportsTableRow';
 import MyReportsEmptyState from './MyReportsEmptyState';
 
-export default function MyReportsTable({ reportsData, getStatusColor, getStatusTextColor }) {
+export default function MyReportsTable({
+  reportsData,
+  getStatusColor,
+  getStatusTextColor,
+  onCancel,
+}) {
   const hasReports = reportsData.length > 0;
 
   return (
@@ -17,10 +22,11 @@ export default function MyReportsTable({ reportsData, getStatusColor, getStatusT
           <TableBody>
             {reportsData.map((row) => (
               <MyReportsTableRow
-                key={row.id}
+                key={row._id}
                 row={row}
                 getStatusColor={getStatusColor}
                 getStatusTextColor={getStatusTextColor}
+                onCancel={onCancel}
               />
             ))}
           </TableBody>

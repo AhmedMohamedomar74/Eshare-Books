@@ -1,13 +1,9 @@
-// src/components/WishlistComponents/WishlistEmptyState.jsx
+import { Box, Typography } from '@mui/material';
 
-import { Box, Typography, Button } from '@mui/material';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-
-const WishlistEmptyState = ({ onBrowse }) => {
+const WishlistEmptyState = () => {
   const texts = {
     title: 'Your wishlist is empty',
     subtitle: 'Add your favorite books and find them here later.',
-    button: 'Browse Books',
   };
 
   return (
@@ -55,24 +51,6 @@ const WishlistEmptyState = ({ onBrowse }) => {
       >
         {texts.subtitle}
       </Typography>
-
-      <Button
-        variant="contained"
-        size="large"
-        startIcon={<MenuBookIcon />}
-        onClick={onBrowse}
-        sx={{
-          borderRadius: 3,
-          textTransform: 'none',
-          px: 4,
-          py: 1.5,
-          fontWeight: 600,
-          backgroundColor: '#1976d2',
-          '&:hover': { backgroundColor: '#1565c0' },
-        }}
-      >
-        {texts.button}
-      </Button>
     </Box>
   );
 };
