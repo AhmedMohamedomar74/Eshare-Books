@@ -5,6 +5,7 @@ import streamifier from "streamifier";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { AppError } from "../../utils/AppError.js";
 import { nanoid } from "nanoid";
+import {moderateImage,moderateText} from "../../utils/ai/moderation.js"
  
 // Helper Function: Upload to Cloudinary
 const uploadToCloudinary = (fileBuffer, folder) => {

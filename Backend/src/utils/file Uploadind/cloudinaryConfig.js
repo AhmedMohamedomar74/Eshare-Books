@@ -6,7 +6,7 @@ import { v2 as cloudinary } from "cloudinary";
  const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
- dotenv.config({ path: path.resolve(__dirname, "../../../config/dev.env") });
+ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

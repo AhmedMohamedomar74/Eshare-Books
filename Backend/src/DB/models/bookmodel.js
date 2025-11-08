@@ -19,7 +19,7 @@ const bookSchema = new mongoose.Schema(
     },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Category", // reference
+      ref: "category", // reference
       required: true,
     },
     IsModerated: {
@@ -28,7 +28,7 @@ const bookSchema = new mongoose.Schema(
     },
     UserID: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "user",
       required: true,
     },
     // Condition: {
@@ -52,7 +52,7 @@ const bookSchema = new mongoose.Schema(
     // },
     Price: {
       type: Number,
-      required: true,
+      // required: true,
       min: 0,
     },
         // ✅ Soft Delete flag
