@@ -18,8 +18,8 @@ export default function MyReportsTableRow({ row, getStatusColor, getStatusTextCo
           )}
           <Typography variant="body2" component="span">
             {row.targetType === 'user'
-              ? row.targetId?.fullName || 'N/A'
-              : row.targetId?.Title || 'N/A'}
+              ? row.targetId?.fullName || 'User Not Found'
+              : row.targetId?.Title || 'Book Not Found'}
           </Typography>
         </Stack>
       </TableCell>

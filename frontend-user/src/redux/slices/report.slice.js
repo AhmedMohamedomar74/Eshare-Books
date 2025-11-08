@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import reportService from '../../services/report.service.js';
 
+// Create report
 export const createNewReport = createAsyncThunk(
   'reports/createNewReport',
   async (data, { rejectWithValue }) => {
@@ -13,13 +14,13 @@ export const createNewReport = createAsyncThunk(
   }
 );
 
-// Get reports by user
-export const getUserReports = createAsyncThunk(
-  'reports/getUserReports',
-  async (userId, { rejectWithValue }) => {
+// Get my reports
+export const getMyReports = createAsyncThunk(
+  'reports/getMyReports',
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await reportService.getReportsByUser(userId);
-      return response.data;
+      const response = await reportService.getMyReports();
+      return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch reports.');
     }
@@ -69,15 +70,15 @@ const reportSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Get user reports
-      .addCase(getUserReports.pending, (state) => {
+      // Get my reports
+      .addCase(getMyReports.pending, (state) => {
         state.loading = true;
       })
-      .addCase(getUserReports.fulfilled, (state, action) => {
+      .addCase(getMyReports.fulfilled, (state, action) => {
         state.loading = false;
         state.reports = action.payload;
       })
-      .addCase(getUserReports.rejected, (state, action) => {
+      .addCase(getMyReports.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

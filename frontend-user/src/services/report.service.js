@@ -5,9 +5,9 @@ const createReport = async (data) => {
   return res.data;
 };
 
-const getReportsByUser = async (userId) => {
-  const res = await api.get(`/reports/user/${userId}`);
-  return res.data;
+const getMyReports = async (userId) => {
+  const res = await api.get(`/reports/me`);
+  return res.data.data;
 };
 
 const cancelReport = async (reportId) => {
@@ -17,7 +17,7 @@ const cancelReport = async (reportId) => {
 
 const reportService = {
   createReport,
-  getReportsByUser,
+  getMyReports,
   cancelReport,
 };
 

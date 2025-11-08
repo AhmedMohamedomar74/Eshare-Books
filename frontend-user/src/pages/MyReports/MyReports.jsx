@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  getUserReports,
+  getMyReports,
   cancelUserReport,
   clearReportMessage,
 } from '../../redux/slices/report.slice';
@@ -16,20 +16,17 @@ export default function MyReports() {
   const dispatch = useDispatch();
   const { reports, loading, successMessage, error } = useSelector((state) => state.reports);
 
-  const userId = localStorage.getItem('userId'); // تأكد إنه موجود
-
   const [snackbar, setSnackbar] = useState({ open: false, msg: '', type: 'success' });
   const [statusFilter, setStatusFilter] = useState('All');
   const [targetTypeFilter, setTargetTypeFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // جلب تقارير المستخدم عند تحميل الصفحة
   useEffect(() => {
-    if (userId) dispatch(getUserReports(userId));
-  }, [dispatch, userId]);
+    console.log('Dispatching getMyReports...');
+    dispatch(getMyReports());
+  }, [dispatch]);
 
-  // معالجة رسائل النجاح أو الخطأ
   useEffect(() => {
     if (successMessage) {
       setSnackbar({ open: true, msg: successMessage, type: 'success' });
@@ -40,13 +37,11 @@ export default function MyReports() {
     }
   }, [successMessage, error, dispatch]);
 
-  // دالة لإلغاء التقرير
   const handleCancel = (report) => {
     if (report.status !== 'Pending') return;
     dispatch(cancelUserReport(report._id));
   };
 
-  // فلترة البيانات
   const filteredReports = useMemo(() => {
     return reports.filter((report) => {
       const matchesStatus = statusFilter === 'All' || report.status === statusFilter;
@@ -87,13 +82,6 @@ export default function MyReports() {
     return colors[status] || '#333';
   };
 
-  // دالة للحصول على الاسم أو عنوان الكتاب
-  const getTargetName = (report) => {
-    if (report.targetType === 'user') return report.targetId?.fullName || 'N/A';
-    if (report.targetType === 'Book') return report.targetId?.Title || 'N/A';
-    return 'N/A';
-  };
-
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5', p: 4 }}>
       <MyReportsHeader />
@@ -106,14 +94,19 @@ export default function MyReports() {
       />
 
       {loading ? (
-        <CircularProgress />
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : filteredReports.length === 0 ? (
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Alert severity="info">No reports found.</Alert>
+        </Box>
       ) : (
         <MyReportsTable
           reportsData={paginatedReports}
           getStatusColor={getStatusColor}
           getStatusTextColor={getStatusTextColor}
           onCancel={handleCancel}
-          getTargetName={getTargetName} // تمرير الدالة للجدول
         />
       )}
 
