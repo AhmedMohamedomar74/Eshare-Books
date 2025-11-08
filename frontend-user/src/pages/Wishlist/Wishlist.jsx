@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Button, Container } from '@mui/material';
+import { Box, Button, Container, Grid } from '@mui/material';
 import WishlistHeader from '../../components/WishlistComponents/WishlistHeader';
 import WishlistEmptyState from '../../components/WishlistComponents/WishlistEmptyState';
 import BookCardGrid from '../../components/WishlistComponents/BookCardGrid';
@@ -9,7 +9,6 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { fetchWishlist, removeFromWishlist } from '../../redux/slices/wishlist.slice';
 import { useNavigate } from 'react-router-dom';
 import ClearWishlistButton from '../../components/WishlistComponents/ClearWishlistButton';
-import Grid from '@mui/material/Grid2';
 
 export default function Wishlist() {
   const dispatch = useDispatch();
@@ -21,12 +20,12 @@ export default function Wishlist() {
     dispatch(fetchWishlist());
   }, [dispatch]);
 
-  const handleDelete = (id) => {
-    dispatch(removeFromWishlist(id));
+  const handleDelete = (wishlistItemId) => {
+    dispatch(removeFromWishlist(wishlistItemId));
   };
 
-  const handleView = (id) => {
-    navigate(`/details/${id}`);
+  const handleView = (bookId) => {
+    navigate(`/details/${bookId}`);
   };
 
   const handleBrowse = () => {
@@ -61,27 +60,35 @@ export default function Wishlist() {
               justifyContent: 'center',
             }}
           >
-            {wishlistBooks.map((book) => (
+            {wishlistBooks.map((wishlistItem) => (
               <Grid
-                size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
-                key={book._id}
+                item
+                xs={12}
+                sm={6}
+                md={4}
+                lg={3}
+                key={wishlistItem._id}
                 sx={{
                   display: 'flex',
                   height: '100%',
                 }}
               >
-                <BookCardGrid book={book} onDelete={handleDelete} onView={handleView} />
+                <BookCardGrid
+                  book={wishlistItem.bookId}
+                  onDelete={() => handleDelete(wishlistItem.bookId._id)}
+                  onView={() => handleView(wishlistItem.bookId._id)}
+                />
               </Grid>
             ))}
           </Grid>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {wishlistBooks.map((book) => (
+            {wishlistBooks.map((wishlistItem) => (
               <BookCardList
-                key={book._id}
-                book={book}
-                onDelete={handleDelete}
-                onView={handleView}
+                key={wishlistItem._id}
+                book={wishlistItem.bookId}
+                onDelete={() => handleDelete(wishlistItem.bookId._id)}
+                onView={() => handleView(wishlistItem.bookId._id)}
               />
             ))}
           </Box>

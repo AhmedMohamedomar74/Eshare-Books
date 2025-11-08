@@ -25,7 +25,7 @@ export default function BookCardGrid({ book, onDelete, onView }) {
     >
       <IconButton
         className="delete-button"
-        onClick={() => onDelete(book.id)}
+        onClick={onDelete}
         aria-label={`Remove ${book.Title} from wishlist`}
         sx={{
           position: 'absolute',
@@ -81,12 +81,12 @@ export default function BookCardGrid({ book, onDelete, onView }) {
             whiteSpace: 'nowrap',
           }}
         >
-          {book.author}
+          {book.TransactionType}
         </Typography>
         <Button
           variant="contained"
           fullWidth
-          onClick={() => onView(book.id)}
+          onClick={onView}
           sx={{
             backgroundColor: '#1976d2',
             textTransform: 'none',

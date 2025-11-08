@@ -4,7 +4,7 @@ import {
   getUserReports,
   cancelUserReport,
   clearReportMessage,
-} from '../redux/slices/reportSlice.js';
+} from '../../redux/slices/report.slice';
 import {
   Box,
   CircularProgress,

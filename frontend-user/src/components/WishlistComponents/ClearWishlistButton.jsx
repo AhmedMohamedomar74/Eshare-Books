@@ -43,6 +43,7 @@ export default function ClearWishlistButton() {
           py: 1,
           fontWeight: 600,
           mt: 2,
+          mb: 2,
           alignSelf: 'flex-end',
           borderWidth: 2,
           '&:hover': {

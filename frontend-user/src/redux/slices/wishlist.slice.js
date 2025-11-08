@@ -6,8 +6,8 @@ export const fetchWishlist = createAsyncThunk(
   'wishlist/fetchWishlist',
   async (_, { rejectWithValue }) => {
     try {
-      const data = await WishlistService.getWishlist();
-      return data;
+      const items = await WishlistService.getWishlist();
+      return items;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to load wishlist');
     }
@@ -18,8 +18,8 @@ export const addToWishlist = createAsyncThunk(
   'wishlist/addToWishlist',
   async (bookId, { rejectWithValue }) => {
     try {
-      const data = await WishlistService.addToWishlist(bookId);
-      return data;
+      const res = await WishlistService.addToWishlist(bookId);
+      return res.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to add book');
     }
@@ -28,10 +28,10 @@ export const addToWishlist = createAsyncThunk(
 
 export const removeFromWishlist = createAsyncThunk(
   'wishlist/removeFromWishlist',
-  async (bookId, { rejectWithValue }) => {
+  async (wishlistItemId, { rejectWithValue }) => {
     try {
-      await WishlistService.removeFromWishlist(bookId);
-      return bookId;
+      await WishlistService.removeFromWishlist(wishlistItemId);
+      return wishlistItemId;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to remove book');
     }
@@ -81,7 +81,7 @@ const wishlistSlice = createSlice({
 
       // Remove
       .addCase(removeFromWishlist.fulfilled, (state, action) => {
-        state.items = state.items.filter((b) => b.id !== action.payload);
+        state.items = state.items.filter((item) => item.bookId._id !== action.payload);
       })
 
       // Clear

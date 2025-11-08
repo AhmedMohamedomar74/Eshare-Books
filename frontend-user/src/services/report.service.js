@@ -1,4 +1,4 @@
-import api from '../../axiosInstance/axiosInstance.js';
+import api from '../axiosInstance/axiosInstance.js';
 
 const createReport = async (data) => {
   const res = await api.post('/reports', data);

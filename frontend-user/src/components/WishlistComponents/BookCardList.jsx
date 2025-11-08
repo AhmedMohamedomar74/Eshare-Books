@@ -46,20 +46,20 @@ export default function BookCardList({ book, onView, onDelete }) {
               whiteSpace: 'nowrap',
             }}
           >
-            by {book.author}
+            {book.TransactionType}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
           <Button
             variant="contained"
-            onClick={() => onView(book.id)}
+            onClick={onView}
             sx={{ backgroundColor: '#1976d2', textTransform: 'none', fontWeight: 'bold' }}
           >
             View Details
           </Button>
           <Button
             variant="outlined"
-            onClick={() => onDelete(book.id)}
+            onClick={onDelete}
             sx={{ textTransform: 'none', fontWeight: 'bold', borderColor: '#ddd', color: '#666' }}
           >
             Remove

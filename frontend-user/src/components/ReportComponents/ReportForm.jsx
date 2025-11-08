@@ -5,7 +5,7 @@ import ReportHeader from './ReportHeader';
 import ReportReasonSelect from './ReportReasonSelect';
 import ReportDescriptionField from './ReportDescriptionField';
 import ReportActions from './ReportActions';
-import { createNewReport, clearReportMessage } from '../../redux/slices/reportSlice';
+import { createNewReport, clearReportMessage } from '../../redux/slices/report.slice.js';
 
 export default function ReportForm({ targetType, targetId }) {
   const dispatch = useDispatch();
