@@ -13,8 +13,10 @@ export const validatePassword = (password) => {
   if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
   if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
   if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
+  if (!/[@$!%*?&]/.test(password)) return 'Password must contain at least one special character (@$!%*?&)';
   return '';
 };
+
 
 export const validateConfirmPassword = (password, confirmPassword) => {
   if (!confirmPassword) return 'Please confirm your password';
@@ -22,10 +24,17 @@ export const validateConfirmPassword = (password, confirmPassword) => {
   return '';
 };
 
-export const validateFullName = (name) => {
-  if (!name) return 'Full name is required';
-  if (name.trim().length < 2) return 'Name must be at least 2 characters long';
-  if (!/^[a-zA-Z\s]+$/.test(name)) return 'Name can only contain letters and spaces';
+export const validateFirstName = (name) => {
+  if (!name) return 'First name is required';
+  if (name.trim().length < 2) return 'First name must be at least 2 characters long';
+  if (!/^[a-zA-Z]+$/.test(name)) return 'First name can only contain letters and spaces';
+  return '';
+};
+
+export const validateSecondName = (name) => {
+  if (!name) return 'Second name is required';
+  if (name.trim().length < 2) return 'Second name must be at least 2 characters long';
+  if (!/^[a-zA-Z]+$/.test(name)) return 'Second name can only contain letters and spaces';
   return '';
 };
 
@@ -52,8 +61,11 @@ export const validateLoginForm = (formData) => {
 export const validateRegisterForm = (formData) => {
   const errors = {};
   
-  const nameError = validateFullName(formData.fullName);
-  if (nameError) errors.fullName = nameError;
+  const firstNameError = validateFirstName(formData.firstName);
+  if (firstNameError) errors.firstName = firstNameError;
+
+  const secondNameError = validateSecondName(formData.secondName);
+  if (secondNameError) errors.secondName = secondNameError;
   
   const emailError = validateEmail(formData.email);
   if (emailError) errors.email = emailError;
