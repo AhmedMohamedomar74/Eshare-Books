@@ -3,13 +3,14 @@ import Button from "../../components/form/buttonComponent.jsx";
 import Input from "../../components/form/inputComponents.jsx";
 import PasswordInput from "../../components/form/passwordInputComponent.jsx";
 import { validateRegisterForm } from "../../components/form/validation.js";
-import { register } from "../../services/auth/auth.service.js";
+import { register, uploadImage } from "../../services/auth/auth.service.js";
+import Popup from "../../components/common/Popup.jsx";
 
 const BookShareRegister = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: '',
-    secondName : '',
+    secondName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -17,7 +18,31 @@ const BookShareRegister = () => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
+  const [id, setId] = useState('');
   const [profileImage, setProfileImage] = useState('https://lh3.googleusercontent.com/aida-public/AB6AXuASROdCfuTXkQJrI2gIsXu_zfPV0ZEToXbOL6sP_7ry4ppfTG-6SdQKt7OipdSA5vu7026RcVp7NrSm9A-8onTcX1SUppPNu6OKnVgVZ6g8Tfl2WTW-jA492MRYfl286wd1fSl16Yb1U51MDPnwwVv30jKojGN8OTprd1DnWTkbetPJVOTFt4ko0ahPBuJ0aZVsHfZmp0NJ7zBHSNuUdxTHVM1cJkeCL-PSbxC5xjB6xWrCJZr3_hLQsFtAFKqUXzLGIvdvxTGMJP9r');
+  
+  // Popup states
+  const [popup, setPopup] = useState({
+    show: false,
+    type: '', // 'success', 'error', 'warning'
+    message: ''
+  });
+
+  const showPopup = (type, message) => {
+    setPopup({
+      show: true,
+      type,
+      message
+    });
+  };
+
+  const hidePopup = () => {
+    setPopup({
+      show: false,
+      type: '',
+      message: ''
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,14 +61,31 @@ const BookShareRegister = () => {
     setErrors(newErrors);
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
+    console.log({ file });
     if (file) {
+      // Preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result);
       };
       reader.readAsDataURL(file);
+
+      // Upload
+      if (id) {
+        try {
+          console.log({ id });
+          const response = await uploadImage(file, id);
+          console.log(response);
+          showPopup('success', 'Profile image uploaded successfully!');
+        } catch (error) {
+          console.error('Image upload error:', error);
+          showPopup('error', 'Failed to upload profile image. Please try again.');
+        }
+      } else {
+        showPopup('warning', 'Please complete step 1 first.');
+      }
     }
   };
 
@@ -53,40 +95,73 @@ const BookShareRegister = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = async(e) => {
+  const handleNext = async (e) => {
     e.preventDefault();
     
-    setTouched({ firstName: true , secondName: true, email: true, password: true, confirmPassword: true });
+    setTouched({ firstName: true, secondName: true, email: true, password: true, confirmPassword: true });
     
     if (!validateForm()) {
+      showPopup('error', 'Please fix the form errors before proceeding.');
       return;
     }
+    
     try {
+      setLoading(true);
       const response = await register(formData.firstName, formData.secondName, formData.email, formData.password);
+      setId(response.data.id);
+      console.log(response);
+      setStep(2);
+      showPopup('success', 'Account created successfully! Please add your profile photo.');
     } catch (error) {
-      
+      console.error('Registration error:', error);
+      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+      showPopup('error', errorMessage);
+    } finally {
+      setLoading(false);
     }
-    setStep(2);
   };
 
   const handleBack = () => {
     setStep(1);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     setLoading(true);
     
-    setTimeout(() => {
+    try {
+      // Simulate API call or do final registration steps
       console.log('Registration data:', { ...formData, profileImage });
-      alert('Registration successful! (This is a demo)');
+      
+      // Show success message
+      showPopup('success', 'Registration completed! Please check your email to verify your account.');
+      
+      // You can redirect to login page after a delay
+      setTimeout(() => {
+        // window.location.href = '/login'; // Uncomment to redirect
+        setLoading(false);
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Final registration error:', error);
+      showPopup('error', 'Something went wrong. Please try again.');
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 lg:p-8 bg-[#F7F1E5]">
+      {/* Popup Component */}
+      {popup.show && (
+        <Popup
+          type={popup.type}
+          message={popup.message}
+          onClose={hidePopup}
+          duration={popup.type === 'success' ? 5000 : 7000}
+        />
+      )}
+      
       <div className="container mx-auto grid max-w-6xl grid-cols-1 overflow-hidden rounded-xl bg-white shadow-2xl shadow-black/10 lg:grid-cols-2">
         
         <div className="relative hidden h-full items-center justify-center bg-[#5D9C59]/10 p-12 lg:flex">
@@ -171,25 +246,20 @@ const BookShareRegister = () => {
                   required
                 />
 
-                {/* <label className="flex flex-col">
-                  <p className="text-base font-medium leading-normal pb-2">Account Type</p>
-                  <select 
-                    className="w-full rounded-lg border border-gray-300 bg-white p-3.5 text-base text-[#757575] focus:border-[#5D9C59] focus:outline-none focus:ring-1 focus:ring-[#5D9C59]"
-                    name="accountType"
-                    value={formData.accountType}
-                    onChange={handleChange}
-                  >
-                    <option>Reader</option>
-                    <option>Donor</option>
-                    <option>Seller</option>
-                  </select>
-                </label> */}
-
                 <Button 
-                  className="mt-4 w-full rounded-lg bg-[#5D9C59] py-3.5 text-base font-semibold text-white transition-colors hover:bg-[#5D9C59]/90 focus:outline-none focus:ring-2 focus:ring-[#5D9C59]/50 focus:ring-offset-2" 
+                  className="mt-4 w-full rounded-lg bg-[#5D9C59] py-3.5 text-base font-semibold text-white transition-colors hover:bg-[#5D9C59]/90 focus:outline-none focus:ring-2 focus:ring-[#5D9C59]/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed" 
                   onClick={handleNext}
+                  disabled={loading}
                 >
-                  Next: Add Profile Photo
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Creating Account...
+                    </span>
+                  ) : 'Next: Add Profile Photo'}
                 </Button>
               </div>
             ) : (
