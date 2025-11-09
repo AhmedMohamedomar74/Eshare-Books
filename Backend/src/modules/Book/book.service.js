@@ -6,6 +6,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { AppError } from "../../utils/AppError.js";
 import { nanoid } from "nanoid";
 import { moderateImage, moderateText } from "../../utils/ai/moderation.js";
+
  
 // Helper Function: Upload to Cloudinary
 const uploadToCloudinary = (fileBuffer, folder) => {
@@ -146,7 +147,7 @@ export const getBooksByCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
 
   const books = await Book.find({ categoryId, isDeleted: false })
-    .populate("UserID", "name email")
+    .populate("UserID", "firstName secondName email")
     .populate("categoryId", "name");
 
   res.json({
@@ -162,7 +163,7 @@ export const getBooksByCategory = asyncHandler(async (req, res) => {
  
 export const getBookById = asyncHandler(async (req, res) => {
   const book = await Book.findOne({ _id: req.params.id, isDeleted: false })
-    .populate("UserID", "name email")
+    .populate("UserID", "firstName secondName email")
     .populate("categoryId", "name");
 
   if (!book) throw new AppError("❌ Book not found", 404);

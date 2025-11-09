@@ -12,5 +12,5 @@ export const BookValidation = Joi.object({
   Title: Joi.string().required().trim(),
   Description: Joi.string().allow("").optional(),
   categoryId: Joi.string().custom(objectId).required(),
-  Price: Joi.number().min(0).required(),
+  Price: Joi.number().min(0),
 });
