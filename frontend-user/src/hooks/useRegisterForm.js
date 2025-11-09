@@ -78,7 +78,7 @@ export const useRegisterForm = () => {
       return { success: true, message: 'Account created successfully! Please add your profile photo.' };
     } catch (error) {
       console.error('Registration error:', error);
-      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+      const errorMessage = error.response?.data?.info || 'Registration failed. Please try again.';
       return { success: false, message: errorMessage };
     } finally {
       setLoading(false);
