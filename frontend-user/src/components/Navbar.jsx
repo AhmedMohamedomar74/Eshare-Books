@@ -9,12 +9,13 @@ import {
   List,
   ListItem,
   ListItemText,
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import WishlistCounterIcon from './WishlistComponents/WishlistCounterIcon';
 
-const pages = ["Home", "Wishlist", "Profile", "Chat", "Order"];
+const pages = ['Home', 'Wishlist', 'Profile', 'Chat', 'Order'];
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -24,7 +25,7 @@ const Navbar = () => {
   };
 
   const drawer = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
+    <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2 }}>
         EshareBook
       </Typography>
@@ -33,10 +34,24 @@ const Navbar = () => {
           <ListItem
             key={page}
             component={Link}
-            to={page === "Home" ? "/" : `/${page.toLowerCase()}`}
-            sx={{ textAlign: "center" }}
+            to={page === 'Home' ? '/' : `/${page.toLowerCase()}`}
+            sx={{ textAlign: 'center' }}
           >
-            <ListItemText primary={page} />
+            <ListItemText
+              primary={
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {page}
+                  {page === 'Wishlist' && <WishlistCounterIcon />}
+                </Box>
+              }
+            />
           </ListItem>
         ))}
       </List>
@@ -48,27 +63,27 @@ const Navbar = () => {
       <AppBar
         position="static"
         sx={{
-          backgroundColor: "white",
-          color: "black",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          backgroundColor: 'white',
+          color: 'black',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         }}
       >
-        <Toolbar sx={{ justifyContent: "space-between" }}>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
           {/* Logo */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img
               src="https://cdn-icons-png.flaticon.com/512/29/29302.png"
               alt="logo"
-              style={{ width: "28px", height: "28px" }}
+              style={{ width: '28px', height: '28px' }}
             />
             <Typography
               variant="h6"
               component={Link}
               to="/"
               sx={{
-                textDecoration: "none",
-                color: "black",
-                fontWeight: "bold",
+                textDecoration: 'none',
+                color: 'black',
+                fontWeight: 'bold',
               }}
             >
               EshareBook
@@ -76,20 +91,21 @@ const Navbar = () => {
           </Box>
 
           {/* Desktop Links */}
-          <Box sx={{ display: { xs: "none", md: "flex" }, gap: "20px" }}>
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: '20px' }}>
             {pages.map((page) => (
               <Button
                 key={page}
                 component={Link}
                 to={`/${page.toLowerCase()}`}
                 sx={{
-                  color: "gray",
-                  textTransform: "none",
-                  fontWeight: "500",
-                  "&:hover": { color: "black" },
+                  color: 'gray',
+                  textTransform: 'none',
+                  fontWeight: '500',
+                  '&:hover': { color: 'black' },
                 }}
               >
                 {page}
+                {page === 'Wishlist' && <WishlistCounterIcon />}
               </Button>
             ))}
           </Box>
@@ -99,7 +115,7 @@ const Navbar = () => {
             color="inherit"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ display: { xs: "block", md: "none" } }}
+            sx={{ display: { xs: 'block', md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
@@ -111,7 +127,7 @@ const Navbar = () => {
         anchor="right"
         open={mobileOpen}
         onClose={handleDrawerToggle}
-        sx={{ display: { xs: "block", md: "none" } }}
+        sx={{ display: { xs: 'block', md: 'none' } }}
       >
         {drawer}
       </Drawer>
