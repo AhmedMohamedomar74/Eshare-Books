@@ -27,7 +27,7 @@ const reportSchema = Joi.object({
       'any.required': 'Reason is required.',
     }),
 
-  description: Joi.string().max(500).optional().messages({
+  description: Joi.string().max(500).allow('').optional().messages({
     'string.max': 'Description must not exceed 500 characters.',
   }),
 });

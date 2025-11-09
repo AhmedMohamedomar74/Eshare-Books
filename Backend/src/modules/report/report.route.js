@@ -8,6 +8,7 @@ import {
   cancelReport,
   deleteReport,
   restoreReport,
+  getMyReports,
 } from './report.controller.js';
 
 import { auth, adminCheckmiddelware } from '../../middelwares/auth.middleware.js';
@@ -18,11 +19,14 @@ const reportRouter = express.Router();
 // Create a new report
 reportRouter.post('/', auth, validateReport, createReport);
 
+// Get all my reports
+reportRouter.get('/me', auth, getMyReports);
+
 // Get all reports (Admin)
 reportRouter.get('/', auth, adminCheckmiddelware, getAllReports);
 
-// Get reports created by a specific user
-reportRouter.get('/user/:userId', auth, getReportsByUser);
+// Get reports created by a specific user (Admin)
+reportRouter.get('/user/:userId', auth, adminCheckmiddelware, getReportsByUser);
 
 // Get reports made against a specific user (Admin)
 reportRouter.get('/target/:userId', auth, adminCheckmiddelware, getReportsAgainstUser);

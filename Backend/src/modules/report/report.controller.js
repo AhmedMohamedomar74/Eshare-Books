@@ -11,17 +11,31 @@ import { findManyNonDeleted, restoreSoftDelete, softDelete } from '../../DB/db.s
  */
 export const createReport = asyncHandler(async (req, res, next) => {
   const { targetType, targetId, reason, description } = req.body;
+  const reporterId = req.user._id;
 
-  if (targetType === 'user' && targetId === req.user._id.toString()) {
-    return next(new AppError('You cannot report yourself.', 400));
+  if (targetType === 'user' && targetId === reporterId.toString()) {
+    return next(new AppError('You cannot report yourself.', 403));
   }
 
-  const report = await Report.create({
-    reporterId: req.user._id,
+  const duplicateReport = await Report.findOne({
+    reporterId,
     targetType,
     targetId,
     reason,
-    description,
+    description: description || '',
+    status: { $ne: 'Cancelled' },
+  });
+
+  if (duplicateReport) {
+    return next(new AppError('You have already submitted this exact report.', 400));
+  }
+
+  const report = await Report.create({
+    reporterId,
+    targetType,
+    targetId,
+    reason,
+    description: description || '',
   });
 
   return successResponce({
@@ -29,6 +43,39 @@ export const createReport = asyncHandler(async (req, res, next) => {
     status: 201,
     message: 'Report created successfully.',
     data: report,
+  });
+});
+
+/**
+ * @desc Get all my reports
+ * @route GET /reports/my
+ * @access User
+ */
+export const getMyReports = asyncHandler(async (req, res, next) => {
+  const userId = req.user._id;
+
+  const reports = await findManyNonDeleted({
+    model: Report,
+    filter: { reporterId: userId },
+    sort: { createdAt: -1 },
+  });
+
+  if (!reports.length) {
+    return next(new AppError('No reports found.', 404));
+  }
+
+  for (let report of reports) {
+    if (report.targetType === 'user') {
+      await report.populate({ path: 'targetId', select: 'firstName secondName', model: 'user' });
+    } else if (report.targetType === 'Book') {
+      await report.populate({ path: 'targetId', select: 'Title', model: 'Book' });
+    }
+  }
+
+  return successResponce({
+    res,
+    message: 'Your reports fetched successfully.',
+    data: reports,
   });
 });
 
@@ -55,15 +102,10 @@ export const getAllReports = asyncHandler(async (req, res, next) => {
 /**
  * @desc Get reports created by a specific user
  * @route GET /reports/user/:userId
- * @access User/Admin
+ * @access Admin
  */
 export const getReportsByUser = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
-  const requester = req.user;
-
-  if (requester.role !== 'admin' && requester._id.toString() !== userId) {
-    return next(new AppError('You are not authorized to view these reports.', 403));
-  }
 
   const reports = await findManyNonDeleted({
     model: Report,
@@ -74,6 +116,8 @@ export const getReportsByUser = asyncHandler(async (req, res, next) => {
   if (!reports.length) {
     return next(new AppError('No reports found for this user.', 404));
   }
+
+  await populateReports(reports);
 
   return successResponce({
     res,
