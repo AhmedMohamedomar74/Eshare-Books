@@ -11,6 +11,7 @@ import MyReportsHeader from '../../components/MyReportsComponents/MyReportsHeade
 import MyReportsFilters from '../../components/MyReportsComponents/MyReportsFilters';
 import MyReportsTable from '../../components/MyReportsComponents/MyReportsTable';
 import MyReportsPagination from '../../components/MyReportsComponents/MyReportsPagination';
+import MyReportsEmptyState from '../../components/MyReportsComponents/MyReportsEmptyState';
 
 export default function MyReports() {
   const dispatch = useDispatch();
@@ -98,9 +99,7 @@ export default function MyReports() {
           <CircularProgress />
         </Box>
       ) : filteredReports.length === 0 ? (
-        <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <Alert severity="info">No reports found.</Alert>
-        </Box>
+        <MyReportsEmptyState />
       ) : (
         <MyReportsTable
           reportsData={paginatedReports}
