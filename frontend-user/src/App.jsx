@@ -12,9 +12,11 @@ import Home from "./pages/Home/Home.jsx";
 import AddBook from "./pages/AddBook/AddBook.jsx";
 import UserLayout from "./layout/UserLayout.jsx";
 import ProtectedRoute from "./layout/ProtectedRoute.jsx";
+import NavigationProvider from "./components/common/NavigationProvider.jsx";
 function App() {
   return (
     <BrowserRouter>
+    <NavigationProvider>
       {/* <Navbar /> */}
       <Routes>
         {/* <Route path="/" element={<Home />} />
@@ -42,6 +44,7 @@ function App() {
         <Route path="/login" element={<BookCycleLogin />} />
         <Route path="/register" element={<BookShareRegister />} />
       </Routes>
+      </NavigationProvider>
     </BrowserRouter>
   );
 }

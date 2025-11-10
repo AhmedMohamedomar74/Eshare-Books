@@ -5,6 +5,8 @@ import Input from "../../components/form/inputComponents.jsx";
 import { validateLoginForm } from "../../components/form/validation.js";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../services/auth/auth.service.js";
+import { usePopup } from "../../hooks/usePopup.js"; // Import the popup hook
+import Popup from "../../components/common/Popup.jsx"; // Import your popup component
 
 const BookCycleLogin = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +18,10 @@ const BookCycleLogin = () => {
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  
+  // Initialize popup hook
+  const { popup, showPopup, hidePopup } = usePopup();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -50,14 +56,32 @@ const BookCycleLogin = () => {
     if (!validateForm()) {
       return;
     }
+    
     try {
       setLoading(true);
-      const toekn = await login(formData.email, formData.password);
+      const token = await login(formData.email, formData.password);
       setLoading(false);
       navigate("/")
-      console.log(toekn);
+      console.log(token);
     } catch (error) {
-      console.log(error)
+      setLoading(false);
+      console.log(error);
+      
+      // Show error popup with backend error message
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (error.response) {
+        // Backend responded with error status
+        errorMessage = error.response.data?.info || errorMessage;
+      } else if (error.request) {
+        // Request was made but no response received
+        errorMessage = "Network error. Please check your connection.";
+      } else {
+        // Something else happened
+        errorMessage = error.message || errorMessage;
+      }
+      
+      showPopup("error", errorMessage);
     }
   };
 
@@ -70,6 +94,16 @@ const BookCycleLogin = () => {
         backgroundColor: "#f6f7f7",
       }}
     >
+      {/* Popup Component */}
+      {popup.show && (
+        <Popup
+          type={popup.type}
+          message={popup.message}
+          onClose={hidePopup}
+          duration={5000} // Auto close after 5 seconds
+        />
+      )}
+      
       <div className="w-full max-w-md p-6 sm:p-8">
         <div className="flex flex-col items-center justify-center rounded-xl bg-white/90 backdrop-blur-sm p-8 sm:p-10 shadow-2xl">
           <div className="mb-8 text-center">
