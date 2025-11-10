@@ -5,3 +5,5 @@ Backend/config/dev.env
 frontend-user/node_modules
 notes.json
 frontend-user/.vite
+admin-dashboard/node_modules/
+
