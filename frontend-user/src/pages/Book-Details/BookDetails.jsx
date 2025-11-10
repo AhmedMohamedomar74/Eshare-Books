@@ -92,7 +92,7 @@ const BookDetails = () => {
             </Typography>
             <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
             <BookOwner avatar={book.UserID?.avatar} name={book.UserID?.name} />
-            <BookActions />
+            <BookActions bookId={book._id} />
           </Box>
         </Box>
       </Box>
