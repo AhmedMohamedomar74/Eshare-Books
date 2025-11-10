@@ -1,4 +1,13 @@
-import { Box, Typography } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -11,6 +20,7 @@ import { useParams } from "react-router-dom";
 import OperationForm from "../../components/Order/OperationForm";
 import BookInfo from "../../components/Order/BookInfo";
 import { useSnackbar } from "notistack";
+import ConfirmDialog from "../../components/Order/ConfirmDialog";
 
 const OrderPage = () => {
   const { id } = useParams();
@@ -23,8 +33,8 @@ const OrderPage = () => {
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  // Fetch book by ID when component mounts
   useEffect(() => {
     if (id) dispatch(fetchBookId(id));
   }, [id, dispatch]);
@@ -37,7 +47,6 @@ const OrderPage = () => {
       </Typography>
     );
 
-  // Determine operation type dynamically
   const operationType =
     book.TransactionType === "toSale"
       ? "buy"
@@ -47,34 +56,36 @@ const OrderPage = () => {
       ? "exchange"
       : "donate";
 
-  // Handle create + complete operation
-  const handleComplete = async (e) => {
+  const handleCompleteClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setConfirmOpen(true);
+  };
 
+  const handleConfirmOperation = async () => {
     const operationData = {
       user_dest: book.UserID?._id,
       book_dest_id: book._id,
       operationType,
     };
 
-    // Extra validation for borrow operation
     if (operationType === "borrow") {
       if (!startDate || !endDate) {
         enqueueSnackbar(
           "Please select both start and end dates for borrowing.",
-          { variant: "warning" }
+          {
+            variant: "warning",
+          }
         );
+        setConfirmOpen(false);
         return;
       }
       operationData.startDate = startDate;
       operationData.endDate = endDate;
     }
 
-    // Dispatch create operation
     const result = await dispatch(createOperation(operationData));
 
-    // Handle success or error from backend
     if (createOperation.fulfilled.match(result)) {
       const operationId = result.payload?._id;
       if (operationId) {
@@ -88,9 +99,10 @@ const OrderPage = () => {
         result.payload?.message ||
         result.error?.message ||
         "Something went wrong while creating the operation.";
-
       enqueueSnackbar(backendMsg, { variant: "error" });
     }
+
+    setConfirmOpen(false);
   };
 
   return (
@@ -111,8 +123,16 @@ const OrderPage = () => {
         endDate={endDate}
         setStartDate={setStartDate}
         setEndDate={setEndDate}
-        handleComplete={handleComplete}
+        handleComplete={handleCompleteClick}
         successMessage={successMessage}
+      />
+
+      {/* Dialog Confirmation */}
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmOperation}
+        operationType={operationType}
       />
     </Box>
   );
