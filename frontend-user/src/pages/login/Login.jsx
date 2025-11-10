@@ -5,6 +5,8 @@ import Input from "../../components/form/inputComponents.jsx";
 import { validateLoginForm } from "../../components/form/validation.js";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../services/auth/auth.service.js";
+import { usePopup } from "./../../hooks/usePopup";
+import Popup from "../../components/common/Popup.jsx";
 
 const BookCycleLogin = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +18,7 @@ const BookCycleLogin = () => {
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { popup, showPopup, hidePopup } = usePopup();
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -41,25 +44,28 @@ const BookCycleLogin = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Mark all fields as touched
-    setTouched({ email: true, password: true });
+  // Mark all fields as touched
+  setTouched({ email: true, password: true });
 
-    if (!validateForm()) {
-      return;
-    }
-    try {
-      setLoading(true);
-      const toekn = await login(formData.email, formData.password);
-      setLoading(false);
-      navigate("/")
-      console.log(toekn);
-    } catch (error) {
-      console.log(error)
-    }
-  };
+  if (!validateForm()) {
+    return;
+  }
+  
+  try {
+    setLoading(true);
+    const token = await login(formData.email, formData.password);
+    navigate("/");
+    console.log(token);
+  } catch (error) {
+    showPopup("error", "Login failed. Please try again.");
+    console.log("error in login", error);
+  } finally {
+    setLoading(false);  // ← Always reset loading
+  }
+};
 
   return (
     <div
@@ -70,6 +76,15 @@ const BookCycleLogin = () => {
         backgroundColor: "#f6f7f7",
       }}
     >
+      {/* Popup Component */}
+      {popup.show && (
+        <Popup
+          type={popup.type}
+          message={popup.message}
+          onClose={hidePopup}
+          duration={5000} // Auto close after 5 seconds
+        />
+      )}
       <div className="w-full max-w-md p-6 sm:p-8">
         <div className="flex flex-col items-center justify-center rounded-xl bg-white/90 backdrop-blur-sm p-8 sm:p-10 shadow-2xl">
           <div className="mb-8 text-center">

@@ -8,7 +8,8 @@ const PasswordInput = ({
   onChange, 
   error,
   required = false,
-  showStrength = false
+  showStrength = false,
+  onBlur
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -51,6 +52,7 @@ const PasswordInput = ({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
         />
         <div 
           className="absolute right-3 flex items-center justify-center text-gray-500 cursor-pointer"
