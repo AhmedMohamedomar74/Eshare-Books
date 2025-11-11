@@ -3,8 +3,6 @@ import React from "react";
 const TabNavigation = ({ activeTab, setActiveTab }) => {
   const tabs = [
     { id: "my-books", label: "My Books" },
-    { id: "add-new", label: "Add New Book" },
-    { id: "wishlist", label: "My Wishlist" },
   ];
 
   return (
