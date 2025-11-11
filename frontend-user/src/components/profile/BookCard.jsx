@@ -23,13 +23,13 @@ const BookCard = ({ book }) => {
         <img
           className="w-full h-full object-cover"
           alt={`Book cover of ${book.title}`}
-          src={book.image}
+          src={book.image.secure_url}
         />
       </div>
       <div>
-        <p className="text-base font-medium truncate">{book.title}</p>
+        <p className="text-base font-medium truncate">{book.Title}</p>
         <p className="text-[#6f7b7b] text-sm">{book.author}</p>
-        <p className="text-[#6f7b7b] text-sm">{book.status}</p>
+        <p className="text-[#6f7b7b] text-sm">{book.TransactionType}</p>
       </div>
     </div>
   );
