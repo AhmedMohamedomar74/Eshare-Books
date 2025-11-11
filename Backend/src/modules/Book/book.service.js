@@ -221,3 +221,30 @@ export const deleteBook = asyncHandler(async (req, res, next) => {
    res.json({ message: '✅ Book deleted successfully' });
  
 });
+/* ──────────────────────────────
+   📘 Get Books by Transaction Type
+────────────────────────────── */
+export const getBooksByTransactionType = asyncHandler(async (req, res) => {
+  const { type } = req.params; // ممكن تكون toSale أو toBorrow إلخ
+
+  // نتأكد إن النوع من الأنواع المسموح بها
+  const validTypes = ["toSale", "toBorrow", "toExchange", "toDonate"];
+  if (!validTypes.includes(type)) {
+    return res.status(400).json({
+      success: false,
+      message: "❌ Invalid transaction type.",
+      allowedTypes: validTypes,
+    });
+  }
+
+  const books = await Book.find({ TransactionType: type, isDeleted: false })
+    .populate("UserID", "firstName secondName email")
+    .populate("categoryId", "name");
+
+  res.json({
+    success: true,
+    message: `✅ Books fetched successfully for type: ${type}`,
+    total: books.length,
+    books,
+  });
+});
