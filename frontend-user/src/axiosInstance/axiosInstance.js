@@ -1,6 +1,15 @@
 import axios from 'axios';
 import { signatureLevelEnum } from '../enum.js';
+
 const BaseUrl = 'http://localhost:3000';
+
+// Navigation callback (will be set from App component)
+let navigationCallback = null;
+
+export const setNavigationCallback = (callback) => {
+    navigationCallback = callback;
+};
+
 // Create axios instance
 const api = axios.create({
     baseURL: BaseUrl,
@@ -47,8 +56,13 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
+        // Skip token refresh for auth endpoints
+        const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
+                               originalRequest.url?.includes('/auth/signup') ||
+                               originalRequest.url?.includes('/auth/refresh-token');
+
         // If error is 401 and we haven't tried refreshing yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
 
             if (isRefreshing) {
                 // If already refreshing, add to queue
@@ -67,7 +81,7 @@ api.interceptors.response.use(
 
             try {
                 // Call refresh token endpoint
-                const response = await axios.post('/auth/refresh-token', {},{
+                const response = await axios.post(`${BaseUrl}/auth/refresh-token`, {}, {
                     headers: {
                         Authorization: `${signatureLevelEnum.user} ${refreshToken}`
                     }
@@ -79,7 +93,7 @@ api.interceptors.response.use(
                 accessToken = newAccessToken;
                 refreshToken = newRefreshToken;
 
-                // Store in localStorage (or your preferred storage)
+                // Store in localStorage
                 localStorage.setItem('accessToken', newAccessToken);
                 localStorage.setItem('refreshToken', newRefreshToken);
 
@@ -97,7 +111,15 @@ api.interceptors.response.use(
                 // Refresh failed - clear tokens and redirect to login
                 processQueue(refreshError, null);
                 clearTokens();
-                window.location.href = '/login'; // Redirect to login
+                
+                // Use React Router navigation instead of window.location
+                if (navigationCallback) {
+                    navigationCallback('/login');
+                } else {
+                    // Fallback to window.location if callback not set
+                    window.location.href = '/login';
+                }
+                
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;
