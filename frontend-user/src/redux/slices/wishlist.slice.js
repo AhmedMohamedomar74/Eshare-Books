@@ -18,10 +18,12 @@ export const addToWishlist = createAsyncThunk(
   'wishlist/addToWishlist',
   async (bookId, { rejectWithValue }) => {
     try {
-      const res = await WishlistService.addToWishlist(bookId);
-      return res.data;
+      const wishlist = await WishlistService.addToWishlist(bookId);
+      const newItem = wishlist.items[wishlist.items.length - 1];
+      return newItem;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to add book');
+      const message = error.response?.data?.message || 'Failed to add book';
+      return rejectWithValue(message);
     }
   }
 );
@@ -76,7 +78,9 @@ const wishlistSlice = createSlice({
 
       // Add
       .addCase(addToWishlist.fulfilled, (state, action) => {
-        state.items.push(action.payload);
+        if (action.payload) {
+          state.items.push(action.payload);
+        }
       })
 
       // Remove
