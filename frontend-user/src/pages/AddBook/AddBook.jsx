@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -8,27 +8,70 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Paper,
-  Grid,
   Alert,
+  CircularProgress,
+  MenuItem,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { useDispatch, useSelector } from "react-redux";
+import { createBook, clearMessages } from "../../redux/slices/bookSlice.js";
+import bookService from "../../services/book.service.js";
 
 export default function AddBook() {
-  const [type, setType] = useState("Sell");
-  const [image, setImage] = useState(null);
+  const dispatch = useDispatch();
+  const { loading, error, successMessage } = useSelector(
+    (state) => state.books
+  );
 
-  const handleTypeChange = (event, newType) => {
+  const [type, setType] = useState("Sell"); // القيمة: "Sell", "Donate", "Borrow"
+  const [image, setImage] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [form, setForm] = useState({
+    Title: "",
+    categoryId: "",
+    Price: "",
+    Description: "",
+  });
+
+  // ✅ Fetch all categories when the component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await bookService.getAllCategories();
+        setCategories(data || []);
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleTypeChange = (_, newType) => {
     if (newType) setType(newType);
   };
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file) setImage(URL.createObjectURL(file));
+    if (file) setImage(file);
+  };
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("✅ Book added successfully!");
+    const formData = new FormData();
+
+    for (const key in form) formData.append(key, form[key]);
+
+    formData.append("TransactionType", `to${type}`);
+
+    if (type === "Sell") formData.append("Price", form.Price);
+
+    if (image) formData.append("image", image);
+
+    dispatch(createBook(formData));
   };
 
   return (
@@ -40,189 +83,147 @@ export default function AddBook() {
             p: { xs: 3, sm: 5, md: 6 },
             borderRadius: 4,
             backgroundColor: "white",
-            boxShadow: "0px 6px 20px rgba(0,0,0,0.08)",
             maxWidth: "700px",
             mx: "auto",
           }}
           component="form"
           onSubmit={handleSubmit}
         >
-          {/* Header */}
           <Typography
             variant="h4"
             fontWeight={700}
             textAlign="center"
-            sx={{ mb: 1, color: "#2e3e51" }}
+            sx={{ mb: 3 }}
           >
             Add Your Book
           </Typography>
 
-          <Typography
-            variant="body1"
-            textAlign="center"
-            color="text.secondary"
-            sx={{ mb: 4 }}
-          >
-            Share a book with the community by selling, donating, or lending it.
-          </Typography>
+         {/* 📸 Upload Image */}
+<input
+  type="file"
+  accept="image/*"
+  id="book-cover"
+  hidden
+  onChange={handleImageUpload}
+/>
+<label htmlFor="book-cover">
+  <Button
+    component="span"
+    variant="outlined"
+    startIcon={<CloudUploadIcon />}
+    fullWidth
+    sx={{
+      mb: 3,
+      py: 5, // زيادة الارتفاع
+      fontSize: "1rem", // تكبير النص قليلًا
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    {image ? `Selected: ${image.name}` : "Upload Book Cover"}
+  </Button>
+</label>
 
-          {/* Upload Section */}
-          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
-            Book Cover
-          </Typography>
 
-          <Box
-            sx={{
-              border: "2px dashed #d1d5db",
-              borderRadius: 3,
-              textAlign: "center",
-              p: 3,
-              mb: 4,
-              transition: "0.3s",
-              "&:hover": { borderColor: "#3b4d61" },
-              bgcolor: "#fafafa",
-            }}
+          {/* 🏷️ Title */}
+          <TextField
+            fullWidth
+            label="Title"
+            name="Title"
+            value={form.Title}
+            onChange={handleChange}
+            sx={{ mb: 2 }}
+            required
+          />
+
+          {/* 📂 Category Dropdown */}
+          <TextField
+            select
+            fullWidth
+             
+            name="categoryId"
+            value={form.categoryId}
+            onChange={handleChange}
+            SelectProps={{ native: true }}
+            sx={{ mb: 2 }}
+            required
           >
-            <input
-              type="file"
-              accept="image/*"
-              id="book-cover"
-              hidden
-              onChange={handleImageUpload}
+            <option value="" disabled>
+              Select category
+            </option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat._id}>
+                {cat.name}
+              </option>
+            ))}
+          </TextField>
+
+          {/* 💰 Price (only if Sell) */}
+          {type === "Sell" && (
+            <TextField
+              fullWidth
+              label="Price"
+              name="Price"
+              type="number"
+              value={form.Price}
+              onChange={handleChange}
+              sx={{ mb: 2 }}
+              required
             />
-            <label htmlFor="book-cover" style={{ cursor: "pointer" }}>
-              {image ? (
-                <Box
-                  component="img"
-                  src={image}
-                  alt="Book Cover Preview"
-                  sx={{
-                    maxHeight: 200,
-                    borderRadius: 2,
-                    boxShadow: 2,
-                    transition: "0.3s",
-                    "&:hover": { transform: "scale(1.02)" },
-                  }}
-                />
-              ) : (
-                <>
-                  <CloudUploadIcon sx={{ fontSize: 48, color: "#3b4d61" }} />
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    Click to upload or drag & drop
-                  </Typography>
-                  <Typography variant="caption" color="text.disabled">
-                    JPG, PNG, or GIF (max 800×800px)
-                  </Typography>
-                </>
-              )}
-            </label>
-          </Box>
+          )}
 
-          {/* Listing Type */}
-          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
-            Listing Type
-          </Typography>
+          {/* 📝 Description */}
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label="Description"
+            name="Description"
+            value={form.Description}
+            onChange={handleChange}
+          />
 
+          {/* 🔘 Type Selector */}
           <ToggleButtonGroup
             value={type}
             exclusive
             onChange={handleTypeChange}
             fullWidth
-            sx={{
-              mb: 4,
-              "& .MuiToggleButton-root": {
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: 600,
-                color: "#3b4d61",
-                borderColor: "#d1d5db",
-              },
-              "& .Mui-selected": {
-                backgroundColor: "#3b4d61",
-                color: "white",
-                "&:hover": { backgroundColor: "#2e3e51" },
-              },
-            }}
+            sx={{ mt: 3 }}
           >
             <ToggleButton value="Sell">Sell</ToggleButton>
             <ToggleButton value="Donate">Donate</ToggleButton>
             <ToggleButton value="Borrow">Borrow</ToggleButton>
           </ToggleButtonGroup>
 
-          {/* Text Fields */}
-          <TextField
-            fullWidth
-            label="Title"
-            placeholder="e.g., The Hitchhiker’s Guide to the Galaxy"
-            sx={{ mb: 3 }}
-          />
-
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Author"
-                placeholder="e.g., Douglas Adams"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Category"
-                placeholder="e.g., Science Fiction"
-              />
-            </Grid>
-          </Grid>
-
-          {type === "Sell" && (
-            <TextField
-              fullWidth
-              label="Price ($)"
-              type="number"
-              placeholder="$10.00"
-              sx={{ mt: 3 }}
-            />
+          {/* 🌀 Loading Spinner */}
+          {loading && (
+            <Box display="flex" justifyContent="center" sx={{ mt: 3 }}>
+              <CircularProgress />
+            </Box>
           )}
 
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            label="Description"
-            placeholder="Add a short description about the book..."
-            sx={{ mt: 3 }}
-          />
+          {/* ⚠️ Error & ✅ Success Messages */}
+          {error && (
+            <Alert severity="error" sx={{ mt: 3 }}>
+              {error}
+            </Alert>
+          )}
+          {successMessage && (
+            <Alert severity="success" sx={{ mt: 3 }}>
+              {successMessage}
+            </Alert>
+          )}
 
-          {/* Info Message */}
-          <Alert
-            severity="info"
-            sx={{
-              mt: 4,
-              borderRadius: 2,
-              bgcolor: "#f0f6ff",
-              color: "#1e3a8a",
-              "& .MuiAlert-icon": { color: "#1e3a8a" },
-            }}
-          >
-            Please note: Your submission will be reviewed to ensure it meets our
-            community guidelines.
-          </Alert>
-
-          {/* Submit Button */}
+          {/* 🚀 Submit */}
           <Button
             type="submit"
             variant="contained"
             fullWidth
-            size="large"
-            sx={{
-              mt: 4,
-              py: 1.4,
-              borderRadius: 3,
-              fontWeight: 600,
-              textTransform: "none",
-              backgroundColor: "#3b4d61",
-              "&:hover": { backgroundColor: "#2e3e51" },
-            }}
+            sx={{ mt: 3, py: 1.3 }}
+            disabled={loading}
           >
             Add Book
           </Button>

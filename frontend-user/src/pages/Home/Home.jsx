@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Container,
@@ -8,187 +8,155 @@ import {
   Paper,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-
 import HeroSection from "../../components/Home/HeroSection";
 import Filters from "../../components/Home/Filters";
 import BookGrid from "../../components/Home/BookGrid";
+import bookService from "../../services/book.service";
 
 export default function Home() {
-  const books = [
-    {
-      title: "The Mind of a Leader",
-      author: "Kevin Anderson",
-      type: "For Sale",
-      price: "12.99",
-      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f",
-    },
-    {
-      title: "The Psychology of Money",
-      author: "Morgan Housel",
-      type: "Donate",
-      image: "https://images.unsplash.com/photo-1544717305-996b815c338c",
-    },
-    {
-      title: "Fairy Tales",
-      author: "Hans Christian Andersen",
-      type: "Borrow",
-      image: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4",
-    },
-    {
-      title: "The Classics Collection",
-      author: "Various Authors",
-      type: "For Sale",
-      price: "45.00",
-      image: "https://images.unsplash.com/photo-1519681393784-d120267933ba",
-    },
-    {
-      title: "A Reader’s Journal",
-      author: "Jane Doe",
-      type: "Donate",
-      image: "https://images.unsplash.com/photo-1516979187457-637abb4f9353",
-    },
-    {
-      title: "Colorful Stories",
-      author: "John Smith",
-      type: "For Sale",
-      price: "9.50",
-      image: "https://images.unsplash.com/photo-1528209392021-b781a9c131c5",
-    },
-    {
-      title: "Atomic Habits",
-      author: "James Clear",
-      type: "For Sale",
-      price: "14.99",
-      image: "https://images.unsplash.com/photo-1532012197267-da84d127e765",
-    },
-    {
-      title: "The Alchemist",
-      author: "Paulo Coelho",
-      type: "Borrow",
-      image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383",
-    },
-    {
-      title: "Deep Work",
-      author: "Cal Newport",
-      type: "For Sale",
-      price: "18.75",
-      image: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e",
-    },
-    {
-      title: "The Art of Happiness",
-      author: "Dalai Lama",
-      type: "Donate",
-      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f",
-    },
-    {
-      title: "Thinking, Fast and Slow",
-      author: "Daniel Kahneman",
-      type: "For Sale",
-      price: "22.50",
-      image: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d",
-    },
-    {
-      title: "Educated",
-      author: "Tara Westover",
-      type: "Borrow",
-      image: "https://images.unsplash.com/photo-1526318472351-bc6fa96b1f1a",
-    },
-    {
-      title: "Man’s Search for Meaning",
-      author: "Viktor Frankl",
-      type: "Donate",
-      image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383",
-    },
-    {
-      title: "Sapiens: A Brief History of Humankind",
-      author: "Yuval Noah Harari",
-      type: "For Sale",
-      price: "27.99",
-      image: "https://images.unsplash.com/photo-1532012197267-da84d127e765",
-    },
-    {
-      title: "Becoming",
-      author: "Michelle Obama",
-      type: "Donate",
-      image: "https://images.unsplash.com/photo-1544717305-996b815c338c",
-    },
-  ];
+  const [books, setBooks] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    fetchBooks();
+    fetchCategories();
+  }, []);
+
+  const fetchBooks = async () => {
+    const data = await bookService.getAllBooks();
+    setBooks(data);
+  };
+
+  const fetchCategories = async () => {
+    const cats = await bookService.getAllCategories();
+    setCategories(cats);
+  };
+
+  // 🔍 Search by title
+  const handleSearch = async (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value.trim() === "") {
+      fetchBooks();
+    } else {
+      const data = await bookService.searchBooks(value);
+      setBooks(data);
+    }
+  };
+
+  // 🏷️ Filter by category
+  const handleCategoryChange = async (selectedCategoryIds) => {
+    if (selectedCategoryIds.length === 0) {
+      fetchBooks();
+      return;
+    }
+    const data = await bookService.getBooksByCategory(selectedCategoryIds[0]);
+    setBooks(data);
+  };
+
+  // 💡 Filter by type
+  const handleTypeChange = async (selectedType) => {
+    if (!selectedType) {
+      fetchBooks();
+      return;
+    }
+    const data = await bookService.getBooksByType(selectedType);
+    setBooks(data);
+  };
+
+  // 🔄 Clear all filters
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    fetchBooks();
+  };
 
   return (
     <Box sx={{ bgcolor: "#f4f6f8" }}>
-      {/* Hero Section */}
       <HeroSection />
 
       <Container maxWidth="xl" sx={{ mt: 6, mb: 6 }}>
         {/* Search Bar */}
         <Paper
           elevation={2}
-          sx={{
-            p: 1.5,
-            mb: 5,
-            borderRadius: 3,
-            bgcolor: "white",
-            display: "flex",
-            alignItems: "center",
-          }}
+          sx={{ p: 1.5, mb: 3, borderRadius: 3, bgcolor: "white" }}
         >
           <TextField
             fullWidth
             variant="outlined"
-            placeholder="Search by title, author, or ISBN..."
+            placeholder="Search by title..."
+            value={searchTerm}
+            onChange={handleSearch}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon color="action" />
                 </InputAdornment>
               ),
+              sx: {
+                height: 36,
+                borderRadius: 2,
+              },
             }}
             sx={{
               "& fieldset": { border: "none" },
+              "& .MuiInputBase-input": { py: 0.5 },
               bgcolor: "transparent",
             }}
           />
         </Paper>
 
-        {/* Filters + Books side by side */}
         <Box
           sx={{
             display: "flex",
             flexDirection: { xs: "column", md: "row" },
-            alignItems: "flex-start",
             gap: 3,
           }}
         >
-          {/* Sidebar Filters */}
+          {/* Filters */}
           <Paper
             elevation={1}
-            sx={{
-              p: 3,
-              borderRadius: 3,
-              bgcolor: "white",
-              position: "sticky",
-              top: 100,
-              flex: "0 0 25%", // sidebar width
-              height: "fit-content",
-            }}
+            sx={{ p: 3, borderRadius: 3, bgcolor: "white", flex: "0 0 25%" }}
           >
-            <Filters />
+            <Filters
+              categories={categories}
+              onCategoryChange={handleCategoryChange}
+              onTypeChange={handleTypeChange}
+              onClearFilters={handleClearFilters}
+            />
           </Paper>
 
           {/* Books Grid */}
-          <Box sx={{ flex: 1 }}>
-            <BookGrid books={books} />
+<Box sx={{ flex: 1 }}>
+  <BookGrid books={books} />
+  <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
+    <Pagination
+      count={5}
+      shape="rounded"
+      color="primary"
+      size="large" // تكبير الأزرار
+      sx={{
+        '& .MuiPaginationItem-root': {
+          borderRadius: 2,
+          fontWeight: 'bold',
+          color: '#1976d2',
+          '&:hover': {
+            backgroundColor: '#1976d2',
+            color: '#fff',
+            transform: 'scale(1.1)',
+          },
+        },
+        '& .Mui-selected': {
+          backgroundColor: '#1976d2',
+          color: '#fff',
+          fontWeight: 'bold',
+        },
+      }}
+    />
+  </Box>
+</Box>
 
-            {/* Pagination */}
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              sx={{ mt: 5 }}
-            >
-              <Pagination count={5} shape="rounded" color="primary" />
-            </Box>
-          </Box>
         </Box>
       </Container>
     </Box>

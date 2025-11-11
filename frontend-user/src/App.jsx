@@ -20,6 +20,8 @@ function App() {
       {/* <Navbar /> */}
       <Routes>
         {/* <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/add-book" element={<AddBook />} />
         <Route path="/details/:id" element={<BookDetails />} />
         <Route path="/login" element={<BookCycleLogin />} />
@@ -32,6 +34,7 @@ function App() {
         <Route element={<UserLayout />}>
           <Route path="/details/:id" element={<BookDetails />} />
           <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<BookShareDashboard />} />
             <Route path="/order/:id" element={<OrderPage />} />
