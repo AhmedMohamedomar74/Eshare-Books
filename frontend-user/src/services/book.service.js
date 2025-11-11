@@ -36,6 +36,11 @@ const getAllCategories = async () => {
   const res = await api.get(`/categories`);
   return res.data.data;
 };
+// ✅ Get books by transaction type
+const getBooksByType = async (type) => {
+  const res = await api.get(`/books/type/${type}`);
+  return res.data.books;
+};
 
 const bookService = {
   addBook,
@@ -44,6 +49,7 @@ const bookService = {
   searchBooks,
   getBooksByCategory,
   getAllCategories,
+  getBooksByType
 };
 
 export default bookService;
