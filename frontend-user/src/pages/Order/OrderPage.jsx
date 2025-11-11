@@ -1,4 +1,13 @@
-import { Box, Typography } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -11,6 +20,7 @@ import { useParams } from "react-router-dom";
 import OperationForm from "../../components/Order/OperationForm";
 import BookInfo from "../../components/Order/BookInfo";
 import { useSnackbar } from "notistack";
+import ConfirmDialog from "../../components/Order/ConfirmDialog";
 
 const OrderPage = () => {
   const { id } = useParams();
@@ -23,6 +33,7 @@ const OrderPage = () => {
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (id) dispatch(fetchBookId(id));
@@ -45,10 +56,13 @@ const OrderPage = () => {
       ? "exchange"
       : "donate";
 
-  const handleComplete = async (e) => {
+  const handleCompleteClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setConfirmOpen(true);
+  };
 
+  const handleConfirmOperation = async () => {
     const operationData = {
       user_dest: book.UserID?._id,
       book_dest_id: book._id,
@@ -63,7 +77,7 @@ const OrderPage = () => {
             variant: "warning",
           }
         );
-
+        setConfirmOpen(false);
         return;
       }
       operationData.startDate = startDate;
@@ -71,15 +85,24 @@ const OrderPage = () => {
     }
 
     const result = await dispatch(createOperation(operationData));
-    const operationId = result.payload?._id;
-    if (operationId) {
-      dispatch(completeOperation(operationId));
-      enqueueSnackbar("Operation completed successfully!", {
-        variant: "success",
-      });
+
+    if (createOperation.fulfilled.match(result)) {
+      const operationId = result.payload?._id;
+      if (operationId) {
+        await dispatch(completeOperation(operationId));
+        enqueueSnackbar("Operation completed successfully!", {
+          variant: "success",
+        });
+      }
     } else {
-      enqueueSnackbar("Failed to create operation.", { variant: "error" });
+      const backendMsg =
+        result.payload?.message ||
+        result.error?.message ||
+        "Something went wrong while creating the operation.";
+      enqueueSnackbar(backendMsg, { variant: "error" });
     }
+
+    setConfirmOpen(false);
   };
 
   return (
@@ -92,6 +115,7 @@ const OrderPage = () => {
       }}
     >
       <BookInfo book={book} />
+
       <OperationForm
         operationType={operationType}
         book={book}
@@ -99,8 +123,16 @@ const OrderPage = () => {
         endDate={endDate}
         setStartDate={setStartDate}
         setEndDate={setEndDate}
-        handleComplete={handleComplete}
+        handleComplete={handleCompleteClick}
         successMessage={successMessage}
+      />
+
+      {/* Dialog Confirmation */}
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmOperation}
+        operationType={operationType}
       />
     </Box>
   );
