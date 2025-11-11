@@ -91,12 +91,13 @@ const BookShareDashboard = () => {
       try {
         const response = await bookService.getBooks();
         setBooks(response.books);
+        console.log(response.books);
       } catch (error) {
         console.error('Error fetching books:', error);
       }
     };
     fetchBooks();
-  })
+  },[])
 
   // Handle profile update
   const handleUpdateProfile = async (updatedData) => {
