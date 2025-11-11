@@ -1,99 +1,109 @@
-import { useState } from 'react';
-import { IconButton, Popover, Alert } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { IconButton, Snackbar, Alert } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import { useDispatch, useSelector } from 'react-redux';
-import { addToWishlist, removeFromWishlist } from '../../redux/slices/wishlist.slice';
+import api from '../../axiosInstance/axiosInstance';
+import { useDispatch } from 'react-redux';
+import { fetchWishlist } from '../../redux/slices/wishlist.slice';
 
 export default function WishlistHeartButton({ bookId }) {
   const dispatch = useDispatch();
-  const wishlistItems = useSelector((state) => state.wishlist?.items || []);
-  const user = useSelector((state) => state.auth?.user);
-  const [isLoading, setIsLoading] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [message, setMessage] = useState('');
+  const [severity, setSeverity] = useState('success');
 
-  const isInWishlist = wishlistItems.some((item) => item.bookId?._id === bookId);
+  const accessToken = localStorage.getItem('accessToken');
 
-  const handleClick = async (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-
-    if (isLoading) return;
-
-    if (!user) {
-      setAnchorEl(e.currentTarget);
-      setTimeout(() => setAnchorEl(null), 1500);
+  useEffect(() => {
+    if (!accessToken) {
+      setIsInWishlist(false);
       return;
     }
 
-    setIsLoading(true);
+    const checkWishlist = async () => {
+      try {
+        const res = await api.get('/wishlist');
+        const items = res.data.data.items || [];
+        const inWishlist = items.some((item) => item.bookId._id === bookId);
+        setIsInWishlist(inWishlist);
+      } catch (err) {
+        console.error('Failed to check wishlist:', err);
+      }
+    };
+
+    checkWishlist();
+  }, [bookId, accessToken]);
+
+  const handleClick = async (e) => {
+    e.stopPropagation();
+
+    if (!accessToken) {
+      setMessage('Log in first');
+      setSeverity('warning');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    if (loading) return;
+
+    setLoading(true);
+
     try {
       if (isInWishlist) {
-        await dispatch(removeFromWishlist(bookId)).unwrap();
+        await api.delete(`/wishlist/${bookId}`);
+        setIsInWishlist(false);
       } else {
-        await dispatch(addToWishlist(bookId)).unwrap();
+        await api.post('/wishlist', { bookId });
+        setIsInWishlist(true);
       }
+
+      dispatch(fetchWishlist());
     } catch (error) {
-      console.error('Wishlist error:', error);
+      const msg = error.response?.data?.message || 'Failed to update wishlist';
+      setMessage(msg);
+      setSeverity('error');
+      setOpenSnackbar(true);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-
-  const open = Boolean(anchorEl);
 
   return (
     <>
       <IconButton
         onClick={handleClick}
-        disabled={isLoading}
+        disabled={loading}
+        size="small"
         sx={{
           color: isInWishlist ? '#e91e63' : '#666',
-          p: 0,
-          width: 34,
-          height: 34,
-          '& .MuiSvgIcon-root': { fontSize: 24 },
+          p: 0.5,
+          '& .MuiSvgIcon-root': { fontSize: 20 },
           transition: 'all 0.2s ease',
           '&:hover': {
             color: isInWishlist ? '#c2185b' : '#e91e63',
-          },
-          '&:active': {
-            transform: 'scale(0.9)',
+            transform: 'scale(1.1)',
           },
         }}
       >
-        {isInWishlist ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+        {isInWishlist ? <FavoriteIcon /> : <FavoriteBorderIcon />}
       </IconButton>
 
-      <Popover
-        open={open}
-        anchorEl={anchorEl}
-        onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-        PaperProps={{
-          sx: {
-            mt: 0.5,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            borderRadius: 1,
-          },
-        }}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert
-          severity="warning"
-          sx={{
-            bgcolor: '#fff3e0',
-            color: '#e65100',
-            fontSize: '0.8rem',
-            fontWeight: 'bold',
-            py: 0.5,
-            px: 1.5,
-            border: '1px solid #ffb74d',
-          }}
+          onClose={() => setOpenSnackbar(false)}
+          severity={severity}
+          sx={{ width: '100%', fontWeight: 'bold' }}
         >
-          Log in first
+          {message}
         </Alert>
-      </Popover>
+      </Snackbar>
     </>
   );
 }
