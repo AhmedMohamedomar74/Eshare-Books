@@ -13,20 +13,21 @@ import {
   MenuItem,
   Tooltip,
   Avatar,
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import WishlistCounterIcon from "./WishlistComponents/WishlistCounterIcon";
-import HomeIcon from "@mui/icons-material/Home";
-import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
-import ReportIcon from "@mui/icons-material/Report";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import LoginIcon from "@mui/icons-material/Login";
-import AppRegistrationIcon from "@mui/icons-material/AppRegistration";
-import LogoutIcon from "@mui/icons-material/Logout";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import WishlistCounterIcon from './WishlistComponents/WishlistCounterIcon';
+import HomeIcon from '@mui/icons-material/Home';
+import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
+import ReportIcon from '@mui/icons-material/Report';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import LoginIcon from '@mui/icons-material/Login';
+import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { fetchWishlist } from '../redux/slices/wishlist.slice';
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -34,36 +35,40 @@ const Navbar = () => {
   const openMenu = Boolean(anchorEl);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const user = useSelector((state) => state.auth?.user);
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token && !user) {
+      dispatch(fetchWishlist());
+    }
+  }, [dispatch, user]);
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
   const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
-
   const handleLogout = () => {
-    dispatch({ type: "auth/logout" });
+    dispatch({ type: 'auth/logout' });
     handleMenuClose();
-    navigate("/login");
+    navigate('/login');
   };
 
   const navLinks = [
-    { label: "Home", path: "/", icon: <HomeIcon /> },
-    { label: "Add Book", path: "/add-book", icon: <LibraryAddIcon /> },
-    { label: "Wishlist", path: "/wishlist", icon: <FavoriteBorderIcon /> },
-    // { label: "My Reports", path: "/myreports", icon: <ReportIcon /> },
+    { label: 'Home', path: '/', icon: <HomeIcon /> },
+    { label: 'Add Book', path: '/add-book', icon: <LibraryAddIcon /> },
+    { label: 'Wishlist', path: '/wishlist' },
   ];
 
   const authLinks = user
     ? []
     : [
-        { label: "Login", path: "/login", icon: <LoginIcon /> },
-        { label: "Register", path: "/register", icon: <AppRegistrationIcon /> },
+        { label: 'Login', path: '/login', icon: <LoginIcon /> },
+        { label: 'Register', path: '/register', icon: <AppRegistrationIcon /> },
       ];
 
   const drawer = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
-      <Typography variant="h6" sx={{ my: 2, fontWeight: "bold" }}>
+    <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
+      <Typography variant="h6" sx={{ my: 2, fontWeight: 'bold' }}>
         EshareBook
       </Typography>
       <List>
@@ -73,8 +78,8 @@ const Navbar = () => {
             component={Link}
             to={path}
             sx={{
-              justifyContent: "center",
-              textAlign: "center",
+              justifyContent: 'center',
+              textAlign: 'center',
               py: 1,
             }}
           >
@@ -82,15 +87,15 @@ const Navbar = () => {
               primary={
                 <Box
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 1,
-                    justifyContent: "center",
+                    justifyContent: 'center',
                   }}
                 >
                   {icon}
                   {label}
-                  {label === "Wishlist" && <WishlistCounterIcon />}
+                  {label === 'Wishlist' && <WishlistCounterIcon />}
                 </Box>
               }
             />
@@ -98,18 +103,10 @@ const Navbar = () => {
         ))}
         {user && (
           <>
-            <ListItem
-              component={Link}
-              to="/profile"
-              sx={{ justifyContent: "center", py: 1 }}
-            >
+            <ListItem component={Link} to="/profile" sx={{ justifyContent: 'center', py: 1 }}>
               <ListItemText primary="My Profile" />
             </ListItem>
-            <ListItem
-              button
-              onClick={handleLogout}
-              sx={{ justifyContent: "center", py: 1 }}
-            >
+            <ListItem button onClick={handleLogout} sx={{ justifyContent: 'center', py: 1 }}>
               <ListItemText primary="Logout" />
             </ListItem>
           </>
@@ -123,27 +120,27 @@ const Navbar = () => {
       <AppBar
         position="static"
         sx={{
-          backgroundColor: "white",
-          color: "black",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          backgroundColor: 'white',
+          color: 'black',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         }}
       >
-        <Toolbar sx={{ justifyContent: "space-between" }}>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
           {/* Logo */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <img
               src="https://cdn-icons-png.flaticon.com/512/29/29302.png"
               alt="logo"
-              style={{ width: "28px", height: "28px" }}
+              style={{ width: '28px', height: '28px' }}
             />
             <Typography
               variant="h6"
               component={Link}
               to="/"
               sx={{
-                textDecoration: "none",
-                color: "black",
-                fontWeight: "bold",
+                textDecoration: 'none',
+                color: 'black',
+                fontWeight: 'bold',
               }}
             >
               EshareBook
@@ -153,9 +150,9 @@ const Navbar = () => {
           {/* Desktop Links */}
           <Box
             sx={{
-              display: { xs: "none", md: "flex" },
+              display: { xs: 'none', md: 'flex' },
               gap: 2,
-              alignItems: "center",
+              alignItems: 'center',
             }}
           >
             {navLinks.map(({ label, path, icon }) => (
@@ -164,33 +161,31 @@ const Navbar = () => {
                 component={Link}
                 to={path}
                 sx={{
-                  color: "gray",
-                  textTransform: "none",
-                  fontWeight: "500",
-                  "&:hover": { color: "black" },
+                  color: 'gray',
+                  textTransform: 'none',
+                  fontWeight: '500',
+                  '&:hover': { color: 'black' },
                 }}
               >
                 {icon}
-                {label === "Wishlist" && <WishlistCounterIcon />}
+                {label === 'Wishlist' && <WishlistCounterIcon />}
               </Button>
             ))}
-
             {authLinks.map(({ label, path, icon }) => (
               <Button
                 key={label}
                 component={Link}
                 to={path}
                 sx={{
-                  color: "gray",
-                  textTransform: "none",
-                  fontWeight: "500",
-                  "&:hover": { color: "black" },
+                  color: 'gray',
+                  textTransform: 'none',
+                  fontWeight: '500',
+                  '&:hover': { color: 'black' },
                 }}
               >
                 {icon}
               </Button>
             ))}
-
             {user && (
               <>
                 <Tooltip title="Account">
@@ -202,14 +197,10 @@ const Navbar = () => {
                   anchorEl={anchorEl}
                   open={openMenu}
                   onClose={handleMenuClose}
-                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  transformOrigin={{ vertical: "top", horizontal: "right" }}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 >
-                  <MenuItem
-                    component={Link}
-                    to="/profile"
-                    onClick={handleMenuClose}
-                  >
+                  <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
                     <AccountCircleIcon sx={{ mr: 1 }} />
                     My Profile
                   </MenuItem>
@@ -227,7 +218,7 @@ const Navbar = () => {
             color="inherit"
             edge="end"
             onClick={handleDrawerToggle}
-            sx={{ display: { xs: "block", md: "none" } }}
+            sx={{ display: { xs: 'block', md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
@@ -239,7 +230,7 @@ const Navbar = () => {
         anchor="right"
         open={mobileOpen}
         onClose={handleDrawerToggle}
-        sx={{ display: { xs: "block", md: "none" } }}
+        sx={{ display: { xs: 'block', md: 'none' } }}
       >
         {drawer}
       </Drawer>
