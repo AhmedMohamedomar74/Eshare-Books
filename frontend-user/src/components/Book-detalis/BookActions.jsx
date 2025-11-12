@@ -1,43 +1,17 @@
-import { Box, Button, Alert, Snackbar } from '@mui/material';
-import { ChatBubbleOutline, FavoriteBorderOutlined, OutlinedFlag } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { useState } from 'react';
-import { addToWishlist } from '../../redux/slices/wishlist.slice';
+import { Box, Button, Alert, Snackbar } from "@mui/material";
+import { ChatBubbleOutline, OutlinedFlag } from "@mui/icons-material";
+import { Link } from "react-router-dom";
 
 const BookActions = ({ bookId }) => {
-  const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.wishlist);
-
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [message, setMessage] = useState('');
-
-  const handleAddToWishlist = async () => {
-    try {
-      const result = await dispatch(addToWishlist(bookId));
-
-      if (result.meta.requestStatus === 'fulfilled') {
-        setMessage('Book added to wishlist!');
-      } else if (result.payload === 'Book already in wishlist') {
-        setMessage('This book is already in your wishlist.');
-      } else {
-        setMessage(result.payload || 'Failed to add book to wishlist.');
-      }
-    } catch {
-      setMessage('Something went wrong.');
-    }
-
-    setOpenSnackbar(true);
-  };
-
   return (
     <>
+      {/* Buttons section */}
       <Box
         sx={{
-          display: 'flex',
-          gap: '15px',
+          display: "flex",
+          gap: "15px",
           mt: 4,
-          flexDirection: { xs: 'column', sm: 'row' },
+          flexDirection: { xs: "column", sm: "row" },
         }}
       >
         <Button
@@ -45,68 +19,52 @@ const BookActions = ({ bookId }) => {
           fullWidth
           startIcon={<ChatBubbleOutline />}
           sx={{
-            backgroundColor: '#2e7d32',
-            textTransform: 'none',
-            fontWeight: 'bold',
+            backgroundColor: "#2e7d32",
+            textTransform: "none",
+            fontWeight: "bold",
           }}
         >
           Contact Owner
         </Button>
 
+        {/* Proceed to Order */}
         <Button
-          variant="outlined"
+          component={Link}
+          to={`/order/${bookId}`}
+          variant="contained"
           fullWidth
-          startIcon={<FavoriteBorderOutlined sx={{ color: 'black' }} />}
-          onClick={handleAddToWishlist}
-          disabled={loading}
           sx={{
-            textTransform: 'none',
-            backgroundColor: '#f5f5dc',
-            borderColor: '#c0a427ff',
-            color: 'black',
-            fontWeight: 'bold',
+            textTransform: "none",
+            backgroundColor: "#c0a427",
+            color: "black",
+            fontWeight: "bold",
+            "&:hover": { backgroundColor: "#b39b20" },
           }}
         >
-          {loading ? 'Adding...' : 'Add to Wishlist'}
+          Proceed to Order
         </Button>
       </Box>
 
-      {/* Report Link */}
+      {/* Report */}
       <Box
         component={Link}
         to={`/reports/book/${bookId}`}
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          fontSize: '0.8rem',
-          color: '#0e0101',
-          marginTop: '32px',
-          fontWeight: 'bold',
-          textDecoration: 'none',
-          '&:hover': { textDecoration: 'underline' },
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px",
+          fontSize: "0.8rem",
+          color: "#0e0101",
+          marginTop: "32px",
+          fontWeight: "bold",
+          textDecoration: "none",
+          "&:hover": { textDecoration: "underline" },
         }}
       >
-        <OutlinedFlag sx={{ fontSize: '18px' }} />
+        <OutlinedFlag sx={{ fontSize: "18px" }} />
         Report this book
       </Box>
-
-      {/* Snackbar Feedback */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setOpenSnackbar(false)}
-          severity={message.includes('Failed') ? 'error' : 'success'}
-          sx={{ width: '100%' }}
-        >
-          {message}
-        </Alert>
-      </Snackbar>
     </>
   );
 };

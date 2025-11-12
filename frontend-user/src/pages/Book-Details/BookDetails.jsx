@@ -1,4 +1,5 @@
-import { Box, Chip, Typography } from "@mui/material";
+import { Box, Chip, Typography, Snackbar, Alert } from "@mui/material";
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../axiosInstance/axiosInstance.js";
@@ -7,11 +8,57 @@ import BreadcrumbNav from "../../components/Book-detalis/BreadcrumbNav.jsx";
 import BookImage from "../../components/Book-detalis/BookImage.jsx";
 import BookOwner from "../../components/Book-detalis/BookOwner.jsx";
 import BookActions from "../../components/Book-detalis/BookActions.jsx";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addToWishlist,
+  removeFromWishlist,
+} from "../../redux/slices/wishlist.slice";
+import BookHeader from "../../components/Book-detalis/BookHeader.jsx";
 
 const BookDetails = () => {
   const { id } = useParams();
+  const dispatch = useDispatch();
+  const { wishlist, loading } = useSelector((state) => state.wishlist);
+
   const [book, setBook] = useState(null);
-  const [loading, setloading] = useState(true);
+  const [loadingBook, setLoadingBook] = useState(true);
+  const [inWishlist, setInWishlist] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    api
+      .get(`/books/${id}`)
+      .then((res) => {
+        setBook(res.data.book);
+      })
+      .catch((err) => console.error("Error fetching book details:", err))
+      .finally(() => setLoadingBook(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (book?._id) {
+      const exists = wishlist?.some((b) => b._id === book._id);
+      setInWishlist(exists);
+    }
+  }, [wishlist, book]);
+
+  const handleToggleWishlist = async () => {
+    try {
+      if (inWishlist) {
+        await dispatch(removeFromWishlist(book._id));
+        setMessage("Book removed from wishlist");
+        setInWishlist(false);
+      } else {
+        await dispatch(addToWishlist(book._id));
+        setMessage("Book added to wishlist");
+        setInWishlist(true);
+      }
+    } catch {
+      setMessage("Something went wrong.");
+    }
+    setOpenSnackbar(true);
+  };
 
   const getTransactionLabel = (type) => {
     switch (type) {
@@ -28,26 +75,14 @@ const BookDetails = () => {
     }
   };
 
-  useEffect(() => {
-    api
-      .get(`/books/${id}`)
-      .then((res) => {
-        setBook(res.data.book);
-      })
-      .catch((err) => console.error("Error fetching book details:", err))
-      .finally(() => setloading(false));
-  }, [id]);
-
-  if (loading) {
-    return <Spinner />;
-  }
-  if (!book) {
+  if (loadingBook) return <Spinner />;
+  if (!book)
     return (
       <Typography textAlign="center" mt={5} color="error">
         Book not found or unavailable.
       </Typography>
     );
-  }
+
   return (
     <Box
       sx={{
@@ -58,6 +93,7 @@ const BookDetails = () => {
     >
       <Box sx={{ width: "100%", maxWidth: "1000px" }}>
         <BreadcrumbNav title={book.Title} categoryId={book.categoryId} />
+
         <Box
           sx={{
             display: "flex",
@@ -66,13 +102,15 @@ const BookDetails = () => {
           }}
         >
           <BookImage src={book.image?.secure_url} alt={book.Title} />
+
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h4" fontWeight="bold">
-              {book.Title}
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary" mb={2}>
-              by {book.UserID?.name || "Unknown Author"}
-            </Typography>
+            {/* Title + Heart */}
+            <BookHeader
+              title={book.Title}
+              author={book.UserID?.name}
+              bookId={book._id}
+            />
+
             <Box sx={{ display: "flex", gap: "10px", mb: 2, flexWrap: "wrap" }}>
               <Chip
                 label={book.categoryId?.name || "General"}
@@ -83,19 +121,43 @@ const BookDetails = () => {
                 color="success"
               />
             </Box>
+
             <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
+
             <Typography
               color="text.secondary"
               sx={{ mb: 3, lineHeight: 1.7, textAlign: "justify" }}
             >
               {book.Description}
             </Typography>
+
             <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
+
             <BookOwner avatar={book.UserID?.avatar} name={book.UserID?.name} />
             <BookActions bookId={book._id} />
           </Box>
         </Box>
       </Box>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={
+            message.includes("removed") || message.includes("wrong")
+              ? "warning"
+              : "success"
+          }
+          sx={{ width: "100%" }}
+        >
+          {message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
