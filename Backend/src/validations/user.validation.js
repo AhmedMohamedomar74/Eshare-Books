@@ -10,6 +10,18 @@ const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d
 /**
  * Validation Schema for Getting Users (Query Parameters)
  */
+export const userPublicProfileSchema = Joi.object({
+  id: Joi.string()
+    .pattern(objectIdPattern)
+    .required()
+    .messages({
+      'string.pattern.base': 'Invalid user ID format',
+      'any.required': 'User ID is required',
+      'string.empty': 'User ID cannot be empty',
+    }),
+});
+
+
 export const getUsersSchema = Joi.object({
   page: Joi.number()
     .integer()

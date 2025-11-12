@@ -672,3 +672,39 @@ export const removeFriend = asyncHandler(async (req, res, next) => {
         message: "Friend removed successfully"
     });
 });
+
+
+export const getUserPublicProfile = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+
+    const user = await findOne({
+        model: userModel,
+        filter: { _id: id },
+        select: 'firstName secondName email profilePic address friends createdAt'
+    });
+
+    if (!user) {
+        return next(new Error("User not found", { cause: 404 }));
+    }
+
+    // Get friend count
+    const friendCount = user.friends.length;
+
+    // Prepare public profile data (exclude sensitive information)
+    const publicProfile = {
+        _id: user._id,
+        firstName: user.firstName,
+        secondName: user.secondName,
+        email: user.email,
+        profilePic: user.profilePic,
+        address: user.address,
+        friendCount: friendCount,
+        memberSince: user.createdAt
+    };
+
+    return successResponce({
+        res,
+        message: "User public profile retrieved successfully",
+        data: publicProfile
+    });
+});

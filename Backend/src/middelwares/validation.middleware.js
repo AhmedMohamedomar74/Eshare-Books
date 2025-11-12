@@ -9,6 +9,7 @@ import {
   updateProfileSchema,
   updateUserSchema,
   userIdSchema,
+  userPublicProfileSchema,
 } from '../validations/user.validation.js';
 import {
   friendIdSchema,
@@ -91,7 +92,7 @@ export const validateSignup = validateRequest(signupSchema, 'body');
 export const validateLogin = validateRequest(loginSchema, 'body');
 export const validateVerifyEmail = validateRequest(verifyEmailSchema, 'params');
 export const validateReport = validateRequest(reportSchema, 'body');
-
+export const validateUserPublicProfile =  validateRequest(userPublicProfileSchema , 'params');
 export const validateGetUsers = validateRequest(getUsersSchema, 'query');
 export const validateUserId = validateRequest(userIdSchema, 'params');
 export const validateUpdateUser = validateRequest(updateUserSchema, 'body');

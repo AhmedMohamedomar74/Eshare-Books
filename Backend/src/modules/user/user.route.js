@@ -14,14 +14,16 @@ import {
     acceptFriendRequest,
     rejectFriendRequest,
     getFriendsList,
-    removeFriend
+    removeFriend,
+    getUserPublicProfile
 } from "./user.controller.js";
 import { auth, adminCheckmiddelware } from "./../../middelwares/auth.middleware.js";
-import { validateChangePassword, validateFriendId, validateGetUsers, validateListFriendRequests, validateRequestId, validateSendFriendRequest, validateUpdateProfile, validateUserId } from "../../middelwares/validation.middleware.js";
+import { validateChangePassword, validateFriendId, validateGetUsers, validateListFriendRequests, validateRequestId, validateSendFriendRequest, validateUpdateProfile, validateUserId, validateUserPublicProfile } from "../../middelwares/validation.middleware.js";
 
 const router = Router();
 
 // Public routes
+router.get("/public-profile/:id", validateUserPublicProfile, getUserPublicProfile);
 // Protected routes (require authentication)
 router.use(auth); // Apply auth middleware to all routes below
 
