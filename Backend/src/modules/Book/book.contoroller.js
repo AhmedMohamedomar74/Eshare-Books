@@ -6,6 +6,7 @@ import {
   updateBook,
   deleteBook,
   getBooksByCategory,
+  getBooksByTransactionType,
 } from "./book.service.js";
 import {
   upload,
@@ -47,5 +48,8 @@ router.patch(
 
  
 router.delete("/:id", auth, deleteBook);
+// 📘 Get Books by Transaction Type
+router.get("/type/:type", auth, getBooksByTransactionType);
+
 
 export default router;
