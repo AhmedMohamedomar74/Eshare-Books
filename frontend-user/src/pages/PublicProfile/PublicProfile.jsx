@@ -1,19 +1,20 @@
 // PublicProfile.jsx
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import PublicProfileHeader from "./../../components/publicProfile/PublicProfileHeader.jsx";
-import TabNavigation from "./../../components/publicProfile/TabNavigation.jsx";
-import BooksGrid from "./../../components/profile/BooksGrid.jsx";
-import { userService } from "../../services/user/userService.js";
-import { bookService } from "../../services/books/bookServices.js";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import PublicProfileHeader from './../../components/publicProfile/PublicProfileHeader.jsx';
+import TabNavigation from './../../components/publicProfile/TabNavigation.jsx';
+import BooksGrid from './../../components/profile/BooksGrid.jsx';
+import { userService } from '../../services/user/userService.js';
+import { bookService } from '../../services/books/bookServices.js';
 
 const PublicProfile = () => {
-  const [activeTab, setActiveTab] = useState("user-books");
+  const [activeTab, setActiveTab] = useState('user-books');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [books, setBooks] = useState([]);
   const { userId } = useParams();
+  const navigate = useNavigate();
 
   // Fetch public user profile data
   useEffect(() => {
@@ -26,7 +27,7 @@ const PublicProfile = () => {
         setError(null);
       } catch (err) {
         setError(err.message);
-        console.error("Error fetching public profile:", err);
+        console.error('Error fetching public profile:', err);
       } finally {
         setLoading(false);
       }
@@ -43,7 +44,7 @@ const PublicProfile = () => {
         const response = await bookService.getUserBooks(userId);
         setBooks(response.books || []);
       } catch (error) {
-        console.error("Error fetching user books:", error);
+        console.error('Error fetching user books:', error);
         setBooks([]);
       }
     };
@@ -54,18 +55,17 @@ const PublicProfile = () => {
   }, [userId]);
 
   // Handle report user
-  const handleReportUser =() => {
+  const handleReportUser = () => {
     try {
-      console.log("Report User button clicked!");
-      // Add your report logic here later
+      navigate(`/reports/user/${userId}`);
     } catch (error) {
-      console.error("Error in handleReportUser:", error);
+      console.error('Error in handleReportUser:', error);
     }
   };
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "user-books":
+      case 'user-books':
         return <BooksGrid books={books} />;
       default:
         return <BooksGrid books={books} />;
