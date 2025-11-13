@@ -9,4 +9,13 @@ export const bookService = {
             throw new Error(error.response?.data?.message || 'Failed to fetch books');
         }
     },
+
+    getUserBooks : async (userId) => {
+        try {
+            const response = await api.get(`/books/user/${userId}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch user books');
+        }
+    }
 }
