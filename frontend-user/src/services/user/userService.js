@@ -26,7 +26,7 @@ export const userService = {
     try {
       const formData = new FormData();
       formData.append('profilePic', file);
-      
+
       const response = await api.put('/user/profile/picture', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -35,6 +35,15 @@ export const userService = {
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to upload profile picture');
+    }
+  },
+
+  getPublicProfile: async (userId) => {
+    try {
+      const response = await api.get(`/user/public-profile/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch public profile');
     }
   }
 };

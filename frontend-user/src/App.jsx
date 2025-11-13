@@ -9,6 +9,7 @@ import OrderPage from "./pages/Order/OrderPage.jsx";
 import Wishlist from "./pages/Wishlist/Wishlist.jsx";
 import Report from "./pages/Report/Report.jsx";
 import Home from "./pages/Home/Home.jsx";
+import PublicProfile from "./pages/publicProfile/PublicProfile.jsx";
 import AddBook from "./pages/AddBook/AddBook.jsx";
 import UserLayout from "./layout/UserLayout.jsx";
 import ProtectedRoute from "./layout/ProtectedRoute.jsx";
@@ -35,9 +36,10 @@ function App() {
           <Route path="/details/:id" element={<BookDetails />} />
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/public-profile/:userId" element={<PublicProfile />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/profile" element={<BookShareDashboard />} />
-            <Route path="/order/:id" element={<OrderPage />} />
+            <Route path="/order/:userId" element={<OrderPage />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/reports/:type/:targetId" element={<Report />} />
             <Route path="/myreports" element={<MyReports />} />

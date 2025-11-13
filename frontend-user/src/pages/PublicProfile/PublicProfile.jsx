@@ -21,6 +21,7 @@ const PublicProfile = () => {
       try {
         setLoading(true);
         const response = await userService.getPublicProfile(userId);
+        console.log(response.data);
         setUser(response.data);
         setError(null);
       } catch (err) {
@@ -54,17 +55,7 @@ const PublicProfile = () => {
 
   // Handle report user
   const handleReportUser = async () => {
-    try {
-      // You'll need to implement this service method
-      const response = await userService.reportUser(userId, {
-        reason: "User reported from public profile"
-      });
-      alert("User reported successfully");
-      return response;
-    } catch (err) {
-      alert("Error reporting user: " + err.message);
-      throw new Error(err.message);
-    }
+    
   };
 
   const renderTabContent = () => {
