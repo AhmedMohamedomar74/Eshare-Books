@@ -9,7 +9,7 @@ import OrderPage from "./pages/Order/OrderPage.jsx";
 import Wishlist from "./pages/Wishlist/Wishlist.jsx";
 import Report from "./pages/Report/Report.jsx";
 import Home from "./pages/Home/Home.jsx";
-import PublicProfile from "./pages/publicProfile/PublicProfile.jsx";
+import PublicProfile from "./pages/PublicProfile/PublicProfile.jsx";
 import AddBook from "./pages/AddBook/AddBook.jsx";
 import UserLayout from "./layout/UserLayout.jsx";
 import ProtectedRoute from "./layout/ProtectedRoute.jsx";

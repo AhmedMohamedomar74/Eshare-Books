@@ -26,7 +26,7 @@ const PublicProfile = () => {
         setError(null);
       } catch (err) {
         setError(err.message);
-        console.error('Error fetching public profile:', err);
+        console.error("Error fetching public profile:", err);
       } finally {
         setLoading(false);
       }
@@ -43,7 +43,7 @@ const PublicProfile = () => {
         const response = await bookService.getUserBooks(userId);
         setBooks(response.books || []);
       } catch (error) {
-        console.error('Error fetching user books:', error);
+        console.error("Error fetching user books:", error);
         setBooks([]);
       }
     };
@@ -54,8 +54,13 @@ const PublicProfile = () => {
   }, [userId]);
 
   // Handle report user
-  const handleReportUser = async () => {
-    
+  const handleReportUser =() => {
+    try {
+      console.log("Report User button clicked!");
+      // Add your report logic here later
+    } catch (error) {
+      console.error("Error in handleReportUser:", error);
+    }
   };
 
   const renderTabContent = () => {
@@ -90,8 +95,8 @@ const PublicProfile = () => {
             <div className="text-red-500 text-center">
               <p className="text-lg font-semibold">Error loading profile</p>
               <p className="text-sm mt-2">{error}</p>
-              <button 
-                onClick={() => window.location.reload()} 
+              <button
+                onClick={() => window.location.reload()}
                 className="mt-4 px-4 py-2 bg-[#4c7b7b] text-white rounded-lg hover:bg-[#3a5f5f] transition-colors"
               >
                 Retry
@@ -108,10 +113,7 @@ const PublicProfile = () => {
       {/* Main Content */}
       <main className="px-4 sm:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
         <div className="flex flex-col max-w-screen-xl flex-1 w-full">
-          <PublicProfileHeader 
-            user={user} 
-            onReportUser={handleReportUser}
-          />
+          <PublicProfileHeader user={user} onReportUser={handleReportUser} />
           <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
           {renderTabContent()}
         </div>
