@@ -6,6 +6,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { AppError } from "../../utils/AppError.js";
 import { nanoid } from "nanoid";
 import { moderateImage, moderateText } from "../../utils/ai/moderation.js";
+import mongoose from "mongoose";
 
  
 // Helper Function: Upload to Cloudinary
@@ -244,6 +245,30 @@ export const getBooksByTransactionType = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: `✅ Books fetched successfully for type: ${type}`,
+    total: books.length,
+    books,
+  });
+});
+
+export const getBooksByUserId = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  // Validate if userId is a valid ObjectId
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new AppError("❌ Invalid user ID", 400);
+  }
+
+  const books = await Book.find({ 
+    UserID: userId, 
+    isDeleted: false 
+  })
+    .populate("UserID", "firstName secondName email")
+    .populate("categoryId", "name")
+    .sort({ createdAt: -1 }); // Sort by newest first
+
+  res.json({
+    success: true,
+    message: "✅ Books fetched successfully for this user",
     total: books.length,
     books,
   });

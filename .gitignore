@@ -7,3 +7,4 @@ notes.json
 frontend-user/.vite
 frontend-user/dist
 frontend-user/.vite
+Backend/.vscode/launch.json
