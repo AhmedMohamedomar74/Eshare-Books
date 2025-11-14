@@ -1,1 +1,99 @@
-<p>reports works!</p>
+<!-- reports page -->
+<div class="reports-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Report Management</h1>
+    <p class="text-muted">View and manage user reports.</p>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="search-bar">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        class="form-control"
+        placeholder="search by target id only"
+        (input)="onSearch($event)"
+      />
+    </div>
+
+    <div class="filters">
+      <div class="filter-dropdown">
+        <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          Status: {{ statusFilter }}
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" (click)="onStatusFilter('All')">All</a></li>
+          <li><a class="dropdown-item" (click)="onStatusFilter('Pending')">Pending</a></li>
+          <li><a class="dropdown-item" (click)="onStatusFilter('Resolved')">Resolved</a></li>
+          <li><a class="dropdown-item" (click)="onStatusFilter('Dismissed')">Dismissed</a></li>
+        </ul>
+      </div>
+
+      <div class="filter-dropdown">
+        <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          Target Type: {{ targetTypeFilter }}
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" (click)="onTargetTypeFilter('All')">All</a></li>
+          <li><a class="dropdown-item" (click)="onTargetTypeFilter('Book')">Book</a></li>
+          <li><a class="dropdown-item" (click)="onTargetTypeFilter('User')">User</a></li>
+          <li><a class="dropdown-item" (click)="onTargetTypeFilter('Comment')">Comment</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reports Table -->
+  <div class="table-container">
+    <table class="table reports-table">
+      <thead>
+        <tr>
+          <th>REPORTER ID</th>
+          <th>TARGET TYPE</th>
+          <th>TARGET ID</th>
+          <th>REASON</th>
+          <th>STATUS</th>
+          <th>CREATED AT</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let report of reports">
+          <td>{{ report.reporterId }}</td>
+          <td>{{ report.targetType }}</td>
+          <td>
+            <a href="#" class="target-link">{{ report.targetId }}</a>
+          </td>
+          <td>{{ report.reason }}</td>
+          <td>
+            <span [ngClass]="'badge status-' + report.status">
+              {{ report.status | titlecase }}
+            </span>
+          </td>
+          <td>{{ report.createdAt }}</td>
+          <td>
+            <button class="btn-action edit" title="Edit" (click)="editReport(report)">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-action delete" title="Delete" (click)="deleteReport(report)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-section">
+    <span class="pagination-info">Showing 1 to 5 of {{ totalResults }} results</span>
+    <div class="pagination-controls">
+      <button class="btn btn-light" [disabled]="currentPage === 1" (click)="previousPage()">
+        Previous
+      </button>
+      <button class="btn btn-light" (click)="nextPage()">Next</button>
+    </div>
+  </div>
+</div>
