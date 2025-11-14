@@ -1,0 +1,251 @@
+/* reports page */
+.reports-page {
+  padding: 40px;
+}
+
+.page-header {
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  font-size: 15px;
+  color: #718096;
+  margin: 0;
+}
+
+/* Filters and Search */
+.filters-section {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.search-bar {
+  flex: 1;
+  min-width: 300px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-bar i {
+  position: absolute;
+  left: 15px;
+  color: #a0aec0;
+}
+
+.search-bar .form-control {
+  padding-left: 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  height: 44px;
+  font-size: 14px;
+}
+
+.search-bar .form-control::placeholder {
+  color: #a0aec0;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+}
+
+.filter-dropdown {
+  position: relative;
+}
+
+.filter-dropdown .btn {
+  border: 1px solid #e2e8f0;
+  color: #4a5568;
+  font-size: 14px;
+  padding: 8px 16px;
+  height: 44px;
+  white-space: nowrap;
+}
+
+.filter-dropdown .btn:hover {
+  background-color: #f7fafc;
+}
+
+/* Table */
+.table-container {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 30px;
+}
+
+.reports-table {
+  margin-bottom: 0;
+}
+
+.reports-table thead {
+  background-color: #f7fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.reports-table thead th {
+  color: #718096;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 16px;
+  letter-spacing: 0.5px;
+}
+
+.reports-table tbody td {
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+  color: #2d3748;
+  vertical-align: middle;
+}
+
+.reports-table tbody tr:hover {
+  background-color: #f7fafc;
+}
+
+.target-link {
+  color: #0052cc;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.target-link:hover {
+  text-decoration: underline;
+}
+
+/* Status Badges */
+.badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.status-resolved {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-dismissed {
+  background-color: #e5e7eb;
+  color: #6b7280;
+}
+
+/* Action Buttons */
+.btn-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a0aec0;
+  padding: 4px 8px;
+  margin: 0 4px;
+  transition: color 0.3s ease;
+  font-size: 16px;
+}
+
+.btn-action:hover {
+  color: #2d3748;
+}
+
+.btn-action.delete:hover {
+  color: #e53e3e;
+}
+
+/* Pagination */
+.pagination-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.pagination-info {
+  color: #718096;
+  font-size: 14px;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.pagination-controls .btn {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+  color: #4a5568;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+.pagination-controls .btn:hover:not(:disabled) {
+  background-color: #f7fafc;
+}
+
+.pagination-controls .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 20px;
+  }
+
+  .filters-section {
+    flex-direction: column;
+  }
+
+  .search-bar {
+    min-width: 100%;
+  }
+
+  .filters {
+    width: 100%;
+  }
+
+  .filter-dropdown {
+    flex: 1;
+  }
+
+  .pagination-section {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  .main-content {
+    padding: 15px;
+  }
+
+  .reports-table thead th,
+  .reports-table tbody td {
+    padding: 12px;
+    font-size: 12px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+  }
+}

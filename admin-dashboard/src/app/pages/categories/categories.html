@@ -1,1 +1,110 @@
-<p>categories works!</p>
+<!-- categories page -->
+<div class="categories-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Manage Categories</h1>
+      <p class="page-description">Add, edit, or delete book categories.</p>
+    </div>
+    <button class="btn btn-primary btn-add-category">
+      <i class="bi bi-plus"></i> Add New Category
+    </button>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-section">
+    <div class="search-bar">
+      <i class="bi bi-search"></i>
+      <input type="text" class="form-control" placeholder="Search categories..." />
+    </div>
+  </div>
+
+  <!-- Categories Table -->
+  <div class="table-container">
+    <table class="table categories-table">
+      <thead>
+        <tr>
+          <th>CATEGORY NAME</th>
+          <th>NO. OF BOOKS</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Science Fiction</td>
+          <td>125</td>
+          <td>
+            <button class="btn-action edit" title="Edit">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-action delete" title="Delete">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td>History</td>
+          <td>88</td>
+          <td>
+            <button class="btn-action edit" title="Edit">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-action delete" title="Delete">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td>Business & Finance</td>
+          <td>210</td>
+          <td>
+            <button class="btn-action edit" title="Edit">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-action delete" title="Delete">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td>Children's Literature</td>
+          <td>95</td>
+          <td>
+            <button class="btn-action edit" title="Edit">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-action delete" title="Delete">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td>Fantasy</td>
+          <td>150</td>
+          <td>
+            <button class="btn-action edit" title="Edit">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-action delete" title="Delete">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-section">
+    <span class="pagination-info">Showing 1 to 5 of 50 results</span>
+    <div class="pagination-controls">
+      <button class="btn btn-light" disabled><i class="bi bi-chevron-left"></i></button>
+      <button class="btn btn-primary active">1</button>
+      <button class="btn btn-light">2</button>
+      <button class="btn btn-light">3</button>
+      <span class="pagination-dots">...</span>
+      <button class="btn btn-light">10</button>
+      <button class="btn btn-light"><i class="bi bi-chevron-right"></i></button>
+    </div>
+  </div>
+</div>

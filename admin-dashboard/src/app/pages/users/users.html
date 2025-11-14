@@ -1,1 +1,134 @@
-<p>users works!</p>
+<div class="users-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">User Management</h1>
+    <p class="page-subtitle">Manage all registered users in the system.</p>
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="search-filter-bar">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search by name, email, or ID..."
+        [(ngModel)]="searchTerm"
+        name="searchTerm"
+      />
+    </div>
+
+    <div class="filter-group">
+      <select class="filter-select" [(ngModel)]="sortBy" name="sortBy">
+        <option value="name">Sort by: Name</option>
+        <option value="email">Sort by: Email</option>
+        <option value="role">Sort by: Role</option>
+        <option value="date">Sort by: Date</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="roleFilter" name="roleFilter">
+        <option value="all">Role: All</option>
+        <option value="admin">Role: Admin</option>
+        <option value="user">Role: User</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="statusFilter" name="statusFilter">
+        <option value="all">Status: All</option>
+        <option value="confirmed">Status: Confirmed</option>
+        <option value="pending">Status: Pending</option>
+      </select>
+
+      <button class="btn-add-user" (click)="addNewUser()">
+        <i class="bi bi-plus-lg"></i>
+        Add New User
+      </button>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-container">
+    <table class="table user-table">
+      <thead>
+        <tr>
+          <th>PROFILE PIC</th>
+          <th>FIRST NAME</th>
+          <th>SECOND NAME</th>
+          <th>ID</th>
+          <th>EMAIL</th>
+          <th>ROLE</th>
+          <th>IS CONFIRMED</th>
+          <th>FRIENDS</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of paginatedUsers">
+          <td>
+            <img [src]="user.profilePic" [alt]="user.firstName" class="profile-pic" />
+          </td>
+          <td>{{ user.firstName }}</td>
+          <td>{{ user.lastName }}</td>
+          <td>{{ user.id }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="badge-role" [class.badge-role-admin]="user.role === 'admin'">
+              {{ user.role | titlecase }}
+            </span>
+          </td>
+          <td>
+            <span [ngClass]="user.isConfirmed ? 'badge-confirmed' : 'badge-pending'">
+              {{ user.isConfirmed ? 'Confirmed' : 'Pending' }}
+            </span>
+          </td>
+          <td>{{ user.friends }}</td>
+          <td>
+            <button class="btn-action edit" title="Edit" (click)="editUser(user)">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-action delete" title="Delete" (click)="deleteUser(user)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper">
+      <div class="pagination-info">
+        Showing {{ startIndex }} to {{ endIndex }} of {{ totalResults }} results
+      </div>
+      <nav>
+        <ul class="pagination">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <a class="page-link" (click)="goToPage(currentPage - 1)" tabindex="-1">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+          <li
+            class="page-item"
+            *ngFor="let page of visiblePages"
+            [class.active]="page === currentPage"
+          >
+            <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
+          </li>
+          <ng-container *ngIf="visiblePages[visiblePages.length - 1] < totalPages - 1">
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+          </ng-container>
+          <ng-container
+            *ngIf="totalPages > 1 && visiblePages[visiblePages.length - 1] < totalPages"
+          >
+            <li class="page-item">
+              <a class="page-link" (click)="goToPage(totalPages)">{{ totalPages }}</a>
+            </li>
+          </ng-container>
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <a class="page-link" (click)="goToPage(currentPage + 1)">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,102 @@
+/* books page */
+.books-page {
+  padding: 40px;
+}
+
+.badge {
+  padding: 6px 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.badge.bg-danger-light {
+  background-color: #ffe7e7;
+}
+
+.badge.bg-success-light {
+  background-color: #e7ffe7;
+}
+
+.badge.bg-warning-light {
+  background-color: #fff4e7;
+}
+
+.badge.text-danger {
+  color: #dc3545;
+}
+
+.badge.text-success {
+  color: #28a745;
+}
+
+.badge.text-warning {
+  color: #ffc107;
+}
+
+.table {
+  border-collapse: collapse;
+}
+
+.table thead th {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  color: #212529;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-outline-secondary {
+  border-color: #dee2e6;
+  color: #495057;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  color: #495057;
+}
+
+.dropdown-toggle::after {
+  margin-left: 8px;
+}
+
+.input-group .form-control {
+  border-color: #dee2e6;
+}
+
+.input-group .form-control:focus {
+  border-color: #0052cc;
+  box-shadow: 0 0 0 0.2rem rgba(0, 82, 204, 0.25);
+}
+
+.btn-link {
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-link:hover {
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  main {
+    margin-left: 0;
+  }
+
+  .table {
+    font-size: 14px;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px !important;
+  }
+}

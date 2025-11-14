@@ -1,1 +1,14 @@
-<p>dashboard works!</p>
+<div class="stats-container">
+  <div class="stat-card" *ngFor="let stat of stats">
+    <div class="stat-header">
+      <span class="stat-label">{{ stat.label }}</span>
+      <div class="stat-icon" [ngClass]="stat.iconColor">
+        <i [class]="stat.icon"></i>
+      </div>
+    </div>
+    <div class="stat-value">{{ stat.value }}</div>
+    <div class="stat-change" [ngClass]="stat.isPositive ? 'positive' : 'negative'">
+      {{ stat.change }}
+    </div>
+  </div>
+</div>
