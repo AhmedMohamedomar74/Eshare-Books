@@ -1,5 +1,6 @@
+// src/app/services/users.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -8,21 +9,15 @@ export class UsersService {
 
   constructor(private http: HttpClient) {}
 
-  getAllUsers(token: string): Observable<any> {
-    return this.http.get(this.baseUrl, {
-      headers: new HttpHeaders({ Authorization: `admin ${token}` }),
-    });
+  getAllUsers(): Observable<any> {
+    return this.http.get<{ data: { users: any[] } }>(this.baseUrl);
   }
 
-  getUserById(id: string, token: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/${id}`, {
-      headers: new HttpHeaders({ Authorization: `admin ${token}` }),
-    });
+  confirmUser(id: string): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/${id}/confirm`, {});
   }
 
-  deleteUser(id: string, token: string): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${id}`, {
-      headers: new HttpHeaders({ Authorization: `admin ${token}` }),
-    });
+  deleteUser(id: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/${id}`);
   }
 }

@@ -1,0 +1,97 @@
+<div class="login-wrapper">
+  <!-- Popup Alert -->
+  <div *ngIf="showAlert" class="alert-popup" [ngClass]="alertType">
+    <div class="alert-content">
+      <div class="alert-icon">
+        <i *ngIf="alertType === 'success'" class="fas fa-check"></i>
+        <i *ngIf="alertType === 'error'" class="fas fa-times"></i>
+        <i *ngIf="alertType === 'warning'" class="fas fa-exclamation-triangle"></i>
+      </div>
+      <p class="alert-message">{{ alertMessage }}</p>
+      <button class="alert-close" (click)="closeAlert()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Login Container -->
+  <div class="login-container">
+    <div class="login-card">
+      <!-- Header -->
+      <div class="login-header">
+        <h1 class="login-title">EshareBook Admin</h1>
+        <p class="login-subtitle">Welcome back! Please enter your admin credentials.</p>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-container">
+          <!-- Email Input -->
+          <div class="form-group">
+            <label class="form-label"> Email Address <span class="required">*</span> </label>
+            <input
+              type="email"
+              class="form-control"
+              [ngClass]="{ 'is-invalid': isFieldInvalid('email') }"
+              formControlName="email"
+              placeholder="admin@example.com"
+              (blur)="markAsTouched('email')"
+            />
+            <div class="error-message" *ngIf="isFieldInvalid('email')">
+              {{ getErrorMessage('email') }}
+            </div>
+          </div>
+
+          <!-- Password Input -->
+          <div class="form-group">
+            <label class="form-label"> Password <span class="required">*</span> </label>
+            <div class="password-wrapper">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                class="form-control"
+                [ngClass]="{ 'is-invalid': isFieldInvalid('password') }"
+                formControlName="password"
+                placeholder="Enter your password"
+                (blur)="markAsTouched('password')"
+              />
+              <button type="button" class="password-toggle" (click)="togglePassword()">
+                <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+              </button>
+            </div>
+            <div class="error-message" *ngIf="isFieldInvalid('password')">
+              {{ getErrorMessage('password') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Remember Me & Forgot Password -->
+        <div class="form-options">
+          <div class="remember-me">
+            <input type="checkbox" id="rememberMe" formControlName="rememberMe" />
+            <label for="rememberMe">Remember me</label>
+          </div>
+          <a href="#" class="forgot-password">Forgot password?</a>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="submit-container">
+          <button type="submit" class="btn-submit" [disabled]="loading">
+            <span *ngIf="!loading">Login</span>
+            <span *ngIf="loading" class="loading-spinner">
+              <i class="fas fa-spinner fa-spin"></i>
+              Loading...
+            </span>
+          </button>
+        </div>
+
+        <!-- Footer Text -->
+        <div class="login-footer">
+          <p>
+            Don't have an admin account?
+            <a href="#" class="signup-link">Contact support</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

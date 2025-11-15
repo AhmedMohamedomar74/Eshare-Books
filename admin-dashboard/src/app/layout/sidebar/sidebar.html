@@ -12,11 +12,11 @@
   <!-- User Profile -->
   <div class="user-profile">
     <div class="user-avatar">
-      <i class="bi bi-person-circle"></i>
+      <img [src]="user.profilePic" alt="Profile" class="avatar-img" />
     </div>
     <div>
-      <p class="user-name">Admin</p>
-      <p class="user-email">admin@esharebooks.com</p>
+      <p class="user-name">{{ user.firstName }} {{ user.secondName }}</p>
+      <p class="user-email">{{ user.email }}</p>
     </div>
   </div>
 
@@ -50,7 +50,9 @@
   </ul>
 
   <!-- Logout -->
-  <div class="logout-section">
-    <a class="nav-link" href="#"> <i class="bi bi-box-arrow-left"></i> Logout </a>
+  <div class="logout-section" *ngIf="isLoggedIn">
+    <a class="nav-link" (click)="logout()" style="cursor: pointer">
+      <i class="bi bi-box-arrow-left"></i> Logout
+    </a>
   </div>
 </nav>
