@@ -1,54 +1,60 @@
-// src/app/interceptors/auth.interceptor.ts
-import { HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
+import {
+  HttpInterceptorFn,
+  HttpRequest,
+  HttpHandlerFn,
+  HttpErrorResponse,
+} from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, switchMap, take } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
-import { AuthService } from '../shared/services/auth';
+import { Router } from '@angular/router';
 
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<any>, next: HttpHandlerFn) => {
-  const authService = inject(AuthService); // ← صحيح 100%
-  const token = authService.getAccessToken(); // ← هيشتغل دلوقتي
+  const router = inject(Router);
 
-  // إضافة الـ token لو موجود
-  const authReq = token ? req.clone({ setHeaders: { Authorization: `admin ${token}` } }) : req;
+  // Skip adding token for auth endpoints
+  const isAuthEndpoint =
+    req.url.includes('/auth/login') ||
+    req.url.includes('/auth/signup') ||
+    req.url.includes('/auth/verify');
+
+  // Get token from localStorage directly
+  const token = localStorage.getItem('accessToken');
+
+  // Clone request and attach token if available
+  let authReq = req;
+  if (token && !isAuthEndpoint) {
+    authReq = req.clone({
+      setHeaders: { Authorization: `admin ${token}` },
+    });
+  }
 
   return next(authReq).pipe(
-    catchError((error) => {
-      // لو 401 ومش login أو refresh
-      if (
-        error.status === 401 &&
-        !req.url.includes('/auth/refresh-token') &&
-        !req.url.includes('/auth/login')
-      ) {
-        const refreshSubject = authService.getRefreshTokenInProgress();
-
-        if (!refreshSubject.getValue()) {
-          authService.startRefresh();
-          return authService.performRefreshToken().pipe(
-            switchMap((res: any) => {
-              authService.completeRefresh(res.accessToken);
-              return next(req.clone({ setHeaders: { Authorization: `admin ${res.accessToken}` } }));
-            }),
-            catchError((err) => {
-              authService.completeRefresh(null);
-              authService.logout();
-              return throwError(() => err);
-            })
-          );
-        } else {
-          return refreshSubject.pipe(
-            take(1),
-            switchMap((newToken) => {
-              if (newToken) {
-                return next(req.clone({ setHeaders: { Authorization: `admin ${newToken}` } }));
-              }
-              authService.logout();
-              return throwError(() => error);
-            })
-          );
-        }
+    catchError((error: any) => {
+      // Only handle HTTP errors
+      if (!(error instanceof HttpErrorResponse)) {
+        return throwError(() => error);
       }
+
+      // Handle 401 Unauthorized - Token expired or invalid
+      if (error.status === 401) {
+        logoutUser(router);
+        return throwError(() => error);
+      }
+
+      // Handle 403 Forbidden - User doesn't have admin role
+      if (error.status === 403) {
+        logoutUser(router);
+        return throwError(() => new Error('Access denied. Admin privileges required.'));
+      }
+
       return throwError(() => error);
     })
   );
 };
+
+function logoutUser(router: Router) {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  router.navigate(['/login']);
+}

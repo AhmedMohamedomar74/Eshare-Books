@@ -2,8 +2,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../../shared/services/auth';
 import { Subscription } from 'rxjs';
+import { AuthService, UserProfile } from '../../shared/services/auth';
 
 @Component({
   selector: 'app-sidebar',
@@ -13,59 +13,95 @@ import { Subscription } from 'rxjs';
   styleUrl: './sidebar.css',
 })
 export class Sidebar implements OnInit, OnDestroy {
-  user: any = {
+  user: UserProfile | null = null;
+  isLoggedIn = false;
+  isLoading = true; // Add loading state
+
+  private authSubscription?: Subscription;
+  private userSubscription?: Subscription;
+
+  // Default guest user
+  private readonly guestUser = {
+    _id: '',
     firstName: 'Guest',
     secondName: 'Admin',
     email: 'admin@esharebooks.com',
+    role: 'admin' as const,
+    isConfirmed: false,
     profilePic: '/default-admin.png',
+    createdAt: '',
+    updatedAt: '',
   };
-
-  isLoggedIn = false;
-  private authSubscription!: Subscription;
 
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    // اشترك في isLoggedIn$ عشان يتحدث تلقائيًا
+    // Subscribe to login state
     this.authSubscription = this.authService.isLoggedIn$.subscribe((loggedIn) => {
       this.isLoggedIn = loggedIn;
+      this.isLoading = false;
 
-      if (loggedIn) {
-        this.loadUserProfile();
+      if (!loggedIn) {
+        this.user = null;
       } else {
-        this.resetToGuest();
+        // If logged in but user not loaded, try to load profile
+        if (!this.user) {
+          this.loadUserProfile();
+        }
       }
     });
+
+    // Subscribe to user profile changes
+    this.userSubscription = this.authService.currentUser$.subscribe((user) => {
+      this.user = user;
+      this.isLoading = false;
+    });
+
+    // Initial load check
+    if (this.authService.isLoggedIn() && !this.user) {
+      this.loadUserProfile();
+    } else {
+      this.isLoading = false;
+    }
   }
 
   private loadUserProfile(): void {
-    this.authService.getProfile().subscribe({
-      next: (res) => {
-        this.user = res.data || this.user;
+    this.isLoading = true;
+    this.authService.loadUserProfile().subscribe({
+      next: (profile) => {
+        this.user = profile;
+        this.isLoading = false;
       },
       error: (err) => {
-        console.warn('Failed to load profile, using default.', err);
-        this.resetToGuest();
+        console.error('Failed to load user profile in sidebar:', err);
+        this.isLoading = false;
+        // If profile loading fails, the service will handle logout if needed
       },
     });
   }
 
-  private resetToGuest(): void {
-    this.user = {
-      firstName: 'Guest',
-      secondName: 'Admin',
-      email: 'admin@esharebooks.com',
-      profilePic: '/default-admin.png',
-    };
+  get displayUser(): UserProfile {
+    return this.user || this.guestUser;
+  }
+
+  get userFullName(): string {
+    if (this.isLoading) return 'Loading...';
+    if (!this.user) return 'Guest Admin';
+    return `${this.user.firstName} ${this.user.secondName}`;
+  }
+
+  get userAvatar(): string {
+    return this.user?.profilePic || this.guestUser.profilePic;
   }
 
   logout(): void {
-    this.authService.logout();
+    if (confirm('Are you sure you want to logout?')) {
+      this.authService.logout();
+    }
   }
 
   ngOnDestroy(): void {
-    if (this.authSubscription) {
-      this.authSubscription.unsubscribe();
-    }
+    this.authSubscription?.unsubscribe();
+    this.userSubscription?.unsubscribe();
   }
 }

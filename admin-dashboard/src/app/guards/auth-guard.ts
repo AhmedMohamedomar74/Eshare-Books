@@ -1,21 +1,34 @@
-// src/app/guards/auth-guard.ts
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../shared/services/auth';
-import { map } from 'rxjs/operators';
 
-export const AuthGuard: CanActivateFn = () => {
+export const AuthGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  return authService.isLoggedIn$.pipe(
-    map((isLoggedIn) => {
-      if (isLoggedIn) {
-        return true;
-      } else {
-        router.navigate(['/login']);
-        return false;
-      }
-    })
-  );
+  const accessToken = authService.getAccessToken();
+  const isLoggedIn = authService.isLoggedIn();
+
+  // Check if user is logged in
+  if (!isLoggedIn || !accessToken) {
+    router.navigate(['/login'], {
+      queryParams: { returnUrl: state.url },
+    });
+    return false;
+  }
+
+  const currentUser = authService.getCurrentUser();
+
+  if (!currentUser) {
+    return true;
+  }
+
+  // Check if user has admin role
+  if (currentUser.role !== 'admin') {
+    alert('Access denied. This dashboard is for admins only.');
+    authService.logout();
+    return false;
+  }
+
+  return true;
 };
