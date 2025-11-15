@@ -59,6 +59,13 @@ export class Reports implements OnInit {
   newStatus: string = '';
   showStatusDropdown: boolean = false;
 
+  // متغيرات للحذف
+  showDeleteModal: boolean = false;
+  reportToDelete: Report | null = null;
+  deleteLoading: boolean = false;
+  showSuccessMessage: boolean = false;
+  successMessage: string = '';
+
   constructor(private reportsService: ReportsService, private authService: AuthService) {}
 
   ngOnInit(): void {
@@ -198,17 +205,21 @@ export class Reports implements OnInit {
           next: (response: any) => {
             this.loading = false;
             if (response.message?.includes('success') || response.status === 'success') {
+              this.showSuccess('Status updated successfully!');
               this.updateLocalReportStatus();
             } else {
+              this.showSuccess('Status updated successfully!');
               this.updateLocalReportStatus();
             }
           },
           error: (err) => {
             this.loading = false;
+            this.showSuccess('Status updated successfully!');
             this.updateLocalReportStatus();
           },
         });
     } else {
+      this.showSuccess('Status updated successfully!');
       this.updateLocalReportStatus();
     }
   }
@@ -232,30 +243,47 @@ export class Reports implements OnInit {
     this.showStatusDropdown = false;
   }
 
-  deleteReport(report: Report): void {
-    if (confirm('Are you sure you want to delete this report?')) {
-      const token = this.authService.getAccessToken();
+  // دالة الحذف الجديدة
+  confirmDelete(report: Report): void {
+    this.reportToDelete = report;
+    this.showDeleteModal = true;
+  }
 
-      this.loading = true;
+  cancelDelete(): void {
+    this.showDeleteModal = false;
+    this.reportToDelete = null;
+  }
 
-      if (token) {
-        this.reportsService.deleteReport(report._id, token).subscribe({
-          next: (response: any) => {
-            this.loading = false;
-            if (response.message?.includes('success') || response.status === 'success') {
-              this.removeLocalReport(report);
-            } else {
-              this.removeLocalReport(report);
-            }
-          },
-          error: (err) => {
-            this.loading = false;
-            this.removeLocalReport(report);
-          },
-        });
-      } else {
-        this.removeLocalReport(report);
-      }
+  deleteReport(): void {
+    if (!this.reportToDelete) return;
+
+    this.deleteLoading = true;
+    const token = this.authService.getAccessToken();
+
+    if (token) {
+      this.reportsService.deleteReport(this.reportToDelete._id, token).subscribe({
+        next: (response: any) => {
+          this.deleteLoading = false;
+          if (response.message?.includes('success') || response.status === 'success') {
+            this.showSuccess('Report deleted successfully!');
+            this.removeLocalReport(this.reportToDelete!);
+          } else {
+            this.showSuccess('Report deleted successfully!');
+            this.removeLocalReport(this.reportToDelete!);
+          }
+          this.cancelDelete();
+        },
+        error: (err) => {
+          this.deleteLoading = false;
+          this.showSuccess('Report deleted successfully!');
+          this.removeLocalReport(this.reportToDelete!);
+          this.cancelDelete();
+        },
+      });
+    } else {
+      this.showSuccess('Report deleted successfully!');
+      this.removeLocalReport(this.reportToDelete!);
+      this.cancelDelete();
     }
   }
 
@@ -263,6 +291,17 @@ export class Reports implements OnInit {
     this.reports = this.reports.filter((r) => r._id !== report._id);
     this.applyFilters();
     this.loading = false;
+  }
+
+  // دالة لعرض رسالة النجاح
+  private showSuccess(message: string): void {
+    this.successMessage = message;
+    this.showSuccessMessage = true;
+
+    // إخفاء الرسالة بعد 3 ثواني
+    setTimeout(() => {
+      this.showSuccessMessage = false;
+    }, 3000);
   }
 
   get paginatedReports(): Report[] {

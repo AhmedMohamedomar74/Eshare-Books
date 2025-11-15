@@ -15,6 +15,17 @@
     </button>
   </div>
 
+  <!-- Success Message -->
+  <div
+    *ngIf="showSuccessMessage"
+    class="alert alert-success alert-dismissible fade show message-toast"
+    role="alert"
+  >
+    <i class="bi bi-check-circle-fill me-2"></i>
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="showSuccessMessage = false"></button>
+  </div>
+
   <!-- Filters and Search -->
   <div class="filters-section">
     <div class="search-bar">
@@ -117,7 +128,7 @@
           </td>
           <td>{{ formatDate(report.createdAt) }}</td>
           <td>
-            <button class="btn-action delete" title="Delete" (click)="deleteReport(report)">
+            <button class="btn-action delete" title="Delete" (click)="confirmDelete(report)">
               <i class="bi bi-trash"></i>
             </button>
           </td>
@@ -131,7 +142,7 @@
     </div>
   </div>
 
-  <!-- Status Update Modal/Dropdown -->
+  <!-- Status Update Modal -->
   <div
     *ngIf="showStatusDropdown && selectedReport"
     class="status-modal-overlay"
@@ -167,6 +178,43 @@
           [disabled]="loading || newStatus === selectedReport?.status"
         >
           {{ loading ? 'Updating...' : 'Update Status' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteModal" class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5>Confirm Delete</h5>
+        <button type="button" class="btn-close" (click)="cancelDelete()"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this report?</p>
+        <div class="report-info">
+          <strong>Report ID:</strong> {{ reportToDelete?._id }}<br />
+          <strong>Reason:</strong> {{ reportToDelete?.reason }}<br />
+          <strong>Target:</strong> {{ getTargetName(reportToDelete!) }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancelDelete()"
+          [disabled]="deleteLoading"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="deleteReport()"
+          [disabled]="deleteLoading"
+        >
+          <span *ngIf="deleteLoading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ deleteLoading ? 'Deleting...' : 'Delete' }}
         </button>
       </div>
     </div>
