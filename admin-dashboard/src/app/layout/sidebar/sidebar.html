@@ -1,3 +1,4 @@
+<!-- sidebar.html -->
 <nav class="sidebar">
   <!-- Logo -->
   <div class="sidebar-header">
@@ -56,8 +57,29 @@
 
   <!-- Logout -->
   <div class="logout-section" *ngIf="isLoggedIn">
-    <a class="nav-link" (click)="logout()" style="cursor: pointer">
+    <a class="nav-link" (click)="openLogoutModal()" style="cursor: pointer">
       <i class="bi bi-box-arrow-left"></i> {{ isLoading ? 'Loading...' : 'Logout' }}
     </a>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div *ngIf="showLogoutModal" class="modal-overlay" (click)="closeLogoutModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5>Confirm Logout</h5>
+        <button type="button" class="btn-close" (click)="closeLogoutModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to logout?</p>
+        <div class="user-info">
+          <strong>User:</strong> {{ userFullName }}<br />
+          <strong>Email:</strong> {{ displayUser.email }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeLogoutModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="confirmLogout()">Logout</button>
+      </div>
+    </div>
   </div>
 </nav>
