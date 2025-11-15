@@ -1,3 +1,4 @@
+// soketio.gateway.js
 import { Server } from "socket.io";
 import { 
     getConnectedSockets, 
@@ -7,9 +8,12 @@ import {
 } from "../middelwares/socket.auth.middleware.js";
 import { ChatEvents } from "./chat.events.js";
 import { ChatService } from "./chat.service.js";
+import { NotificationEvents } from "./notification.events.js";
+import { NotificationService } from "./notification.service.js";
 
 let ioServer = null;
 let chatService = null;
+let notificationService = null;
 
 // Get the connectedSockets map from the middleware
 const connectedSockets = getConnectedSockets();
@@ -28,7 +32,6 @@ const disconnectHandler = (socket) => {
 };
 
 const connectionHandler = (socket) => {
-    console.log(`New connection: ${socket.id} for user: ${socket.data.userID}`);
     
     // Send connection confirmation
     socket.emit("connected", { 
@@ -42,6 +45,9 @@ const connectionHandler = (socket) => {
     // Initialize chat events
     initializeChatEvents(socket);
     
+    // Initialize notification events
+    initializeNotificationEvents(socket);
+    
     disconnectHandler(socket);
 };
 
@@ -49,6 +55,12 @@ const connectionHandler = (socket) => {
 const initializeChatEvents = (socket) => {
     const chatEvents = new ChatEvents(socket, chatService);
     chatEvents.initialize();
+};
+
+// Initialize notification events for the connected socket
+const initializeNotificationEvents = (socket) => {
+    const notificationEvents = new NotificationEvents(socket, notificationService);
+    notificationEvents.initialize();
 };
 
 export const initializeSocketIO = (httpServer) => {
@@ -59,8 +71,9 @@ export const initializeSocketIO = (httpServer) => {
         }
     });
     
-    // Initialize chat service
+    // Initialize services
     chatService = new ChatService(ioServer);
+    notificationService = new NotificationService(ioServer);
     
     // Apply authentication middleware
     ioServer.use(socketAuthMiddleware);
@@ -68,7 +81,7 @@ export const initializeSocketIO = (httpServer) => {
     // Handle connections
     ioServer.on("connection", connectionHandler);
     
-    console.log("Socket.IO server initialized");
+    console.log("Socket.IO server initialized with chat and notification services");
     return ioServer;
 };
 
@@ -86,6 +99,13 @@ export const getChatService = () => {
     return chatService;
 };
 
+export const getNotificationService = () => {
+    if (!notificationService) {
+        throw new Error("Notification service not initialized");
+    }
+    return notificationService;
+};
+
 // Helper to get all sockets for a user
 export const getUserSocketsFromGateway = (userId) => {
     return getUserSockets(userId);
@@ -97,6 +117,22 @@ export const emitToUser = (userId, event, data) => {
     userSockets.forEach(socketId => {
         ioServer.to(socketId).emit(event, data);
     });
+};
+
+// Helper to send invitation from server-side
+export const sendInvitationFromServer = (fromUserId, toUserId, invitationType, message, metadata) => {
+    return notificationService.sendInvitation({
+        fromUserId,
+        toUserId,
+        invitationType,
+        message,
+        metadata
+    });
+};
+
+// Helper to get pending invitations for user
+export const getPendingInvitationsForUser = (userId) => {
+    return notificationService.getPendingInvitations(userId);
 };
 
 // Helper to broadcast to all connected users
