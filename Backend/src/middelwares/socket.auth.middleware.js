@@ -10,12 +10,13 @@ export const socketAuthMiddleware = asyncHandler(async (socket, next) => {
     try {
         const { auth } = socket.handshake;
         const { authorization } = auth;
+        const {token} = authorization 
 
-        if (!authorization) {
+        if (!token) {
             return next(new Error("Authorization header is required", { cause: 401 }));
         }
 
-        const [bearerType, clientToken] = authorization.split(" ");
+        const [bearerType, clientToken] = token.split(" ");
 
         if (!clientToken) {
             return next(new Error("Token is required", { cause: 401 }));

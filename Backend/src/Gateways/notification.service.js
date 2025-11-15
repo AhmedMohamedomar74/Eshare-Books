@@ -1,3 +1,5 @@
+import { getUserSockets } from "../middelwares/socket.auth.middleware.js";
+
 // notification.service.js
 export class NotificationService {
     constructor(io) {
@@ -8,7 +10,7 @@ export class NotificationService {
 
     // Send invitation to user
     async sendInvitation(data) {
-        const { fromUserId, toUserId, invitationType, message, metadata } = data;
+        const { fromUserId, toUserId, transactionType, message, metadata } = data;
 
         // Check if recipient is connected
         const recipientSockets = getUserSockets(toUserId);
@@ -22,8 +24,8 @@ export class NotificationService {
             id: invitationId,
             fromUserId,
             toUserId,
-            type: invitationType,
-            message: message || `You have a new ${invitationType} invitation`,
+            type: transactionType,
+            message: message || `You have a new ${transactionType} invitation`,
             metadata: metadata || {},
             status: 'pending',
             createdAt: new Date().toISOString()

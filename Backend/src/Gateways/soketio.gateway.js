@@ -32,6 +32,7 @@ const disconnectHandler = (socket) => {
 };
 
 const connectionHandler = (socket) => {
+    console.log(`New connection: ${socket.id} for user: ${socket.data.userID}`);
     
     // Send connection confirmation
     socket.emit("connected", { 

@@ -2,8 +2,7 @@ import { testConnection } from "./DB/connection.db.js";
 import express from "express";
 import cors from "cors";
 import path from "node:path";
-import dotenv from "dotenv";
-import cors from "cors"; // Import CORS package
+import dotenv from "dotenv"; // Import CORS package
 import authRoute from "./modules/auth/auth.route.js";
 import imgController from "./modules/image/image.route.js";
 import operationRouter from "./modules/operation/operation.route.js";
