@@ -1,168 +1,38 @@
-import React, { useState, useEffect, useRef } from 'react';
+// notificationClient.jsx
+import React, { useState } from 'react';
 import { Bell, Send, Check, X, Trash2, Users, Wifi, WifiOff } from 'lucide-react';
-import { io } from 'socket.io-client';
-import { signatureLevelEnum } from '../../enum.js';
-import { BaseUrl } from '../../axiosInstance/axiosInstance.js';
+import { useSocketNotifications } from '../../hooks/useSocketNotifications.js';
 
 const NotificationClientDemo = () => {
-  const [socket, setSocket] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [notifications, setNotifications] = useState([]);
-  const [pendingInvitations, setPendingInvitations] = useState([]);
-  const [sentInvitations, setSentInvitations] = useState([]);
-  
-  // Form states
   const [recipientId, setRecipientId] = useState('');
   const [invitationType, setInvitationType] = useState('friend');
   const [message, setMessage] = useState('');
   
-  // Connection logs
-  const [logs, setLogs] = useState([]);
-  const logsEndRef = useRef(null);
+  const {
+    isConnected,
+    currentUser,
+    notifications,
+    pendingInvitations,
+    sentInvitations,
+    logs,
+    logsEndRef,
+    addLog,
+    sendInvitation,
+    acceptInvitation,
+    refuseInvitation,
+    cancelInvitation
+  } = useSocketNotifications();
 
-  const addLog = (message, type = 'info') => {
-    const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [...prev, { message, type, timestamp }]);
-  };
-
-  // Initialize Socket Connection
-  useEffect(() => {
-    // Replace with your actual server URL and auth token
-    const SERVER_URL = BaseUrl;
-    const AUTH_TOKEN = `${signatureLevelEnum.user} ${localStorage.getItem('accessToken')}`;
-
-    const newSocket = io(SERVER_URL, {
-      auth: {
-        authorization:{token: AUTH_TOKEN}
-      },
-      transports: ['websocket', 'polling']
-    });
-
-    // Connection events
-    newSocket.on('connect', () => {
-      setIsConnected(true);
-      addLog('🟢 Connected to server', 'success');
-    });
-
-    newSocket.on('disconnect', (reason) => {
-      setIsConnected(false);
-      addLog(`🔴 Disconnected: ${reason}`, 'error');
-    });
-
-    newSocket.on('connect_error', (error) => {
-      addLog(`❌ Connection error: ${error.message}`, 'error');
-    });
-
-    // Connected event (custom from your server)
-    newSocket.on('connected', (data) => {
-      setCurrentUser(data.user);
-      addLog(`✅ ${data.message}`, 'success');
-      addLog(`👤 Logged in as: ${data.user.firstName || data.user._id}`, 'info');
-      
-      // Request pending invitations on connect
-      newSocket.emit('get-pending-invitations');
-    });
-
-    // Notification events
-    setupNotificationListeners(newSocket);
-
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.close();
-    };
-  }, []);
-
-  // Setup all notification event listeners
-  const setupNotificationListeners = (socket) => {
-    // New invitation received
-    socket.on('new-invitation', (invitation) => {
-      addLog(`📨 New invitation from user ${invitation.fromUserId}`, 'info');
-      setNotifications(prev => [...prev, {
-        ...invitation,
-        timestamp: new Date().toISOString()
-      }]);
-      setPendingInvitations(prev => [...prev, invitation]);
-      
-      // Show browser notification if permitted
-      if (Notification.permission === 'granted') {
-        new Notification('New Invitation', {
-          body: invitation.message,
-          icon: '/notification-icon.png'
-        });
-      }
-    });
-
-    // Invitation sent confirmation
-    socket.on('invitation-sent', (result) => {
-      addLog(`✉️ Invitation sent to user ${result.toUserId}`, 'success');
-      setSentInvitations(prev => [...prev, result.invitation]);
-    });
-
-    // Invitation accepted (you're the sender)
-    socket.on('invitation-accepted', (data) => {
-      addLog(`✅ User ${data.acceptedBy} accepted your invitation`, 'success');
-      setNotifications(prev => [...prev, {
-        type: 'acceptance',
-        message: `Your invitation was accepted`,
-        timestamp: new Date().toISOString(),
-        ...data
-      }]);
-      
-      // Remove from sent invitations
-      setSentInvitations(prev => 
-        prev.filter(inv => inv.id !== data.invitationId)
-      );
-    });
-
-    // Invitation refused (you're the sender)
-    socket.on('invitation-refused', (data) => {
-      addLog(`❌ User ${data.refusedBy} refused your invitation`, 'error');
-      setNotifications(prev => [...prev, {
-        type: 'refusal',
-        message: `Your invitation was refused${data.reason ? `: ${data.reason}` : ''}`,
-        timestamp: new Date().toISOString(),
-        ...data
-      }]);
-      
-      // Remove from sent invitations
-      setSentInvitations(prev => 
-        prev.filter(inv => inv.id !== data.invitationId)
-      );
-    });
-
-    // Invitation canceled (you're the recipient)
-    socket.on('invitation-canceled', (data) => {
-      addLog(`🚫 Invitation ${data.invitationId} was canceled`, 'info');
-      setPendingInvitations(prev => 
-        prev.filter(inv => inv.id !== data.invitationId)
-      );
-    });
-
-    // Pending invitations list
-    socket.on('pending-invitations', (data) => {
-      addLog(`📋 Received ${data.invitations.length} pending invitations`, 'info');
-      setPendingInvitations(data.invitations);
-    });
-
-    // Error handling
-    socket.on('invitation-error', (error) => {
-      addLog(`⚠️ Error: ${error.error}`, 'error');
-      alert(`Error: ${error.error}`);
-    });
-  };
-
-  // Send invitation
-  const sendInvitation = () => {
-    if (!socket || !recipientId) {
+  // Send invitation handler
+  const handleSendInvitation = () => {
+    if (!isConnected || !recipientId) {
       alert('Please enter a recipient user ID');
       return;
     }
 
     const invitationData = {
       toUserId: recipientId,
-      invitationType: invitationType,
+      transactionType: invitationType,
       message: message || `You have a new ${invitationType} invitation`,
       metadata: {
         sentFrom: 'web-client',
@@ -171,55 +41,17 @@ const NotificationClientDemo = () => {
     };
 
     addLog(`📤 Sending ${invitationType} invitation to ${recipientId}`, 'info');
-    socket.emit('send-invitation', invitationData);
+    sendInvitation(invitationData);
 
     // Clear form
     setRecipientId('');
     setMessage('');
   };
 
-  // Accept invitation
-  const acceptInvitation = (invitationId) => {
-    if (!socket) return;
-
-    addLog(`✅ Accepting invitation ${invitationId}`, 'info');
-    socket.emit('accept-invitation', { invitationId });
-
-    // Remove from pending
-    setPendingInvitations(prev => 
-      prev.filter(inv => inv.id !== invitationId)
-    );
-  };
-
-  // Refuse invitation
-  const refuseInvitation = (invitationId) => {
-    if (!socket) return;
-
+  // Refuse invitation with prompt
+  const handleRefuseInvitation = (invitationId) => {
     const reason = prompt('Reason for refusing (optional):');
-    
-    addLog(`❌ Refusing invitation ${invitationId}`, 'info');
-    socket.emit('refuse-invitation', { 
-      invitationId,
-      reason: reason || undefined
-    });
-
-    // Remove from pending
-    setPendingInvitations(prev => 
-      prev.filter(inv => inv.id !== invitationId)
-    );
-  };
-
-  // Cancel sent invitation
-  const cancelInvitation = (invitationId) => {
-    if (!socket) return;
-
-    addLog(`🚫 Canceling invitation ${invitationId}`, 'info');
-    socket.emit('cancel-invitation', { invitationId });
-
-    // Remove from sent
-    setSentInvitations(prev => 
-      prev.filter(inv => inv.id !== invitationId)
-    );
+    refuseInvitation(invitationId, reason || undefined);
   };
 
   // Request browser notification permission
@@ -229,10 +61,7 @@ const NotificationClientDemo = () => {
     }
   };
 
-  useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [logs]);
-
+  // The rest of your JSX remains exactly the same...
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-7xl mx-auto">
@@ -270,6 +99,7 @@ const NotificationClientDemo = () => {
           </button>
         </div>
 
+        {/* The rest of your JSX remains unchanged */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Send Invitation Panel */}
           <div className="bg-white rounded-xl shadow-lg p-6">
@@ -322,7 +152,7 @@ const NotificationClientDemo = () => {
               </div>
 
               <button
-                onClick={sendInvitation}
+                onClick={handleSendInvitation}
                 disabled={!isConnected}
                 className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
@@ -396,7 +226,7 @@ const NotificationClientDemo = () => {
                         <Check size={20} />
                       </button>
                       <button
-                        onClick={() => refuseInvitation(invitation.id)}
+                        onClick={() => handleRefuseInvitation(invitation.id)}
                         className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
                         title="Refuse"
                       >
