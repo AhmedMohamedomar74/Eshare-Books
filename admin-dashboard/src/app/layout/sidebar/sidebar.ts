@@ -1,4 +1,4 @@
-// src/app/components/sidebar/sidebar.ts
+// sidebar.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -15,7 +15,8 @@ import { AuthService, UserProfile } from '../../shared/services/auth';
 export class Sidebar implements OnInit, OnDestroy {
   user: UserProfile | null = null;
   isLoggedIn = false;
-  isLoading = true; // Add loading state
+  isLoading = true;
+  showLogoutModal = false;
 
   private authSubscription?: Subscription;
   private userSubscription?: Subscription;
@@ -94,10 +95,17 @@ export class Sidebar implements OnInit, OnDestroy {
     return this.user?.profilePic || this.guestUser.profilePic;
   }
 
-  logout(): void {
-    if (confirm('Are you sure you want to logout?')) {
-      this.authService.logout();
-    }
+  openLogoutModal(): void {
+    this.showLogoutModal = true;
+  }
+
+  closeLogoutModal(): void {
+    this.showLogoutModal = false;
+  }
+
+  confirmLogout(): void {
+    this.authService.logout();
+    this.closeLogoutModal();
   }
 
   ngOnDestroy(): void {
