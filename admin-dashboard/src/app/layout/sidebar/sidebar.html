@@ -12,11 +12,16 @@
   <!-- User Profile -->
   <div class="user-profile">
     <div class="user-avatar">
-      <i class="bi bi-person-circle"></i>
+      <img
+        [src]="userAvatar"
+        [alt]="userFullName"
+        class="avatar-img"
+        (error)="$any($event.target).src = '/default-admin.png'"
+      />
     </div>
     <div>
-      <p class="user-name">Admin</p>
-      <p class="user-email">admin@esharebooks.com</p>
+      <p class="user-name">{{ userFullName }}</p>
+      <p class="user-email">{{ isLoading ? 'Loading...' : displayUser.email }}</p>
     </div>
   </div>
 
@@ -50,7 +55,9 @@
   </ul>
 
   <!-- Logout -->
-  <div class="logout-section">
-    <a class="nav-link" href="#"> <i class="bi bi-box-arrow-left"></i> Logout </a>
+  <div class="logout-section" *ngIf="isLoggedIn">
+    <a class="nav-link" (click)="logout()" style="cursor: pointer">
+      <i class="bi bi-box-arrow-left"></i> {{ isLoading ? 'Loading...' : 'Logout' }}
+    </a>
   </div>
 </nav>
