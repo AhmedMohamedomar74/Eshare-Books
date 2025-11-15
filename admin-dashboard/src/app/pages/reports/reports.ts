@@ -1,4 +1,3 @@
-// reports.ts
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -52,14 +51,12 @@ export class Reports implements OnInit {
   loading: boolean = false;
   error: string = '';
 
-  // للـ dropdowns
   showStatusFilter: boolean = false;
   showTargetTypeFilter: boolean = false;
   selectedReport: Report | null = null;
   newStatus: string = '';
   showStatusDropdown: boolean = false;
 
-  // متغيرات للحذف
   showDeleteModal: boolean = false;
   reportToDelete: Report | null = null;
   deleteLoading: boolean = false;
@@ -72,7 +69,6 @@ export class Reports implements OnInit {
     this.loadReports();
   }
 
-  // أغلق الـ dropdowns عند الضغط خارجها
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
@@ -83,7 +79,6 @@ export class Reports implements OnInit {
     }
   }
 
-  // دوال الـ dropdowns
   toggleStatusDropdown(): void {
     this.showStatusFilter = !this.showStatusFilter;
     this.showTargetTypeFilter = false;
@@ -154,12 +149,10 @@ export class Reports implements OnInit {
   applyFilters(): void {
     let filtered = [...this.reports];
 
-    // Search filter - البحث فقط في target name و ID
     if (this.searchQuery) {
       filtered = filtered.filter((report) => {
         const searchTerm = this.searchQuery.toLowerCase();
 
-        // البحث في اسم المبلغ واسم الهدف
         const reporterName = this.getReporterName(report).toLowerCase();
         const targetName = this.getTargetName(report).toLowerCase();
 
@@ -243,7 +236,6 @@ export class Reports implements OnInit {
     this.showStatusDropdown = false;
   }
 
-  // دالة الحذف الجديدة
   confirmDelete(report: Report): void {
     this.reportToDelete = report;
     this.showDeleteModal = true;
@@ -293,12 +285,10 @@ export class Reports implements OnInit {
     this.loading = false;
   }
 
-  // دالة لعرض رسالة النجاح
   private showSuccess(message: string): void {
     this.successMessage = message;
     this.showSuccessMessage = true;
 
-    // إخفاء الرسالة بعد 3 ثواني
     setTimeout(() => {
       this.showSuccessMessage = false;
     }, 3000);
