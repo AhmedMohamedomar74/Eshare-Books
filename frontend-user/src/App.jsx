@@ -41,7 +41,9 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/notificationclientdemo" element ={<NotificationClientDemo />} />
             <Route path="/profile" element={<BookShareDashboard />} />
-            <Route path="/order/:userId" element={<OrderPage />} />
+            <Route path="/order/:id" element={<OrderPage />} />
+
+            {/* <Route path="/order/:userId" element={<OrderPage />} /> */}
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/reports/:type/:targetId" element={<Report />} />
             <Route path="/myreports" element={<MyReports />} />

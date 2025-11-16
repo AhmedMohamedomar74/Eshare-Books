@@ -19,6 +19,8 @@ const OperationForm = ({
   setEndDate,
   handleComplete,
   successMessage,
+  borrowDays,
+  totalPrice,
 }) => {
   return (
     <Box
@@ -46,17 +48,39 @@ const OperationForm = ({
       <Divider sx={{ my: 2 }} />
 
       {operationType === "borrow" && (
-        <BorrowDate
-          startDate={startDate}
-          endDate={endDate}
-          setStartDate={setStartDate}
-          setEndDate={setEndDate}
-        />
+        <>
+          <BorrowDate
+            startDate={startDate}
+            endDate={endDate}
+            setStartDate={setStartDate}
+            setEndDate={setEndDate}
+          />
+
+          {/* ✅ عدد أيام الاستعارة */}
+          <Typography variant="body1" mb={1}>
+            Borrow days:{" "}
+            {borrowDays > 0 ? `${borrowDays} day(s)` : "Select valid dates"}
+          </Typography>
+
+          {/* ✅ سعر اليوم الواحد */}
+          <Typography variant="body1" mb={3}>
+            Price per day: {book.PricePerDay || 0} EGP
+          </Typography>
+        </>
       )}
 
+      {/* ✅ Total في حالتي sale / borrow (+ donate) */}
       <Typography fontWeight="bold" mb={3}>
         Total:{" "}
-        {book.TransactionType === "toDonate" ? "Free" : `${book.Price} EGP`}
+        {operationType === "borrow"
+          ? borrowDays > 0
+            ? `${totalPrice} EGP`
+            : "Select valid dates"
+          : operationType === "buy"
+          ? `${totalPrice} EGP`
+          : book.TransactionType === "toDonate"
+          ? "Free"
+          : `${book.Price || 0} EGP`}
       </Typography>
 
       <Box sx={{ textAlign: "center" }}>
