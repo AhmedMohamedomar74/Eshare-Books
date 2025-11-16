@@ -46,7 +46,11 @@ const BookInfo = ({ book }) => {
         </Typography>
         <Typography variant="body1" mb={1}>
           <strong>Price:</strong>{" "}
-          {book.TransactionType === "toDonate" ? "Free" : `${book.Price} EGP`}
+          {book.TransactionType === "toDonate"
+            ? "Free"
+            : book.TransactionType === "toBorrow"
+            ? `${book.PricePerDay} EGP / day`
+            : `${book.Price} EGP`}
         </Typography>
       </Box>
     </Box>

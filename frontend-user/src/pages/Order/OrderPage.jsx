@@ -1,12 +1,6 @@
 import {
   Box,
   Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -47,6 +41,7 @@ const OrderPage = () => {
       </Typography>
     );
 
+  // تحديد نوع العملية من نوع الـ TransactionType
   const operationType =
     book.TransactionType === "toSale"
       ? "buy"
@@ -55,6 +50,29 @@ const OrderPage = () => {
       : book.TransactionType === "toExchange"
       ? "exchange"
       : "donate";
+
+  // 🧮 حساب عدد أيام الاستعارة في حالة borrow
+  const getBorrowDays = () => {
+    if (operationType !== "borrow" || !startDate || !endDate) return 0;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const diffTime = end - start;
+    if (diffTime <= 0) return 0;
+
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const borrowDays = getBorrowDays();
+
+  // 🧮 حساب الـ totalPrice حسب نوع العملية
+  const totalPrice =
+    operationType === "borrow"
+      ? (book.PricePerDay || 0) * borrowDays
+      : operationType === "buy"
+      ? book.Price || 0
+      : 0;
 
   const handleCompleteClick = (e) => {
     e.preventDefault();
@@ -80,8 +98,21 @@ const OrderPage = () => {
         setConfirmOpen(false);
         return;
       }
+
+      if (borrowDays <= 0) {
+        enqueueSnackbar("End date must be after start date.", {
+          variant: "warning",
+        });
+        setConfirmOpen(false);
+        return;
+      }
+
       operationData.startDate = startDate;
       operationData.endDate = endDate;
+
+      // لو حابب تخزنهم في الداتا بيز (اختياري)
+      // operationData.numberOfDays = borrowDays;
+      // operationData.totalPrice = totalPrice;
     }
 
     const result = await dispatch(createOperation(operationData));
@@ -125,6 +156,8 @@ const OrderPage = () => {
         setEndDate={setEndDate}
         handleComplete={handleCompleteClick}
         successMessage={successMessage}
+        borrowDays={borrowDays}
+        totalPrice={totalPrice}
       />
 
       {/* Dialog Confirmation */}
