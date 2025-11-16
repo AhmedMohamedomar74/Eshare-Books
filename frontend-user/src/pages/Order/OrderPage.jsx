@@ -1,7 +1,4 @@
-import {
-  Box,
-  Typography,
-} from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -120,10 +117,12 @@ const OrderPage = () => {
     if (createOperation.fulfilled.match(result)) {
       const operationId = result.payload?._id;
       if (operationId) {
-        await dispatch(completeOperation(operationId));
-        enqueueSnackbar("Operation completed successfully!", {
-          variant: "success",
-        });
+        enqueueSnackbar(
+          "Request sent successfully. Waiting for owner approval.",
+          {
+            variant: "success",
+          }
+        );
       }
     } else {
       const backendMsg =
