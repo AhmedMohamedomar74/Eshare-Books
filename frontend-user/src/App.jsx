@@ -15,6 +15,7 @@ import UserLayout from "./layout/UserLayout.jsx";
 import ProtectedRoute from "./layout/ProtectedRoute.jsx";
 import NavigationProvider from "./components/common/NavigationProvider.jsx";
 import NotificationClientDemo from "./pages/notification/notificationClinent.jsx";
+import NotificationPage from "./pages/notification/NotificationPage.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -40,6 +41,7 @@ function App() {
           <Route path="/public-profile/:userId" element={<PublicProfile />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/notificationclientdemo" element ={<NotificationClientDemo />} />
+            <Route path="/notification" element ={<NotificationPage />} />
             <Route path="/profile" element={<BookShareDashboard />} />
             <Route path="/order/:id" element={<OrderPage />} />
 
