@@ -7,6 +7,7 @@ import { decodeEmailToken, generateAuthTokens, generateEmailTokens, genrateToken
 import { sendEmailEvent } from "../../Events/sendEmail.event.js"
 import { template } from "../../utils/email.services.js"
 import { decode } from "jsonwebtoken"
+import { genrateRandomNumber } from "../../utils/random.services.js" 
 export const signup = asyncHandler(async (req, res, next) => {
     /**
          * @Doing
@@ -108,3 +109,123 @@ export const refreshToken = asyncHandler(async (req, res, next) => {
         data: tokens
     });
 })
+
+
+export const forgotPassword = asyncHandler(async (req, res, next) => {
+    const { email } = req.body;
+
+    // Find user by email
+    const user = await findOne({
+        model: userModel,
+        filter: { email }
+    });
+
+    if (!user) {
+        // For security reasons, don't reveal if email exists or not
+        successResponce({ 
+            res, 
+            message: "If the email exists, a reset code has been sent" 
+        });
+        return;
+    }
+
+    // Generate reset code (6-digit number)
+    const resetCode = genrateRandomNumber(6);
+    const resetCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    // Save reset code and expiry to user document
+    await userModel.findByIdAndUpdate(user._id, {
+        resetCode,
+        resetCodeExpires
+    });
+
+    // Send reset code via email
+    sendEmailEvent.emit("resetPassword", { 
+        to: email, 
+        html: template(resetCode, "passwordReset") // You might want to create a different template for reset codes
+    });
+
+    successResponce({ 
+        res, 
+        message: "If the email exists, a reset code has been sent" 
+    });
+});
+
+export const verifyResetCode = asyncHandler(async (req, res, next) => {
+    const { email, resetCode } = req.body;
+
+    // Find user with valid reset code
+    const user = await findOne({
+        model: userModel,
+        filter: {
+            email,
+            resetCode,
+            resetCodeExpires: { $gt: new Date() }
+        }
+    });
+
+    if (!user) {
+        next(new Error("Invalid or expired reset code", { cause: 400 }));
+        return;
+    }
+
+    // Generate a temporary token for password reset
+    const resetToken = genrateToken({
+        payload: { 
+            _id: user._id,
+            purpose: 'password_reset'
+        },
+        key: process.env.RESET_TOKEN_SIGNATURE,
+        options: { expiresIn: '15m' }
+    });
+
+    successResponce({ 
+        res, 
+        message: "Reset code verified successfully",
+        data: { resetToken }
+    });
+});
+
+export const resetPassword = asyncHandler(async (req, res, next) => {
+    const { resetToken, newPassword } = req.body;
+
+    // Verify reset token
+    const decoded = verify({ 
+        token: resetToken, 
+        key: process.env.RESET_TOKEN_SIGNATURE 
+    });
+
+    if (!decoded || decoded.purpose !== 'password_reset') {
+        next(new Error("Invalid or expired reset token", { cause: 401 }));
+        return;
+    }
+
+    // Find user
+    const user = await findOne({
+        model: userModel,
+        filter: { _id: decoded._id }
+    });
+
+    if (!user) {
+        next(new Error("User not found", { cause: 404 }));
+        return;
+    }
+
+    // Hash new password
+    const hashedPassword = await genrateHash({ 
+        plainText: newPassword, 
+        saltRound: parseInt(process.env.HASH_SALT_ROUND) 
+    });
+
+    // Update password and clear reset code
+    await userModel.findByIdAndUpdate(user._id, {
+        password: hashedPassword,
+        resetCode: undefined,
+        resetCodeExpires: undefined
+    });
+
+    successResponce({ 
+        res, 
+        message: "Password reset successfully" 
+    });
+});
