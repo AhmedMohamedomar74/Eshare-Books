@@ -1,94 +1,48 @@
-<!-- categories page -->
 <div class="categories-page">
-  <!-- Page Header -->
+  <!-- Header -->
   <div class="page-header">
-    <div>
-      <h1 class="page-title">Manage Categories</h1>
-      <p class="page-description">Add, edit, or delete book categories.</p>
-    </div>
-    <button class="btn btn-primary btn-add-category">
+    <h1>Manage Categories</h1>
+    <button class="btn btn-primary" (click)="openAddCategoryModal()">
       <i class="bi bi-plus"></i> Add New Category
     </button>
   </div>
 
-  <!-- Search Bar -->
-  <div class="search-section">
-    <div class="search-bar">
-      <i class="bi bi-search"></i>
-      <input type="text" class="form-control" placeholder="Search categories..." />
-    </div>
+  <!-- Search -->
+  <div class="search-bar">
+    <i class="bi bi-search"></i>
+    <input
+      type="text"
+      placeholder="Search categories..."
+      (input)="onSearch($event)"
+      [value]="searchQuery"
+    />
   </div>
 
-  <!-- Categories Table -->
+  <!-- Table -->
   <div class="table-container">
     <table class="table categories-table">
       <thead>
         <tr>
-          <th>CATEGORY NAME</th>
-          <th>NO. OF BOOKS</th>
-          <th>ACTIONS</th>
+          <th>Name</th>
+          <th>Books</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>Science Fiction</td>
-          <td>125</td>
+        <tr *ngFor="let category of displayedCategories">
+          <td>{{ category.name }}</td>
+          <td>{{ category.bookCount ?? 0 }}</td>
           <td>
-            <button class="btn-action edit" title="Edit">
+            <button class="btn-action edit" (click)="openEditModal(category)">
               <i class="bi bi-pencil"></i>
             </button>
-            <button class="btn-action delete" title="Delete">
+            <button class="btn-action delete" (click)="openDeleteModal(category)">
               <i class="bi bi-trash"></i>
             </button>
           </td>
         </tr>
-        <tr>
-          <td>History</td>
-          <td>88</td>
-          <td>
-            <button class="btn-action edit" title="Edit">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn-action delete" title="Delete">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
-        </tr>
-        <tr>
-          <td>Business & Finance</td>
-          <td>210</td>
-          <td>
-            <button class="btn-action edit" title="Edit">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn-action delete" title="Delete">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
-        </tr>
-        <tr>
-          <td>Children's Literature</td>
-          <td>95</td>
-          <td>
-            <button class="btn-action edit" title="Edit">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn-action delete" title="Delete">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
-        </tr>
-        <tr>
-          <td>Fantasy</td>
-          <td>150</td>
-          <td>
-            <button class="btn-action edit" title="Edit">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn-action delete" title="Delete">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
+        <tr *ngIf="!loading && displayedCategories.length === 0">
+          <td colspan="3" style="text-align: center">No categories found</td>
         </tr>
       </tbody>
     </table>
@@ -96,15 +50,86 @@
 
   <!-- Pagination -->
   <div class="pagination-section">
-    <span class="pagination-info">Showing 1 to 5 of 50 results</span>
     <div class="pagination-controls">
-      <button class="btn btn-light" disabled><i class="bi bi-chevron-left"></i></button>
-      <button class="btn btn-primary active">1</button>
-      <button class="btn btn-light">2</button>
-      <button class="btn btn-light">3</button>
-      <span class="pagination-dots">...</span>
-      <button class="btn btn-light">10</button>
-      <button class="btn btn-light"><i class="bi bi-chevron-right"></i></button>
+      <button class="btn btn-light" [disabled]="currentPage === 1" (click)="previousPage()">
+        Previous
+      </button>
+      <span class="pagination-info">Page {{ currentPage }} of {{ getTotalPages() }}</span>
+      <button class="btn btn-light" [disabled]="isLastPage()" (click)="nextPage()">Next</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div
+    *ngIf="showToastMessage"
+    class="toast message-toast"
+    [ngClass]="toastType === 'success' ? 'alert-success' : 'alert-danger'"
+  >
+    {{ toastMessage }}
+  </div>
+
+  <!-- Add Modal -->
+  <div *ngIf="showAddModal" class="modal-overlay" (click)="showAddModal = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5>Add Category</h5>
+        <button class="btn-close" (click)="showAddModal = false"></button>
+      </div>
+      <div class="modal-body">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Category name"
+          [(ngModel)]="newCategoryName"
+          (keyup.enter)="confirmAddCategory()"
+        />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showAddModal = false">Cancel</button>
+        <button class="btn btn-primary" (click)="confirmAddCategory()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div *ngIf="showEditModal" class="modal-overlay" (click)="showEditModal = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5>Edit Category</h5>
+        <button class="btn-close" (click)="showEditModal = false"></button>
+      </div>
+      <div class="modal-body">
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="editCategoryName"
+          (keyup.enter)="confirmEditCategory()"
+        />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showEditModal = false">Cancel</button>
+        <button class="btn btn-primary" (click)="confirmEditCategory()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div *ngIf="showDeleteModal" class="modal-overlay" (click)="showDeleteModal = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5>Delete Category</h5>
+        <button class="btn-close" (click)="showDeleteModal = false"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to delete category <strong>{{ categoryToDelete?.name }}</strong
+          >?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showDeleteModal = false">Cancel</button>
+        <button class="btn btn-danger" (click)="confirmDeleteCategory()">Delete</button>
+      </div>
     </div>
   </div>
 </div>
