@@ -76,6 +76,13 @@ export const useSocketNotifications = () => {
           ? prev.map((op) => (op._id === updatedOp._id ? updatedOp : op))
           : [...prev, updatedOp];
       });
+
+      // ✅ لو الـ operation بقى completed، نشيل الـ invitation المرتبطة بيه
+      if (updatedOp.status === "completed") {
+        setPendingInvitations((prev) =>
+          prev.filter((inv) => inv.metadata?.operationId !== updatedOp._id)
+        );
+      }
     };
 
     const handleInvitationSent = (result) => {
@@ -170,24 +177,44 @@ export const useSocketNotifications = () => {
   const acceptInvitation = useCallback(
     async ({ invitationId, userId, operationId }) => {
       addLog(`✅ Accepting invitation ${invitationId}`, "info");
+
+      // ✅ ابعت الـ request للـ backend
       socketService.acceptInvitation({ invitationId, userId, operationId });
 
-      setPendingInvitations((prev) =>
-        prev.filter((inv) => inv.id !== invitationId)
-      );
+      // ✅ مش نشيل الـ invitation فورًا - نستنى الـ backend يرد
+      // هنشيلها في handleInvitationAccepted أو بعد ما نتأكد إن الـ operation اتحدث
 
       if (operationId) {
         try {
-          const res = await api.get(`/api/operations/${operationId}`);
-          const op = res.data.operation;
+          const res = await api.get(`/operations/${operationId}`);
+          const op = res.data.operation || res.data.data || res.data;
+
           setOperations((prev) => {
             const exists = prev.find((o) => o._id === op._id);
             return exists ? prev : [...prev, op];
           });
+          addLog(`📦 Operation ${op._id} loaded`, "success");
+
+          // ✅ دلوقتي نشيل الـ invitation بعد ما تأكدنا إن كل حاجة تمام
+          setPendingInvitations((prev) =>
+            prev.filter((inv) => inv.id !== invitationId)
+          );
+
           addLog(`📦 Operation ${op._id} loaded after acceptance`, "success");
         } catch (err) {
-          addLog(`❌ Failed to load operation ${operationId}`, "error");
+          console.error("❌ Error loading operation:", err);
+          addLog(
+            `❌ Failed to load operation ${operationId}: ${err.message}`,
+            "error"
+          );
         }
+      } else {
+        // لو مفيش operationId، نشيلها بعد شوية
+        setTimeout(() => {
+          setPendingInvitations((prev) =>
+            prev.filter((inv) => inv.id !== invitationId)
+          );
+        }, 1000);
       }
     },
     [addLog]

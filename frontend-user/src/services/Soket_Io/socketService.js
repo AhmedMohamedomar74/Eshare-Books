@@ -61,6 +61,7 @@ class SocketService {
       "invitation-canceled",
       "pending-invitations",
       "invitation-error",
+      "operation-updated", // ✅ أضفنا event جديد
     ];
 
     notificationEvents.forEach((event) => {
@@ -75,7 +76,8 @@ class SocketService {
     this.socket.emit("send-invitation", invitationData);
   }
 
-  acceptInvitation(invitationId) {
+  // ✅ عدّلنا الـ function علشان تاخد الـ parameters
+  acceptInvitation({ invitationId, userId, operationId }) {
     this.socket.emit("accept-invitation", {
       invitationId,
       userId,
@@ -83,8 +85,13 @@ class SocketService {
     });
   }
 
-  refuseInvitation(invitationId, reason) {
-    this.socket.emit("refuse-invitation", { invitationId, reason });
+  // ✅ عدّلنا الـ function علشان تاخد object
+  refuseInvitation({ invitationId, userId, reason }) {
+    this.socket.emit("refuse-invitation", {
+      invitationId,
+      userId,
+      reason,
+    });
   }
 
   cancelInvitation(invitationId) {
