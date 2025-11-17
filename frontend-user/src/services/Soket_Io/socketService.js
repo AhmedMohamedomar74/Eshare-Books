@@ -1,7 +1,7 @@
 // socketService.js
-import { io } from 'socket.io-client';
-import { signatureLevelEnum } from '../../enum.js';
-import { BaseUrl } from '../../axiosInstance/axiosInstance.js';
+import { io } from "socket.io-client";
+import { signatureLevelEnum } from "../../enum.js";
+import { BaseUrl } from "../../axiosInstance/axiosInstance.js";
 
 class SocketService {
   constructor() {
@@ -13,13 +13,15 @@ class SocketService {
   // Initialize socket connection
   connect() {
     const SERVER_URL = BaseUrl;
-    const AUTH_TOKEN = `${signatureLevelEnum.user} ${localStorage.getItem('accessToken')}`;
+    const AUTH_TOKEN = `${signatureLevelEnum.user} ${localStorage.getItem(
+      "accessToken"
+    )}`;
 
     this.socket = io(SERVER_URL, {
       auth: {
-        authorization: { token: AUTH_TOKEN }
+        authorization: { token: AUTH_TOKEN },
       },
-      transports: ['websocket', 'polling']
+      transports: ["websocket", "polling"],
     });
 
     this.setupConnectionEvents();
@@ -30,38 +32,38 @@ class SocketService {
 
   // Setup connection events
   setupConnectionEvents() {
-    this.socket.on('connect', () => {
+    this.socket.on("connect", () => {
       this.isConnected = true;
-      this.emitEvent('connection-change', { isConnected: true });
+      this.emitEvent("connection-change", { isConnected: true });
     });
 
-    this.socket.on('disconnect', (reason) => {
+    this.socket.on("disconnect", (reason) => {
       this.isConnected = false;
-      this.emitEvent('connection-change', { isConnected: false, reason });
+      this.emitEvent("connection-change", { isConnected: false, reason });
     });
 
-    this.socket.on('connect_error', (error) => {
-      this.emitEvent('connection-error', { error });
+    this.socket.on("connect_error", (error) => {
+      this.emitEvent("connection-error", { error });
     });
 
-    this.socket.on('connected', (data) => {
-      this.emitEvent('user-connected', data);
+    this.socket.on("connected", (data) => {
+      this.emitEvent("user-connected", data);
     });
   }
 
   // Setup notification event listeners
   setupNotificationListeners() {
     const notificationEvents = [
-      'new-invitation',
-      'invitation-sent',
-      'invitation-accepted',
-      'invitation-refused',
-      'invitation-canceled',
-      'pending-invitations',
-      'invitation-error'
+      "new-invitation",
+      "invitation-sent",
+      "invitation-accepted",
+      "invitation-refused",
+      "invitation-canceled",
+      "pending-invitations",
+      "invitation-error",
     ];
 
-    notificationEvents.forEach(event => {
+    notificationEvents.forEach((event) => {
       this.socket.on(event, (data) => {
         this.emitEvent(event, data);
       });
@@ -70,23 +72,27 @@ class SocketService {
 
   // Emit socket events
   sendInvitation(invitationData) {
-    this.socket.emit('send-invitation', invitationData);
+    this.socket.emit("send-invitation", invitationData);
   }
 
   acceptInvitation(invitationId) {
-    this.socket.emit('accept-invitation', { invitationId });
+    this.socket.emit("accept-invitation", {
+      invitationId,
+      userId,
+      operationId,
+    });
   }
 
   refuseInvitation(invitationId, reason) {
-    this.socket.emit('refuse-invitation', { invitationId, reason });
+    this.socket.emit("refuse-invitation", { invitationId, reason });
   }
 
   cancelInvitation(invitationId) {
-    this.socket.emit('cancel-invitation', { invitationId });
+    this.socket.emit("cancel-invitation", { invitationId });
   }
 
   getPendingInvitations() {
-    this.socket.emit('get-pending-invitations');
+    this.socket.emit("get-pending-invitations");
   }
 
   // Event subscription methods
@@ -109,7 +115,7 @@ class SocketService {
 
   emitEvent(event, data) {
     if (this.eventCallbacks.has(event)) {
-      this.eventCallbacks.get(event).forEach(callback => {
+      this.eventCallbacks.get(event).forEach((callback) => {
         callback(data);
       });
     }
