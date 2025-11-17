@@ -1,40 +1,43 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AuthService } from '../../shared/services/auth';
 
 @Injectable({ providedIn: 'root' })
 export class CategoriesService {
   private baseUrl = 'http://localhost:3000/categories';
+  private booksBaseUrl = 'http://localhost:3000/books';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private auth: AuthService) {}
 
-  getAllCategories(token: string): Observable<any> {
-    return this.http.get(this.baseUrl, {
-      headers: new HttpHeaders({ Authorization: `admin ${token}` }),
-    });
+  private getHeadersOptions() {
+    const token = this.auth.getAccessToken();
+    if (!token) return {};
+    const headers = new HttpHeaders({ Authorization: `admin ${token}` });
+    return { headers };
   }
 
-  getCategoryById(id: string, token: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/${id}`, {
-      headers: new HttpHeaders({ Authorization: `admin ${token}` }),
-    });
+  getAllCategories(): Observable<any> {
+    return this.http.get(this.baseUrl, this.getHeadersOptions());
   }
 
-  createCategory(data: { name: string }, token: string): Observable<any> {
-    return this.http.post(this.baseUrl, data, {
-      headers: new HttpHeaders({ Authorization: `admin ${token}` }),
-    });
+  getCategoryById(id: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/${id}`, this.getHeadersOptions());
   }
 
-  updateCategory(id: string, data: { name: string }, token: string): Observable<any> {
-    return this.http.put(`${this.baseUrl}/${id}`, data, {
-      headers: new HttpHeaders({ Authorization: `admin ${token}` }),
-    });
+  createCategory(data: { name: string }): Observable<any> {
+    return this.http.post(this.baseUrl, data, this.getHeadersOptions());
   }
 
-  deleteCategory(id: string, token: string): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${id}`, {
-      headers: new HttpHeaders({ Authorization: `admin ${token}` }),
-    });
+  updateCategory(id: string, data: { name: string }): Observable<any> {
+    return this.http.put(`${this.baseUrl}/${id}`, data, this.getHeadersOptions());
+  }
+
+  deleteCategory(id: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/${id}`, this.getHeadersOptions());
+  }
+
+  getBooksByCategory(categoryId: string): Observable<any> {
+    return this.http.get(`${this.booksBaseUrl}/category/${categoryId}`, this.getHeadersOptions());
   }
 }
