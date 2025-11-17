@@ -29,6 +29,8 @@ export class Categories implements OnInit {
   totalResults: number = 0;
 
   loading = false;
+  modalLoading = false;
+  error = '';
 
   // Toast
   showToastMessage: boolean = false;
@@ -56,6 +58,8 @@ export class Categories implements OnInit {
 
   loadCategories(): void {
     this.loading = true;
+    this.error = '';
+
     this.categoriesService.getAllCategories().subscribe({
       next: async (res) => {
         const payload = res?.data ?? res;
@@ -70,6 +74,7 @@ export class Categories implements OnInit {
       error: (err) => {
         console.error(err);
         this.loading = false;
+        this.error = 'Failed to load categories';
         this.showToast('Failed to load categories', 'error');
       },
     });
@@ -121,6 +126,11 @@ export class Categories implements OnInit {
     setTimeout(() => (this.showToastMessage = false), 3000);
   }
 
+  // ---------- Retry ----------
+  retryLoadCategories(): void {
+    this.loadCategories();
+  }
+
   // ---------- Add ----------
   openAddCategoryModal(): void {
     if (!this.authService.isAdmin()) {
@@ -135,16 +145,21 @@ export class Categories implements OnInit {
     const name = this.newCategoryName.trim();
     if (!name) return;
 
+    this.modalLoading = true;
+
     this.categoriesService.createCategory({ name }).subscribe({
       next: (res) => {
         const newCat = res?.data ?? res;
-        // Initialize with 0 books for new category
         this.categories.push({ bookCount: 0, ...newCat });
         this.applyFilterAndPagination();
         this.showAddModal = false;
+        this.modalLoading = false;
         this.showToast('Category added successfully!', 'success');
       },
-      error: () => this.showToast('Failed to add category', 'error'),
+      error: () => {
+        this.modalLoading = false;
+        this.showToast('Failed to add category', 'error');
+      },
     });
   }
 
@@ -164,14 +179,20 @@ export class Categories implements OnInit {
     const name = this.editCategoryName.trim();
     if (!name) return;
 
+    this.modalLoading = true;
+
     this.categoriesService.updateCategory(this.categoryToEdit._id!, { name }).subscribe({
       next: () => {
         this.categoryToEdit!.name = name;
         this.applyFilterAndPagination();
         this.showEditModal = false;
+        this.modalLoading = false;
         this.showToast('Category updated successfully!', 'success');
       },
-      error: () => this.showToast('Failed to update category', 'error'),
+      error: () => {
+        this.modalLoading = false;
+        this.showToast('Failed to update category', 'error');
+      },
     });
   }
 
@@ -188,14 +209,20 @@ export class Categories implements OnInit {
   confirmDeleteCategory(): void {
     if (!this.categoryToDelete) return;
 
+    this.modalLoading = true;
+
     this.categoriesService.deleteCategory(this.categoryToDelete._id!).subscribe({
       next: () => {
         this.categories = this.categories.filter((c) => c._id !== this.categoryToDelete!._id);
         this.applyFilterAndPagination();
         this.showDeleteModal = false;
+        this.modalLoading = false;
         this.showToast('Category deleted successfully!', 'success');
       },
-      error: () => this.showToast('Failed to delete category', 'error'),
+      error: () => {
+        this.modalLoading = false;
+        this.showToast('Failed to delete category', 'error');
+      },
     });
   }
 
