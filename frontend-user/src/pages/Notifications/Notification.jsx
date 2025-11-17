@@ -2,11 +2,14 @@ import React from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
+  Paper,
   Button,
-  Stack,
+  Grid,
+  Chip,
   Divider,
+  Alert,
+  Collapse,
+  Stack,
 } from "@mui/material";
 import { useSocketNotifications } from "../../hooks/useSocketNotifications";
 
@@ -22,7 +25,7 @@ const NotificationsPage = () => {
     acceptInvitation,
     refuseInvitation,
     cancelInvitation,
-    operations, // ✅ تم إضافتها
+    operations,
   } = useSocketNotifications();
 
   return (
@@ -33,15 +36,11 @@ const NotificationsPage = () => {
 
       {/* Connection Status */}
       <Box mb={3}>
-        <Typography sx={{ fontWeight: "bold" }}>
-          Status:{" "}
-          <span style={{ color: isConnected ? "green" : "red" }}>
-            {isConnected ? "Connected" : "Disconnected"}
-          </span>
-        </Typography>
-
+        <Alert severity={isConnected ? "success" : "error"}>
+          Status: {isConnected ? "Connected" : "Disconnected"}
+        </Alert>
         {currentUser && (
-          <Typography>
+          <Typography mt={1}>
             Logged in as: <b>{currentUser.firstName}</b>
           </Typography>
         )}
@@ -54,49 +53,52 @@ const NotificationsPage = () => {
         Pending Invitations
       </Typography>
 
-      {pendingInvitations.length === 0 && (
-        <Typography>No pending invitations</Typography>
+      {pendingInvitations.length === 0 ? (
+        <Alert severity="info">No pending invitations</Alert>
+      ) : (
+        <Grid container spacing={2}>
+          {pendingInvitations.map((inv) => (
+            <Grid item xs={12} md={6} key={inv.id}>
+              <Paper elevation={3} sx={{ p: 2 }}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  {inv.message}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  From: <b>{inv.fromUserId}</b>
+                </Typography>
+                <Chip
+                  label={inv.transactionType}
+                  color="primary"
+                  size="small"
+                  sx={{ mt: 1 }}
+                />
+                <Stack direction="row" spacing={1} mt={2}>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={() =>
+                      acceptInvitation({
+                        invitationId: inv.id,
+                        userId: currentUser._id,
+                        operationId: inv.metadata?.operationId,
+                      })
+                    }
+                  >
+                    Accept
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => refuseInvitation(inv.id, "Not interested")}
+                  >
+                    Refuse
+                  </Button>
+                </Stack>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
       )}
-
-      <Stack spacing={2}>
-        {pendingInvitations.map((inv) => (
-          <Card key={inv.id} variant="outlined">
-            <CardContent>
-              <Typography variant="h6">{inv.message}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                From user: {inv.fromUserId}
-              </Typography>
-              <Typography variant="body2">
-                Type: {inv.transactionType}
-              </Typography>
-
-              <Stack direction="row" spacing={2} mt={2}>
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={() =>
-                    acceptInvitation({
-                      invitationId: inv.id,
-                      userId: currentUser._id,
-                      operationId: inv.metadata?.operationId,
-                    })
-                  }
-                >
-                  Accept
-                </Button>
-
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={() => refuseInvitation(inv.id, "Not interested")}
-                >
-                  Refuse
-                </Button>
-              </Stack>
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
 
       <Divider sx={{ my: 3 }} />
 
@@ -105,25 +107,30 @@ const NotificationsPage = () => {
         Notifications
       </Typography>
 
-      {notifications.length === 0 && (
-        <Typography>No notifications received yet.</Typography>
+      {notifications.length === 0 ? (
+        <Alert severity="info">No notifications received yet.</Alert>
+      ) : (
+        <Grid container spacing={2}>
+          {notifications.map((note, index) => (
+            <Grid item xs={12} md={6} key={index}>
+              <Paper elevation={2} sx={{ p: 2 }}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  {note.message}
+                </Typography>
+                <Chip
+                  label={note.type}
+                  color="info"
+                  size="small"
+                  sx={{ mt: 1 }}
+                />
+                <Typography variant="caption" color="text.secondary" mt={1}>
+                  Time: {new Date(note.timestamp).toLocaleString()}
+                </Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
       )}
-
-      <Stack spacing={2}>
-        {notifications.map((note, index) => (
-          <Card key={index} variant="outlined">
-            <CardContent>
-              <Typography variant="h6">{note.message}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Type: {note.type}
-              </Typography>
-              <Typography variant="body2">
-                Time: {new Date(note.timestamp).toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
 
       <Divider sx={{ my: 3 }} />
 
@@ -132,31 +139,35 @@ const NotificationsPage = () => {
         Sent Invitations
       </Typography>
 
-      {sentInvitations.length === 0 && (
-        <Typography>No sent invitations</Typography>
+      {sentInvitations.length === 0 ? (
+        <Alert severity="info">No sent invitations</Alert>
+      ) : (
+        <Grid container spacing={2}>
+          {sentInvitations.map((inv) => (
+            <Grid item xs={12} md={6} key={inv.id}>
+              <Paper elevation={2} sx={{ p: 2 }}>
+                <Typography variant="subtitle1">
+                  Sent to user: <b>{inv.toUserId}</b>
+                </Typography>
+                <Chip
+                  label={inv.invitationType}
+                  color="secondary"
+                  size="small"
+                  sx={{ mt: 1 }}
+                />
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  sx={{ mt: 2 }}
+                  onClick={() => cancelInvitation(inv.id)}
+                >
+                  Cancel Invitation
+                </Button>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
       )}
-
-      <Stack spacing={2}>
-        {sentInvitations.map((inv) => (
-          <Card key={inv.id} variant="outlined">
-            <CardContent>
-              <Typography variant="h6">Sent to user: {inv.toUserId}</Typography>
-              <Typography variant="body2">
-                Type: {inv.invitationType}
-              </Typography>
-
-              <Button
-                variant="outlined"
-                color="warning"
-                sx={{ mt: 2 }}
-                onClick={() => cancelInvitation(inv.id)}
-              >
-                Cancel Invitation
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
 
       <Divider sx={{ my: 3 }} />
 
@@ -165,26 +176,35 @@ const NotificationsPage = () => {
         Operations
       </Typography>
 
-      {operations.length === 0 && <Typography>No operations yet.</Typography>}
-
-      <Stack spacing={2}>
-        {operations.map((op) => (
-          <Card key={op._id} variant="outlined">
-            <CardContent>
-              <Typography variant="h6">Operation ID: {op._id}</Typography>
-              <Typography>Status: {op.status}</Typography>
-              {op.operationType && (
-                <Typography>Type: {op.operationType}</Typography>
-              )}
-              {op.updatedAt && (
-                <Typography>
-                  Updated: {new Date(op.updatedAt).toLocaleString()}
+      {operations.length === 0 ? (
+        <Alert severity="info">No operations yet.</Alert>
+      ) : (
+        <Grid container spacing={2}>
+          {operations.map((op) => (
+            <Grid item xs={12} md={6} key={op._id}>
+              <Paper elevation={2} sx={{ p: 2 }}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Operation #{op._id.slice(-6)}
                 </Typography>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
+                <Chip
+                  label={op.status}
+                  color={op.status === "completed" ? "success" : "warning"}
+                  size="small"
+                  sx={{ mt: 1 }}
+                />
+                <Typography variant="body2" mt={1}>
+                  Type: {op.operationType}
+                </Typography>
+                {op.updatedAt && (
+                  <Typography variant="caption" color="text.secondary">
+                    Updated: {new Date(op.updatedAt).toLocaleString()}
+                  </Typography>
+                )}
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
       <Divider sx={{ my: 3 }} />
 
@@ -193,24 +213,25 @@ const NotificationsPage = () => {
         Logs
       </Typography>
 
-      <Box
-        sx={{
-          background: "#111",
-          color: "white",
-          p: 2,
-          borderRadius: 2,
-          height: 250,
-          overflowY: "auto",
-        }}
-      >
-        {logs.map((log, idx) => (
-          <Typography key={idx} sx={{ mb: 1 }}>
-            [{log.timestamp}] {log.message}
-          </Typography>
-        ))}
-
-        <div ref={logsEndRef} />
-      </Box>
+      <Collapse in={true}>
+        <Box
+          sx={{
+            backgroundColor: "#1e1e1e",
+            color: "#fff",
+            p: 2,
+            borderRadius: 2,
+            height: 250,
+            overflowY: "auto",
+          }}
+        >
+          {logs.map((log, idx) => (
+            <Typography key={idx} variant="body2" sx={{ mb: 1 }}>
+              [{log.timestamp}] {log.message}
+            </Typography>
+          ))}
+          <div ref={logsEndRef} />
+        </Box>
+      </Collapse>
     </Box>
   );
 };
