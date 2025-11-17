@@ -1,6 +1,3 @@
-// notification.events.js
-import { getUserSockets } from "../middelwares/socket.auth.middleware.js";
-
 export class NotificationEvents {
     constructor(socket, notificationService) {
         this.socket = socket;
@@ -8,61 +5,31 @@ export class NotificationEvents {
         this.userId = socket.data.userID;
     }
 
-    // Initialize all notification event listeners
     initialize() {
-        this.onSendInvitation();
         this.onAcceptInvitation();
         this.onRefuseInvitation();
         this.onGetPendingInvitations();
         this.onCancelInvitation();
     }
 
-    // Handle sending invitations
-    onSendInvitation() {
-        this.socket.on("send-invitation", async (data) => {
-            try {
-                const { toUserId, invitationType, message, metadata } = data;
-
-                console.log(`Invitation from ${this.userId} to ${toUserId}:`, data);
-
-                const result = await this.notificationService.sendInvitation({
-                    fromUserId: this.userId,
-                    toUserId,
-                    invitationType,
-                    message,
-                    metadata: metadata || {}
-                });
-
-                // Acknowledge to sender
-                this.socket.emit("invitation-sent", result);
-
-            } catch (error) {
-                console.error("Error sending invitation:", error);
-                this.socket.emit("invitation-error", {
-                    error: error.message || "Failed to send invitation"
-                });
-            }
-        });
-    }
-
-    // Handle accepting invitations
+    // ✅ Accept invitation with operationId
     onAcceptInvitation() {
         this.socket.on("accept-invitation", async (data) => {
             try {
-                const { invitationId } = data;
+                const { invitationId, userId, operationId } = data;
 
-                console.log(`User ${this.userId} accepting invitation: ${invitationId}`);
+                console.log(`📥 accept-invitation:`, { invitationId, userId, operationId });
 
                 const result = await this.notificationService.acceptInvitation(
-                    invitationId, 
-                    this.userId
+                    invitationId,
+                    userId || this.userId,
+                    operationId
                 );
 
-                // Confirm to acceptor
                 this.socket.emit("invitation-accepted", result);
 
             } catch (error) {
-                console.error("Error accepting invitation:", error);
+                console.error("❌ Error accepting invitation:", error);
                 this.socket.emit("invitation-error", {
                     error: error.message || "Failed to accept invitation"
                 });
@@ -70,25 +37,25 @@ export class NotificationEvents {
         });
     }
 
-    // Handle refusing invitations
+    // ✅ Refuse invitation with operationId
     onRefuseInvitation() {
         this.socket.on("refuse-invitation", async (data) => {
             try {
-                const { invitationId, reason } = data;
+                const { invitationId, userId, reason, operationId } = data;
 
-                console.log(`User ${this.userId} refusing invitation: ${invitationId}`);
+                console.log(`📥 refuse-invitation:`, { invitationId, userId, reason });
 
                 const result = await this.notificationService.refuseInvitation(
-                    invitationId, 
-                    this.userId,
-                    reason
+                    invitationId,
+                    userId || this.userId,
+                    reason || "No reason provided",
+                    operationId
                 );
 
-                // Confirm to refuser
                 this.socket.emit("invitation-refused", result);
 
             } catch (error) {
-                console.error("Error refusing invitation:", error);
+                console.error("❌ Error refusing invitation:", error);
                 this.socket.emit("invitation-error", {
                     error: error.message || "Failed to refuse invitation"
                 });
@@ -96,24 +63,23 @@ export class NotificationEvents {
         });
     }
 
-    // Handle canceling invitations
+    // Cancel invitation
     onCancelInvitation() {
         this.socket.on("cancel-invitation", async (data) => {
             try {
                 const { invitationId } = data;
 
-                console.log(`User ${this.userId} canceling invitation: ${invitationId}`);
+                console.log(`📥 cancel-invitation:`, invitationId);
 
                 const result = await this.notificationService.cancelInvitation(
-                    invitationId, 
+                    invitationId,
                     this.userId
                 );
 
-                // Confirm to canceler
                 this.socket.emit("invitation-canceled", result);
 
             } catch (error) {
-                console.error("Error canceling invitation:", error);
+                console.error("❌ Error canceling invitation:", error);
                 this.socket.emit("invitation-error", {
                     error: error.message || "Failed to cancel invitation"
                 });
@@ -121,16 +87,17 @@ export class NotificationEvents {
         });
     }
 
-    // Handle getting pending invitations
+    // Get pending invitations
     onGetPendingInvitations() {
         this.socket.on("get-pending-invitations", async () => {
             try {
                 const invitations = await this.notificationService.getPendingInvitations(this.userId);
                 
+                console.log(`📋 User ${this.userId} has ${invitations.length} pending invitations`);
                 this.socket.emit("pending-invitations", { invitations });
 
             } catch (error) {
-                console.error("Error getting pending invitations:", error);
+                console.error("❌ Error getting pending invitations:", error);
                 this.socket.emit("invitation-error", {
                     error: "Failed to get pending invitations"
                 });
