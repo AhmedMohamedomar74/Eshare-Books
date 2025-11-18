@@ -28,6 +28,7 @@ import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { fetchWishlist } from '../redux/slices/wishlist.slice';
+import UserAvatar from './common/UserAvatar';
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -71,6 +72,12 @@ const Navbar = () => {
       <Typography variant="h6" sx={{ my: 2, fontWeight: 'bold' }}>
         EshareBook
       </Typography>
+
+      {/* drawer */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <UserAvatar size={48} />
+      </Box>
+
       <List>
         {[...navLinks, ...authLinks].map(({ label, path, icon }) => (
           <ListItem
@@ -186,30 +193,14 @@ const Navbar = () => {
                 {icon}
               </Button>
             ))}
-            {user && (
-              <>
-                <Tooltip title="Account">
-                  <IconButton onClick={handleMenuOpen} sx={{ ml: 1 }}>
-                    <Avatar sx={{ width: 32, height: 32 }} />
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={openMenu}
-                  onClose={handleMenuClose}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                >
-                  <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
-                    <AccountCircleIcon sx={{ mr: 1 }} />
-                    My Profile
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>
-                    <LogoutIcon sx={{ mr: 1 }} />
-                    Logout
-                  </MenuItem>
-                </Menu>
-              </>
+            {user ? (
+              <Box sx={{ ml: 1 }}>
+                <UserAvatar size={32} />
+              </Box>
+            ) : (
+              <Box sx={{ ml: 1 }}>
+                <UserAvatar size={32} />
+              </Box>
             )}
           </Box>
 
