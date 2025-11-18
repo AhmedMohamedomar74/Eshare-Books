@@ -11,23 +11,19 @@ import {
   ListItemText,
   Menu,
   MenuItem,
-  Tooltip,
-  Avatar,
+  ListItemIcon,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import WishlistCounterIcon from './WishlistComponents/WishlistCounterIcon';
 import HomeIcon from '@mui/icons-material/Home';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
-import ReportIcon from '@mui/icons-material/Report';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import LoginIcon from '@mui/icons-material/Login';
-import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
-import LogoutIcon from '@mui/icons-material/Logout';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { fetchWishlist } from '../redux/slices/wishlist.slice';
+import UserAvatar from './common/UserAvatar';
+import { logout } from '../services/auth/auth.service';
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -45,12 +41,34 @@ const Navbar = () => {
   }, [dispatch, user]);
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
-  const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
-  const handleMenuClose = () => setAnchorEl(null);
-  const handleLogout = () => {
-    dispatch({ type: 'auth/logout' });
+
+  const handleAvatarClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleProfileClick = () => {
     handleMenuClose();
-    navigate('/login');
+    navigate('/profile');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      dispatch({ type: 'auth/logout' });
+      handleMenuClose();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      dispatch({ type: 'auth/logout' });
+      handleMenuClose();
+      navigate('/login');
+    }
   };
 
   const navLinks = [
@@ -59,20 +77,18 @@ const Navbar = () => {
     { label: 'Wishlist', path: '/wishlist' },
   ];
 
-  const authLinks = user
-    ? []
-    : [
-        { label: 'Login', path: '/login', icon: <LoginIcon /> },
-        { label: 'Register', path: '/register', icon: <AppRegistrationIcon /> },
-      ];
-
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2, fontWeight: 'bold' }}>
         EshareBook
       </Typography>
+
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <UserAvatar size={48} onAvatarClick={handleAvatarClick} />
+      </Box>
+
       <List>
-        {[...navLinks, ...authLinks].map(({ label, path, icon }) => (
+        {navLinks.map(({ label, path, icon }) => (
           <ListItem
             key={label}
             component={Link}
@@ -103,11 +119,30 @@ const Navbar = () => {
         ))}
         {user && (
           <>
-            <ListItem component={Link} to="/profile" sx={{ justifyContent: 'center', py: 1 }}>
+            <ListItem
+              component={Link}
+              to="/profile"
+              sx={{ justifyContent: 'center', py: 1 }}
+              onClick={handleDrawerToggle}
+            >
               <ListItemText primary="My Profile" />
             </ListItem>
-            <ListItem button onClick={handleLogout} sx={{ justifyContent: 'center', py: 1 }}>
-              <ListItemText primary="Logout" />
+            <ListItem
+              button
+              onClick={handleLogout}
+              sx={{
+                justifyContent: 'center',
+                py: 1,
+                color: 'red',
+                '&:hover': {
+                  backgroundColor: 'rgba(244, 67, 54, 0.04)',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <LogoutIcon fontSize="small" />
+                <ListItemText primary="Logout" />
+              </Box>
             </ListItem>
           </>
         )}
@@ -171,47 +206,67 @@ const Navbar = () => {
                 {label === 'Wishlist' && <WishlistCounterIcon />}
               </Button>
             ))}
-            {authLinks.map(({ label, path, icon }) => (
-              <Button
-                key={label}
-                component={Link}
-                to={path}
-                sx={{
-                  color: 'gray',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  '&:hover': { color: 'black' },
-                }}
-              >
-                {icon}
-              </Button>
-            ))}
-            {user && (
-              <>
-                <Tooltip title="Account">
-                  <IconButton onClick={handleMenuOpen} sx={{ ml: 1 }}>
-                    <Avatar sx={{ width: 32, height: 32 }} />
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={openMenu}
-                  onClose={handleMenuClose}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                >
-                  <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
-                    <AccountCircleIcon sx={{ mr: 1 }} />
-                    My Profile
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>
-                    <LogoutIcon sx={{ mr: 1 }} />
-                    Logout
-                  </MenuItem>
-                </Menu>
-              </>
-            )}
+
+            {/* User Avatar with Dropdown */}
+            <Box sx={{ ml: 1 }}>
+              <UserAvatar size={32} onAvatarClick={handleAvatarClick} />
+            </Box>
           </Box>
+
+          {/* Dropdown Menu */}
+          <Menu
+            anchorEl={anchorEl}
+            open={openMenu}
+            onClose={handleMenuClose}
+            PaperProps={{
+              elevation: 3,
+              sx: {
+                mt: 1.5,
+                minWidth: 140,
+                borderRadius: 2,
+                overflow: 'hidden',
+                '& .MuiMenuItem-root': {
+                  px: 2,
+                  py: 1,
+                  fontSize: '0.9rem',
+                  backgroundColor: 'white !important',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04) !important',
+                  },
+                },
+              },
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            <MenuItem
+              onClick={handleProfileClick}
+              sx={{
+                backgroundColor: 'white !important',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.04) !important',
+                },
+              }}
+            >
+              My Profile
+            </MenuItem>
+            <MenuItem
+              onClick={handleLogout}
+              sx={{
+                color: 'red',
+                backgroundColor: 'white !important',
+                '&:hover': {
+                  backgroundColor: 'rgba(244, 67, 54, 0.04) !important',
+                  color: 'red',
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <LogoutIcon fontSize="small" />
+                Logout
+              </Box>
+            </MenuItem>
+          </Menu>
 
           {/* Mobile Menu Icon */}
           <IconButton

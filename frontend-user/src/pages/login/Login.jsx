@@ -1,24 +1,24 @@
-import React, { useState } from "react";
-import PasswordInput from "../../components/form/passwordInputComponent.jsx";
-import Button from "../../components/form/buttonComponent.jsx";
-import Input from "../../components/form/inputComponents.jsx";
-import { validateLoginForm } from "../../components/form/validation.js";
-import { useNavigate } from "react-router-dom";
-import { login } from "../../services/auth/auth.service.js";
-import { usePopup } from "../../hooks/usePopup.js"; // Import the popup hook
-import Popup from "../../components/common/Popup.jsx"; // Import your popup component
+import React, { useState } from 'react';
+import PasswordInput from '../../components/form/passwordInputComponent.jsx';
+import Button from '../../components/form/buttonComponent.jsx';
+import Input from '../../components/form/inputComponents.jsx';
+import { validateLoginForm } from '../../components/form/validation.js';
+import { useNavigate } from 'react-router-dom';
+import { login } from '../../services/auth/auth.service.js';
+import { usePopup } from '../../hooks/usePopup.js'; // Import the popup hook
+import Popup from '../../components/common/Popup.jsx'; // Import your popup component
 
 const BookCycleLogin = () => {
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  
+
   // Initialize popup hook
   const { popup, showPopup, hidePopup } = usePopup();
 
@@ -28,7 +28,7 @@ const BookCycleLogin = () => {
 
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -56,32 +56,32 @@ const BookCycleLogin = () => {
     if (!validateForm()) {
       return;
     }
-    
+
     try {
       setLoading(true);
       const token = await login(formData.email, formData.password);
       setLoading(false);
-      navigate("/")
+      navigate('/');
       console.log(token);
     } catch (error) {
       setLoading(false);
       console.log(error);
-      
+
       // Show error popup with backend error message
-      let errorMessage = "Login failed. Please try again.";
-      
+      let errorMessage = 'Login failed. Please try again.';
+
       if (error.response) {
         // Backend responded with error status
         errorMessage = error.response.data?.info || errorMessage;
       } else if (error.request) {
         // Request was made but no response received
-        errorMessage = "Network error. Please check your connection.";
+        errorMessage = 'Network error. Please check your connection.';
       } else {
         // Something else happened
         errorMessage = error.message || errorMessage;
       }
-      
-      showPopup("error", errorMessage);
+
+      showPopup('error', errorMessage);
     }
   };
 
@@ -91,7 +91,7 @@ const BookCycleLogin = () => {
       style={{
         backgroundImage:
           "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuBSnKGyhHabigIj3zM4Gsl5Q8T3CFWtFp6iXVFoLToGLJXwlQHZJaF38UENNwiorq_GmyDsjx_JNqWda2SsuCqueIfrgcmNNbY6luq19hbJwAQe9CcyRCO-Eg5Q3NbM7Jc1BHNSYraFvE8WBM-ARVTG5zUTBtIEsjARkElBUUKbn2mEV5aF9NRVtxLXECFFVDJPl5g9dYJByG-1SX7xvqybcczpgYo0IF6Cw_ljlDdz_XPaCOxl4O-dfK8w2hR8s0SXhH49MrOvZkJ')",
-        backgroundColor: "#f6f7f7",
+        backgroundColor: '#f6f7f7',
       }}
     >
       {/* Popup Component */}
@@ -103,14 +103,12 @@ const BookCycleLogin = () => {
           duration={5000} // Auto close after 5 seconds
         />
       )}
-      
+
       <div className="w-full max-w-md p-6 sm:p-8">
         <div className="flex flex-col items-center justify-center rounded-xl bg-white/90 backdrop-blur-sm p-8 sm:p-10 shadow-2xl">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900">EshareBook</h1>
-            <p className="mt-2 text-base text-gray-600">
-              Welcome back! Please enter your details.
-            </p>
+            <p className="mt-2 text-base text-gray-600">Welcome back! Please enter your details.</p>
           </div>
 
           <div className="w-full">
@@ -123,7 +121,7 @@ const BookCycleLogin = () => {
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                error={touched.email ? errors.email : ""}
+                error={touched.email ? errors.email : ''}
                 required
               />
 
@@ -134,7 +132,7 @@ const BookCycleLogin = () => {
                 value={formData.password}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                error={touched.password ? errors.password : ""}
+                error={touched.password ? errors.password : ''}
                 required
               />
             </div>
@@ -156,10 +154,7 @@ const BookCycleLogin = () => {
                 </label>
               </div>
               <div className="shrink-0">
-                <a
-                  className="text-sm font-medium text-teal-700 hover:underline"
-                  href="#"
-                >
+                <a className="text-sm font-medium text-teal-700 hover:underline" href="#">
                   Forgot password?
                 </a>
               </div>
@@ -173,8 +168,8 @@ const BookCycleLogin = () => {
 
             <div className="mt-8 text-center">
               <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
-                <a className="font-bold text-teal-700 hover:underline" href="#">
+                Don't have an account?{' '}
+                <a className="font-bold text-teal-700 hover:underline" href="/register">
                   Create one
                 </a>
               </p>
