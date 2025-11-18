@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userService } from '../../services/user/userService';
 
-const UserAvatar = ({ size = 40, sx = {} }) => {
+const UserAvatar = ({ size = 40, sx = {}, onAvatarClick }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -36,11 +36,11 @@ const UserAvatar = ({ size = 40, sx = {} }) => {
     fetchProfile();
   }, []);
 
-  const handleAvatarClick = () => {
+  const handleAvatarClick = (event) => {
     const isLoggedIn = !!localStorage.getItem('accessToken') && !!user;
 
-    if (isLoggedIn) {
-      navigate('/profile');
+    if (isLoggedIn && onAvatarClick) {
+      onAvatarClick(event);
     } else {
       navigate('/login');
     }
@@ -68,7 +68,7 @@ const UserAvatar = ({ size = 40, sx = {} }) => {
   const tooltipTitle = loading
     ? 'Loading...'
     : isLoggedIn
-    ? `Hi ${user?.firstName || 'there'}! Click to view profile`
+    ? `Hi ${user?.firstName || 'there'}! Click to view menu`
     : 'Not logged in - Click to login';
 
   if (loading) {
