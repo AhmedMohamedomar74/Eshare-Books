@@ -1,24 +1,36 @@
-import React from 'react';
-import { useState } from 'react';
-import { Card, CardMedia, CardContent, Typography, Button, Box, Chip } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import {
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  Button,
+  Box,
+  Chip,
+} from '@mui/material';
+import { useNavigate, Link } from 'react-router-dom';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import WishlistHeartButton from '../WishlistComponents/WishlistHeartButton';
 
 const BookCard = ({ book }) => {
   const [isHovered, setIsHovered] = useState(false);
-
   const navigate = useNavigate();
 
   const imageUrl =
-    typeof book.image === 'object' ? book.image.secure_url : book.image || book.Image;
+    typeof book.image === 'object'
+      ? book.image.secure_url
+      : book.image || book.Image;
 
   const title = book.title || book.Title || 'Untitled';
   const type = book.TransactionType || book.type || book.Type || 'Other';
   const price = book.price || book.Price || 0;
-  const description = book.description || book.Description || 'No description available.';
+  const pricePerDay = book.PricePerDay || book.pricePerDay || 0; // سعر اليوم في حالة الاستعارة
+  const description =
+    book.description || book.Description || 'No description available.';
   const id = book._id || book.id;
+
+  // 👇 ده الفلاغ اللي backend بيبعتُه لو الكتاب مستعار حاليًا
+  const isBorrowedNow = book.isBorrowedNow;
 
   const getChipColor = (type) => {
     switch (type) {
@@ -35,7 +47,8 @@ const BookCard = ({ book }) => {
     }
   };
 
-  const shortDescription = description.length > 70 ? description.slice(0, 70) + '...' : description;
+  const shortDescription =
+    description.length > 70 ? description.slice(0, 70) + '...' : description;
 
   return (
     <Card
@@ -123,11 +136,13 @@ const BookCard = ({ book }) => {
       {/* الصورة */}
       <CardMedia
         component="img"
-        image={imageUrl || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}
+        image={
+          imageUrl || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+        }
         alt={title}
         sx={{
           height: 200,
-          objectFit: 'contain', // الصورة تظهر كاملة
+          objectFit: 'contain',
           backgroundColor: '#f5f5f5',
           borderTopLeftRadius: 12,
           borderTopRightRadius: 12,
@@ -181,11 +196,30 @@ const BookCard = ({ book }) => {
             {shortDescription}
           </Typography>
 
-          {type === 'toSale' ? (
-            <Typography variant="subtitle1" color="success.main" sx={{ fontWeight: 500, mb: 1 }}>
-              ${price}
+          {/* السعر / حالة الإتاحة حسب نوع العملية */}
+          {type === 'toSale' && (
+            <Typography
+              variant="subtitle1"
+              color="success.main"
+              sx={{ fontWeight: 500, mb: 1 }}
+            >
+              {price} EGP
             </Typography>
-          ) : (
+          )}
+
+          {type === 'toBorrow' && (
+            <Typography
+              variant="subtitle2"
+              color={isBorrowedNow ? 'error' : 'primary'}
+              sx={{ fontWeight: 500, mb: 1 }}
+            >
+              {isBorrowedNow
+                ? 'Not available now'
+                : `${pricePerDay} EGP / day`}
+            </Typography>
+          )}
+
+          {type !== 'toSale' && type !== 'toBorrow' && (
             <Box sx={{ height: '20px', mb: 1 }} />
           )}
         </Box>
