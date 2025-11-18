@@ -107,7 +107,9 @@ const BookDetails = () => {
             {/* Title + Heart */}
             <BookHeader
               title={book.Title}
-              author={book.UserID?.name}
+              author={`${book.UserID?.firstName || ""} ${
+                book.UserID?.secondName || ""
+              }`.trim()}
               bookId={book._id}
             />
 
@@ -133,7 +135,13 @@ const BookDetails = () => {
 
             <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
 
-            <BookOwner avatar={book.UserID?.avatar} name={book.UserID?.name} />
+            <BookOwner
+              avatar={book.UserID?.avatar}
+              name={`${book.UserID?.firstName || ""} ${
+                book.UserID?.secondName || ""
+              }`.trim()}
+            />
+
             <BookActions bookId={book._id} />
           </Box>
         </Box>
