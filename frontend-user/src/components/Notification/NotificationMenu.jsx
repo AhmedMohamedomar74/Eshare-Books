@@ -31,8 +31,8 @@ const NotificationMenu = ({
         elevation: 3,
         sx: {
           mt: 1.5,
-          width: 400,
-          maxHeight: 500,
+          width: { xs: 300, sm: 400 },
+          maxHeight: "80vh",
           overflow: "auto",
           borderRadius: 2,
         },
@@ -49,7 +49,7 @@ const NotificationMenu = ({
       {pendingInvitations.length === 0 && notifications.length === 0 && (
         <Box sx={{ p: 3, textAlign: "center" }}>
           <NotificationsIcon
-            sx={{ fontSize: 48, color: "text.disabled", mb: 1 }}
+            sx={{ fontSize: { xs: 36, sm: 48 }, color: "text.disabled", mb: 1 }}
           />
           <Typography variant="body2" color="text.secondary">
             No notifications yet
@@ -57,63 +57,59 @@ const NotificationMenu = ({
         </Box>
       )}
 
-      {pendingInvitations.length > 0 && (
-        <>
-          <Box
-            sx={{
-              px: 2,
-              py: 1,
-              bgcolor: "primary.light",
-              color: "primary.contrastText",
-            }}
-          >
-            <Typography variant="caption" fontWeight="bold">
-              ACTION REQUIRED ({pendingInvitations.length})
-            </Typography>
-          </Box>
+      {pendingInvitations.length > 0 && [
+        <Box
+          key="pending-header"
+          sx={{
+            px: 2,
+            py: 1,
+            bgcolor: "primary.light",
+            color: "primary.contrastText",
+          }}
+        >
+          <Typography variant="caption" fontWeight="bold">
+            ACTION REQUIRED ({pendingInvitations.length})
+          </Typography>
+        </Box>,
 
-          {pendingInvitations.map((inv) => (
-            <PendingInvitationItem
-              key={inv.id}
-              invitation={inv}
-              onAccept={() => acceptInvitation(inv.id)}
-              onRefuse={() => refuseInvitation(inv.id)}
-              formatTime={formatTime}
-            />
-          ))}
-          <Divider />
-        </>
-      )}
+        ...pendingInvitations.map((inv) => (
+          <PendingInvitationItem
+            key={inv.id}
+            invitation={inv}
+            onAccept={() => acceptInvitation(inv.id)}
+            onRefuse={() => refuseInvitation(inv.id)}
+            formatTime={formatTime}
+          />
+        )),
 
-      {notifications.length > 0 && (
-        <>
-          <Box
-            sx={{
-              px: { xs: 1.5, sm: 2 },
-              py: { xs: 1, sm: 1.5 },
-              borderBottom: 1,
-              borderColor: "divider",
-            }}
-          >
-            <Typography variant="h6" fontWeight="bold">
-              Notifications
-            </Typography>
-          </Box>
+        <Divider key="pending-divider" />,
+      ]}
 
-          {notifications.slice(0, 5).map((note, i) => (
+      {notifications.length > 0 && [
+        <Box
+          key="recent-header"
+          sx={{
+            px: { xs: 1.5, sm: 2 },
+            py: { xs: 1, sm: 1.5 },
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
+        >
+          <Typography variant="h6" fontWeight="bold">
+            Recent Activity
+          </Typography>
+        </Box>,
+
+        ...notifications
+          .slice(0, 5)
+          .map((note, i) => (
             <NotificationItem
-              sx={{
-                fontSize: { xs: 36, sm: 48 },
-                color: "text.disabled",
-                mb: 1,
-              }}
               key={i}
               notification={note}
               formatTime={formatTime}
             />
-          ))}
-        </>
-      )}
+          )),
+      ]}
 
       {(pendingInvitations.length > 0 || notifications.length > 0) && (
         <Box
@@ -123,18 +119,7 @@ const NotificationMenu = ({
             borderColor: "divider",
             textAlign: "center",
           }}
-        >
-          <Button
-            fullWidth
-            variant="text"
-            onClick={() => {
-              onClose();
-              window.location.href = "/notification";
-            }}
-          >
-            View All Notifications
-          </Button>
-        </Box>
+        ></Box>
       )}
     </Menu>
   );
