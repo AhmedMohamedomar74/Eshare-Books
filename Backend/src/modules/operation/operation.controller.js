@@ -42,128 +42,120 @@ export const getAllOperation = asyncHandler(async (req, res) => {
 });
 
 // ----------------------------------------------------------------------
-// @desc    Create new operation (buy / exchange / borrow / donate)
-// @route   POST /api/operations
+// @desc    Create new operation (buy / exchange / borrow / donate)
+// @route   POST /api/operations
 export const createOperation = asyncHandler(async (req, res) => {
-  const {
-    user_dest,  
-    book_src_id,  
-    book_dest_id, 
-    startDate,  
-    endDate,  
-    numberOfDays,  
-    operationType,
-  } = req.validatedBody;
+  const {
+    user_dest,
+    book_src_id,
+    book_dest_id,
+    startDate,
+    endDate,
+    numberOfDays,
+    operationType,
+  } = req.validatedBody;
 
-  const user_src = req.user._id; // الطالب (Source User)
+  const user_src = req.user._id;
 
-   if (user_src.toString() === user_dest.toString()) {
-    throw new AppError("You cannot perform an operation with yourself.", 400);
-  }
+  if (user_src.toString() === user_dest.toString()) {
+    throw new AppError("You cannot perform an operation with yourself.", 400);
+  }
 
-   const destUser = await findUserById(user_dest);
-  if (!destUser) {
-    throw new AppError("Destination user does not exist.", 404);
-  }
+  const destUser = await findUserById(user_dest);
+  if (!destUser) {
+    throw new AppError("Destination user does not exist.", 404);
+  }
 
-   const mainBook = await findBookById(book_dest_id);
-  if (!mainBook) {
-    throw new AppError("Requested book does not exist.", 404);
-  }
+  const mainBook = await findBookById(book_dest_id);
+  if (!mainBook) {
+    throw new AppError("Requested book does not exist.", 404);
+  }
 
-   const exchangeBook =
-    operationType === "exchange" && book_src_id
-      ? await findBookById(book_src_id)
-      : null;
+  const exchangeBook =
+    operationType === "exchange" && book_src_id
+      ? await findBookById(book_src_id)
+      : null;
 
-  //  (Transaction Type Validation)
-  await validateBookTransactionType({
-    operationType,
-    srcBook: mainBook,  
-    destBook: exchangeBook, 
-  });
+  await validateBookTransactionType({
+    operationType,
+    srcBook: mainBook,
+    destBook: exchangeBook,
+  });
 
-  //  (Ownership Validation)
-  await validateOperationOwnership({
-    operationType,
-    user_src,
-    user_dest,
-    srcBook: mainBook,
-    destBook: exchangeBook,
-  });
+  await validateOperationOwnership({
+    operationType,
+    user_src,
+    user_dest,
+    srcBook: mainBook,
+    destBook: exchangeBook,
+  });
 
-   await validateActiveStatus({
-    operationType,
-    book_src_id,
-    book_dest_id,
-  });
+  await validateActiveStatus({
+    operationType,
+    book_src_id,
+    book_dest_id,
+  });
 
-   await validateDuplicateOperation({
-    user_src,
-    user_dest,
-    book_src_id,
-    book_dest_id,
-    operationType,
-  });
+  await validateDuplicateOperation({
+    user_src,
+    user_dest,
+    book_src_id,
+    book_dest_id,
+    operationType,
+  });
 
-   const newOperationData = {
-    user_src,
-    user_dest,
-    book_dest_id,
-    operationType,
-  };
+  const newOperationData = {
+    user_src,
+    user_dest,
+    book_dest_id,
+    operationType,
+  };
 
-  if (book_src_id && operationType === "exchange") {
-    newOperationData.book_src_id = book_src_id;
-  }
+  if (book_src_id && operationType === "exchange") {
+    newOperationData.book_src_id = book_src_id;
+  }
 
-  // --- ✅ منطق حساب مدة وسعر الاستعارة (Borrow Logic) ---
-  if (operationType === "borrow") {
-    let days = 0;
-    const pricePerDay = Number(mainBook.PricePerDay) || 0;
+  // --- ✅ منطق حساب مدة وسعر الاستعارة (Borrow Logic) ---
+  if (operationType === "borrow") {
+    let days = 0;
+    const pricePerDay = Number(mainBook.PricePerDay) || 0;
 
-    if (startDate && endDate) {
-      // الحالة 1: تم إدخال تاريخ بداية ونهاية
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
 
-      if (end <= start)
-        throw new AppError("End date must be after start date.", 400);
+      if (end <= start)
+        throw new AppError("End date must be after start date.", 400);
 
-      // حساب الفرق بالأيام وتقريبه للأعلى
-      const diffTime = Math.abs(end - start);
-      days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+      const diffTime = Math.abs(end - start);
+      days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      newOperationData.startDate = startDate;
-      newOperationData.endDate = endDate;
-      newOperationData.numberOfDays = days;
-    } else if (numberOfDays) {
-      // الحالة 2: تم إدخال عدد الأيام مباشرة
-      days = Number(numberOfDays);
-      if (days <= 0) throw new AppError("Invalid number of days.", 400);
-      newOperationData.numberOfDays = days;
-    } else {
-      // حالة خطأ: لا توجد مدة محددة
-      throw new AppError(
-        "Borrow duration (dates or number of days) is required.",
-        400
-      );
-    }
+      newOperationData.startDate = startDate;
+      newOperationData.endDate = endDate;
+      newOperationData.numberOfDays = days;
+    } else if (numberOfDays) {
+      days = Number(numberOfDays);
+      if (days <= 0) throw new AppError("Invalid number of days.", 400);
+      newOperationData.numberOfDays = days;
+    } else {
+      throw new AppError(
+        "Borrow duration (dates or number of days) is required.",
+        400
+      );
+    }
 
-    // حساب السعر الإجمالي (يتم دائماً على السيرفر لضمان الأمان والدقة)
-    newOperationData.totalPrice = pricePerDay * days;
-  }
-  // --- نهاية منطق الاستعارة ---
+    newOperationData.totalPrice = pricePerDay * days;
+  }
+  // --- نهاية منطق الاستعارة ---
 
-  // إنشاء العملية في قاعدة البيانات
-  const newOperation = await operationModel.create(newOperationData);
+  const newOperation = await operationModel.create(newOperationData);
 
-  return successResponce({
-    res,
-    status: 201,
-    message: "Operation created successfully",
-    data: newOperation,
-  });
+  return successResponce({
+    res,
+    status: 201,
+    message: "Operation created successfully",
+    data: newOperation,
+  });
 });
 
 // @desc    Update operation status
