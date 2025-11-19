@@ -56,7 +56,7 @@ export const createOperation = asyncHandler(async (req, res) => {
     operationType,
   } = req.validatedBody;
 
-  const user_src = req.user._id; // الطالب (Source User)
+  const user_src = req.user._id;
 
   if (user_src.toString() === user_dest.toString()) {
     throw new AppError("You cannot perform an operation with yourself.", 400);
@@ -114,19 +114,18 @@ export const createOperation = asyncHandler(async (req, res) => {
 
   if (book_src_id && operationType === "exchange") {
     newOperationData.book_src_id = book_src_id;
-  } // --- ✅ منطق حساب مدة وسعر الاستعارة (Borrow Logic) ---
+  }
 
   if (operationType === "borrow") {
     let days = 0;
     const pricePerDay = Number(mainBook.PricePerDay) || 0;
 
     if (startDate && endDate) {
-      // الحالة 1: تم إدخال تاريخ بداية ونهاية
       const start = new Date(startDate);
       const end = new Date(endDate);
 
       if (end <= start)
-        throw new AppError("End date must be after start date.", 400); // حساب الفرق بالأيام وتقريبه للأعلى
+        throw new AppError("End date must be after start date.", 400);
 
       const diffTime = Math.abs(end - start);
       days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -135,20 +134,24 @@ export const createOperation = asyncHandler(async (req, res) => {
       newOperationData.endDate = endDate;
       newOperationData.numberOfDays = days;
     } else if (numberOfDays) {
-      // الحالة 2: تم إدخال عدد الأيام مباشرة
       days = Number(numberOfDays);
       if (days <= 0) throw new AppError("Invalid number of days.", 400);
       newOperationData.numberOfDays = days;
     } else {
-      // حالة خطأ: لا توجد مدة محددة
       throw new AppError(
         "Borrow duration (dates or number of days) is required.",
         400
       );
-    } // حساب السعر الإجمالي (يتم دائماً على السيرفر لضمان الأمان والدقة)
+    }
 
     newOperationData.totalPrice = pricePerDay * days;
-  } // --- نهاية منطق الاستعارة --- // إنشاء العملية في قاعدة البيانات
+  }
+
+  if (operationType === "buy") {
+    const bookPrice = Number(mainBook.Price) || 0;
+    newOperationData.totalPrice = bookPrice;
+  }
+
   const newOperation = await operationModel.create(newOperationData);
   await NotificationInstance.send({
     fromUserId: user_src,
