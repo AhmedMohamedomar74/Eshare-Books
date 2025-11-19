@@ -5,13 +5,14 @@ import { findByIdAndUpdate, softDelete } from "../../DB/db.services.js";
 import userModel from "../../DB/models/User.model.js";
 import bookmodel from "../../DB/models/bookmodel.js";
 import {
-  validateActiveStatus,
-  validateBookTransactionType,
-  validateDuplicateOperation,
-  validateOperationOwnership,
+  validateActiveStatus,
+  validateBookTransactionType,
+  validateDuplicateOperation,
+  validateOperationOwnership,
 } from "./operationValidation.service.js";
 import { successResponce } from "../../utils/Response.js";
 import { AppError } from "../../utils/AppError.js";
+import { NotificationInstance } from "../../Gateways/notification.instance.js";
 
 // Helper Functions
 
@@ -26,19 +27,19 @@ const findUserById = async (userId) => await userModel.findById(userId);
 // @desc    Get all operations
 // @route   GET /api/operations
 export const getAllOperation = asyncHandler(async (req, res) => {
-  const operations = await operationModel
-    .find({ isDeleted: false })
-    .populate("user_src", "firstName secondName email")
-    .populate("user_dest", "firstName secondName email")
-    .populate("book_src_id", "title author")
-    .populate("book_dest_id", "title author");
+  const operations = await operationModel
+    .find({ isDeleted: false })
+    .populate("user_src", "firstName secondName email")
+    .populate("user_dest", "firstName secondName email")
+    .populate("book_src_id", "title author")
+    .populate("book_dest_id", "title author");
 
-  return successResponce({
-    res,
-    status: 200,
-    message: "All operations retrieved successfully",
-    data: operations,
-  });
+  return successResponce({
+    res,
+    status: 200,
+    message: "All operations retrieved successfully",
+    data: operations,
+  });
 });
 
 // ----------------------------------------------------------------------
@@ -56,6 +57,7 @@ export const createOperation = asyncHandler(async (req, res) => {
   } = req.validatedBody;
 
   const user_src = req.user._id;
+  const srcUser = await findUserById(user_src);
 
   if (user_src.toString() === user_dest.toString()) {
     throw new AppError("You cannot perform an operation with yourself.", 400);
@@ -115,7 +117,6 @@ export const createOperation = asyncHandler(async (req, res) => {
     newOperationData.book_src_id = book_src_id;
   }
 
-  // --- ✅ منطق حساب مدة وسعر الاستعارة (Borrow Logic) ---
   if (operationType === "borrow") {
     let days = 0;
     const pricePerDay = Number(mainBook.PricePerDay) || 0;
@@ -161,47 +162,57 @@ export const createOperation = asyncHandler(async (req, res) => {
 // @desc    Update operation status
 // @route   PUT /api/operations/:id
 export const updateOperation = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const value = req.validatedBody;
+  const { id } = req.params;
+  const value = req.validatedBody;
 
-  const updated = await findByIdAndUpdate({
-    model: operationModel,
-    id,
-    data: value,
-    options: { new: true },
-  });
+  const updated = await findByIdAndUpdate({
+    model: operationModel,
+    id,
+    data: value,
+    options: { new: true },
+  });
 
-  if (!updated) {
-    throw new AppError("Operation not found.", 404);
-  }
+  if (!updated) {
+    throw new AppError("Operation not found.", 404);
+  }
 
-  return successResponce({
-    res,
-    status: 200,
-    message: "Operation updated successfully",
-    data: updated,
-  });
+  if (value.status === "completed") {
+    await NotificationInstance.send({
+      fromUserId: req.user._id,
+      toUserId: updated.user_src.toString(),
+      invitationType: "operation_completed",
+      message: `Your ${updated.operationType} operation is completed.`,
+      metadata: { operationId: updated._id.toString() },
+    });
+  }
+
+  return successResponce({
+    res,
+    status: 200,
+    message: "Operation updated successfully",
+    data: updated,
+  });
 });
 
 // @desc    Soft delete an operation
 // @route   DELETE /api/operations/:id
 export const deleteOperation = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params;
 
-  const deleted = await softDelete({
-    model: operationModel,
-    filter: { _id: id },
-    options: { new: true },
-  });
+  const deleted = await softDelete({
+    model: operationModel,
+    filter: { _id: id },
+    options: { new: true },
+  });
 
-  if (!deleted) {
-    throw new AppError("Operation not found.", 404);
-  }
+  if (!deleted) {
+    throw new AppError("Operation not found.", 404);
+  }
 
-  return successResponce({
-    res,
-    status: 200,
-    message: "Operation deleted successfully",
-    data: deleted,
-  });
+  return successResponce({
+    res,
+    status: 200,
+    message: "Operation deleted successfully",
+    data: deleted,
+  });
 });

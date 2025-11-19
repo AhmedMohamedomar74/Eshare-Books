@@ -87,10 +87,35 @@ export const getMyReports = asyncHandler(async (req, res, next) => {
 export const getAllReports = asyncHandler(async (req, res, next) => {
   const reports = await findManyNonDeleted({
     model: Report,
+    filter: { status: { $ne: 'Cancelled' } },
     sort: { createdAt: -1 },
   });
 
   if (!reports.length) return next(new AppError('No reports found.', 404));
+
+  for (let report of reports) {
+    // Populate reporter data
+    await report.populate({
+      path: 'reporterId',
+      select: 'firstName secondName fullName',
+      model: 'user',
+    });
+
+    // Populate target data
+    if (report.targetType === 'user') {
+      await report.populate({
+        path: 'targetId',
+        select: 'firstName secondName fullName',
+        model: 'user',
+      });
+    } else if (report.targetType === 'Book') {
+      await report.populate({
+        path: 'targetId',
+        select: 'Title',
+        model: 'Book',
+      });
+    }
+  }
 
   return successResponce({
     res,
@@ -109,7 +134,10 @@ export const getReportsByUser = asyncHandler(async (req, res, next) => {
 
   const reports = await findManyNonDeleted({
     model: Report,
-    filter: { reporterId: userId },
+    filter: {
+      reporterId: userId,
+      status: { $ne: 'Cancelled' },
+    },
     sort: { createdAt: -1 },
   });
 

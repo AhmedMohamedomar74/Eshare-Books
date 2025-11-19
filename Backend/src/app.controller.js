@@ -2,7 +2,7 @@ import { testConnection } from "./DB/connection.db.js";
 import express from "express";
 import cors from "cors";
 import path from "node:path";
-import dotenv from "dotenv";
+import dotenv from "dotenv"; // Import CORS package
 import authRoute from "./modules/auth/auth.route.js";
 import imgController from "./modules/image/image.route.js";
 import operationRouter from "./modules/operation/operation.route.js";
@@ -12,15 +12,12 @@ import bookController from "./modules/Book/book.contoroller.js";
 import { glopalErrorHandling } from "./utils/glopalErrorHandling.js";
 import categoryRouter from "./modules/category/category.route.js";
 import wishlistRouter from "./modules/wishlist/wishlist.route.js";
-
+import { initializeSocketIO } from "./Gateways/soketio.gateway.js";
 async function bootstrap() {
-  dotenv.config({
-
-    // path: path.resolve('./config/dev.env'),
-     path: path.resolve("./.env"),
-   });
+  dotenv.config();
   const port = process.env.PORT;
   const app = express();
+  
   // DB
   testConnection();
 
@@ -48,9 +45,10 @@ async function bootstrap() {
   });
 
   app.use(glopalErrorHandling);
-  app.listen(port, () => {
+  const httpServer = app.listen(port, () => {
     console.log(`Server is running on port = ${port}`);
   });
+  initializeSocketIO(httpServer);
 }
 
 export default bootstrap;
