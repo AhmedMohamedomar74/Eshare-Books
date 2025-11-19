@@ -14,35 +14,27 @@ const BookShareDashboard = () => {
 
   // Fetch user profile data
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setLoading(true);
-        const response = await userService.getProfile();
-        setUser(response.data);
-        setError(null);
-      } catch (err) {
-        setError(err.message);
-        console.error('Error fetching user profile:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      const userResponse = await userService.getProfile();
+      setUser(userResponse.data);
 
-    fetchUserProfile();
-  }, []);
+      // Use userResponse.data.id directly instead of user.id
+      const booksResponse = await bookService.getUserBooks(userResponse.data.id);
+      setBooks(booksResponse.books);
+      
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error fetching user profile:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const response = await bookService.getBooks();
-        setBooks(response.books);
-        console.log(response.books);
-      } catch (error) {
-        console.error('Error fetching books:', error);
-      }
-    };
-    fetchBooks();
-  }, []);
+  fetchUserProfile();
+}, []);
 
   // Handle profile update
   const handleUpdateProfile = async (updatedData) => {
@@ -98,8 +90,8 @@ const BookShareDashboard = () => {
             <div className="text-red-500 text-center">
               <p className="text-lg font-semibold">Error loading profile</p>
               <p className="text-sm mt-2">{error}</p>
-              <button 
-                onClick={() => window.location.reload()} 
+              <button
+                onClick={() => window.location.reload()}
                 className="mt-4 px-4 py-2 bg-[#4c7b7b] text-white rounded-lg hover:bg-[#3a5f5f] transition-colors"
               >
                 Retry
@@ -116,8 +108,8 @@ const BookShareDashboard = () => {
       {/* Main Content */}
       <main className="px-4 sm:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
         <div className="flex flex-col max-w-screen-xl flex-1 w-full">
-          <ProfileHeader 
-            user={user} 
+          <ProfileHeader
+            user={user}
             onUpdateProfile={handleUpdateProfile}
             onProfilePictureUpload={handleProfilePictureUpload}
           />

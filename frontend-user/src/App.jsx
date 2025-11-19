@@ -14,6 +14,9 @@ import AddBook from "./pages/AddBook/AddBook.jsx";
 import UserLayout from "./layout/UserLayout.jsx";
 import ProtectedRoute from "./layout/ProtectedRoute.jsx";
 import NavigationProvider from "./components/common/NavigationProvider.jsx";
+
+import NotificationPage from "./pages/notification/NotificationPage.jsx";
+import ForgotPassword from "./pages/forgetPassword/ForgotPassword.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -38,6 +41,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/public-profile/:userId" element={<PublicProfile />} />
           <Route element={<ProtectedRoute />}>
+            <Route path="/notification" element ={<NotificationPage />} />
             <Route path="/profile" element={<BookShareDashboard />} />
             <Route path="/order/:id" element={<OrderPage />} />
 
@@ -49,6 +53,7 @@ function App() {
           </Route>
         </Route>
         <Route path="/login" element={<BookCycleLogin />} />
+        <Route path="/forget-password" element={<ForgotPassword />} />
         <Route path="/register" element={<BookShareRegister />} />
       </Routes>
       </NavigationProvider>

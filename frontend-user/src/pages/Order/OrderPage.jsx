@@ -1,7 +1,4 @@
-import {
-  Box,
-  Typography,
-} from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -41,7 +38,6 @@ const OrderPage = () => {
       </Typography>
     );
 
-  // تحديد نوع العملية من نوع الـ TransactionType
   const operationType =
     book.TransactionType === "toSale"
       ? "buy"
@@ -51,7 +47,6 @@ const OrderPage = () => {
       ? "exchange"
       : "donate";
 
-  // 🧮 حساب عدد أيام الاستعارة في حالة borrow
   const getBorrowDays = () => {
     if (operationType !== "borrow" || !startDate || !endDate) return 0;
 
@@ -66,7 +61,6 @@ const OrderPage = () => {
 
   const borrowDays = getBorrowDays();
 
-  // 🧮 حساب الـ totalPrice حسب نوع العملية
   const totalPrice =
     operationType === "borrow"
       ? (book.PricePerDay || 0) * borrowDays
@@ -114,16 +108,18 @@ const OrderPage = () => {
       // operationData.numberOfDays = borrowDays;
       // operationData.totalPrice = totalPrice;
     }
-
+    
     const result = await dispatch(createOperation(operationData));
 
     if (createOperation.fulfilled.match(result)) {
       const operationId = result.payload?._id;
       if (operationId) {
-        await dispatch(completeOperation(operationId));
-        enqueueSnackbar("Operation completed successfully!", {
-          variant: "success",
-        });
+        enqueueSnackbar(
+          "Request sent successfully. Waiting for owner approval.",
+          {
+            variant: "success",
+          }
+        );
       }
     } else {
       const backendMsg =

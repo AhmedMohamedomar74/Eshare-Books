@@ -111,7 +111,9 @@ const BookDetails = () => {
           <Box sx={{ flex: 1 }}>
             <BookHeader
               title={book.Title}
-              author={book.UserID?.name}
+              author={`${book.UserID?.firstName || ""} ${
+                book.UserID?.secondName || ""
+              }`.trim()}
               bookId={book._id}
               inWishlist={inWishlist}
               onToggleWishlist={handleToggleWishlist}
@@ -122,7 +124,10 @@ const BookDetails = () => {
                 label={book.categoryId?.name || "General"}
                 variant="outlined"
               />
-              <Chip label={getTransactionLabel(book.TransactionType)} color="success" />
+              <Chip
+                label={getTransactionLabel(book.TransactionType)}
+                color="success"
+              />
             </Box>
 
             <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
@@ -136,13 +141,21 @@ const BookDetails = () => {
 
             <Box sx={{ height: "1px", backgroundColor: "#ddd", my: 3 }} />
 
-            <BookOwner avatar={book.UserID?.avatar} name={book.UserID?.name} />
+            <BookOwner
+              avatar={book.UserID?.avatar}
+              name={`${book.UserID?.firstName || ""} ${
+                book.UserID?.secondName || ""
+              }`.trim()}
+              userId={book.UserID?._id}
+            />
 
             {isBorrowDisabled && (
               <>
                 <Typography color="error" sx={{ mt: 2, fontWeight: "bold" }}>
-                  This book is currently borrowed and not available for new requests.
+                  This book is currently borrowed and not available for new
+                  requests.
                 </Typography>
+
                 {book.currentBorrow?.endDate && (
                   <Typography
                     variant="body2"
@@ -157,6 +170,8 @@ const BookDetails = () => {
             )}
 
             <BookActions bookId={book._id} disabled={isBorrowDisabled} />
+
+            
           </Box>
         </Box>
       </Box>

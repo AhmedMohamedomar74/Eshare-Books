@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { signatureLevelEnum } from '../enum.js';
 
-const BaseUrl = 'http://localhost:3000';
+export const BaseUrl = 'http://localhost:3000';
 
 // Navigation callback (will be set from App component)
 let navigationCallback = null;
