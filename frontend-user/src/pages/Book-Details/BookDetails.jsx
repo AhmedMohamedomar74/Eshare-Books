@@ -140,6 +140,7 @@ const BookDetails = () => {
               name={`${book.UserID?.firstName || ""} ${
                 book.UserID?.secondName || ""
               }`.trim()}
+              userId={book.UserID?._id}
             />
 
             <BookActions bookId={book._id} />

@@ -6,12 +6,7 @@ const BreadcrumbNav = ({ title, categoryId }) => (
     <MuiLink component={Link} to="/" underline="hover" color="inherit">
       Home
     </MuiLink>
-    <MuiLink
-      component={Link}
-      to={`/category/${categoryId?._id || categoryId}`}
-      underline="hover"
-      color="inherit"
-    >
+    <MuiLink component={Link} underline="hover" color="inherit">
       {categoryId?.name || "Category"}
     </MuiLink>
     <Typography color="text.primary">{title}</Typography>
