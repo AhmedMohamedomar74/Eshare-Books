@@ -1,10 +1,4 @@
-import {
-  Menu,
-  Box,
-  Typography,
-  Divider,
-  Button,
-} from "@mui/material";
+import { Menu, Box, Typography, Divider, Button } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import PendingInvitationItem from "./PendingInvitationItem";
 import NotificationItem from "./NotificationItem";
@@ -47,12 +41,16 @@ const NotificationMenu = ({
       anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
     >
       <Box sx={{ px: 2, py: 1.5, borderBottom: 1, borderColor: "divider" }}>
-        <Typography variant="h6" fontWeight="bold">Notifications</Typography>
+        <Typography variant="h6" fontWeight="bold">
+          Notifications
+        </Typography>
       </Box>
 
       {pendingInvitations.length === 0 && notifications.length === 0 && (
         <Box sx={{ p: 3, textAlign: "center" }}>
-          <NotificationsIcon sx={{ fontSize: 48, color: "text.disabled", mb: 1 }} />
+          <NotificationsIcon
+            sx={{ fontSize: 48, color: "text.disabled", mb: 1 }}
+          />
           <Typography variant="body2" color="text.secondary">
             No notifications yet
           </Typography>
@@ -61,7 +59,14 @@ const NotificationMenu = ({
 
       {pendingInvitations.length > 0 && (
         <>
-          <Box sx={{ px: 2, py: 1, bgcolor: "primary.light", color: "primary.contrastText" }}>
+          <Box
+            sx={{
+              px: 2,
+              py: 1,
+              bgcolor: "primary.light",
+              color: "primary.contrastText",
+            }}
+          >
             <Typography variant="caption" fontWeight="bold">
               ACTION REQUIRED ({pendingInvitations.length})
             </Typography>
@@ -82,24 +87,51 @@ const NotificationMenu = ({
 
       {notifications.length > 0 && (
         <>
-          <Box sx={{ px: 2, py: 1, bgcolor: "grey.100" }}>
-            <Typography variant="caption" fontWeight="bold" color="text.secondary">
-              RECENT ACTIVITY
+          <Box
+            sx={{
+              px: { xs: 1.5, sm: 2 },
+              py: { xs: 1, sm: 1.5 },
+              borderBottom: 1,
+              borderColor: "divider",
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">
+              Notifications
             </Typography>
           </Box>
 
           {notifications.slice(0, 5).map((note, i) => (
-            <NotificationItem key={i} notification={note} formatTime={formatTime} />
+            <NotificationItem
+              sx={{
+                fontSize: { xs: 36, sm: 48 },
+                color: "text.disabled",
+                mb: 1,
+              }}
+              key={i}
+              notification={note}
+              formatTime={formatTime}
+            />
           ))}
         </>
       )}
 
       {(pendingInvitations.length > 0 || notifications.length > 0) && (
-        <Box sx={{ p: 1.5, borderTop: 1, borderColor: "divider", textAlign: "center" }}>
-          <Button fullWidth variant="text" onClick={() => {
-            onClose();
-            window.location.href = "/notification";
-          }}>
+        <Box
+          sx={{
+            p: 1.5,
+            borderTop: 1,
+            borderColor: "divider",
+            textAlign: "center",
+          }}
+        >
+          <Button
+            fullWidth
+            variant="text"
+            onClick={() => {
+              onClose();
+              window.location.href = "/notification";
+            }}
+          >
             View All Notifications
           </Button>
         </Box>

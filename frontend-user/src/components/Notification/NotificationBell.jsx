@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { IconButton, Badge } from "@mui/material";
+import { IconButton, Badge, useTheme, useMediaQuery } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import NotificationMenu from "./NotificationMenu";
 import { useSocketNotifications } from "../../hooks/useSocketNotifications";
@@ -16,6 +16,8 @@ const NotificationBell = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const unreadCount = pendingInvitations.length;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -24,10 +26,24 @@ const NotificationBell = () => {
     <>
       <IconButton
         onClick={handleClick}
-        sx={{ color: open ? "primary.main" : "inherit" }}
+        size={isMobile ? "small" : "medium"}
+        sx={{
+          color: open ? "primary.main" : "inherit",
+          p: isMobile ? 0.5 : 1,
+        }}
       >
-        <Badge badgeContent={unreadCount} color="error">
-          <NotificationsIcon />
+        <Badge
+          badgeContent={unreadCount}
+          color="error"
+          sx={{
+            "& .MuiBadge-badge": {
+              fontSize: isMobile ? "0.6rem" : "0.75rem",
+              minWidth: isMobile ? 16 : 20,
+              height: isMobile ? 16 : 20,
+            },
+          }}
+        >
+          <NotificationsIcon fontSize={isMobile ? "small" : "medium"} />
         </Badge>
       </IconButton>
 
