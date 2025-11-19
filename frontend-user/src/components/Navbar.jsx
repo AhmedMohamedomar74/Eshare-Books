@@ -76,6 +76,7 @@ const Navbar = () => {
     { label: 'Home', path: '/', icon: <HomeIcon /> },
     { label: 'Add Book', path: '/add-book', icon: <LibraryAddIcon /> },
     { label: 'Wishlist', path: '/wishlist' },
+    { label: 'Notification', path: '#', icon: <NotificationBell /> },
   ];
 
   const drawer = (
@@ -109,8 +110,8 @@ const Navbar = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
-                        justifyContent: label === 'Wishlist' ? 'space-between' : 'center',
-                        width: label === 'Wishlist' ? '100%' : 'auto',
+                        justifyContent: 'center',
+                        width: 'auto',
                       }}
                     >
                       {icon}
@@ -118,7 +119,7 @@ const Navbar = () => {
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 1,
+                          gap: 1.5,
                           flexDirection: label === 'Wishlist' ? 'row-reverse' : 'row',
                         }}
                       >
@@ -221,8 +222,6 @@ const Navbar = () => {
                 {label === 'Wishlist' && <WishlistCounterIcon />}
               </Button>
             ))}
-
-            <NotificationBell />
 
             {/* User Avatar with Dropdown */}
             <Box sx={{ ml: 1 }}>
