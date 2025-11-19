@@ -38,7 +38,6 @@ const OrderPage = () => {
       </Typography>
     );
 
-  // تحديد نوع العملية من نوع الـ TransactionType
   const operationType =
     book.TransactionType === "toSale"
       ? "buy"
@@ -48,7 +47,6 @@ const OrderPage = () => {
       ? "exchange"
       : "donate";
 
-  // 🧮 حساب عدد أيام الاستعارة في حالة borrow
   const getBorrowDays = () => {
     if (operationType !== "borrow" || !startDate || !endDate) return 0;
 
@@ -63,7 +61,6 @@ const OrderPage = () => {
 
   const borrowDays = getBorrowDays();
 
-  // 🧮 حساب الـ totalPrice حسب نوع العملية
   const totalPrice =
     operationType === "borrow"
       ? (book.PricePerDay || 0) * borrowDays
@@ -111,7 +108,7 @@ const OrderPage = () => {
       // operationData.numberOfDays = borrowDays;
       // operationData.totalPrice = totalPrice;
     }
-
+    
     const result = await dispatch(createOperation(operationData));
 
     if (createOperation.fulfilled.match(result)) {
