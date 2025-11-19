@@ -3,7 +3,7 @@ import PasswordInput from '../../components/form/passwordInputComponent.jsx';
 import Button from '../../components/form/buttonComponent.jsx';
 import Input from '../../components/form/inputComponents.jsx';
 import { validateLoginForm } from '../../components/form/validation.js';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../services/auth/auth.service.js';
 import { usePopup } from '../../hooks/usePopup.js'; // Import the popup hook
 import Popup from '../../components/common/Popup.jsx'; // Import your popup component
@@ -154,9 +154,9 @@ const BookCycleLogin = () => {
                 </label>
               </div>
               <div className="shrink-0">
-                <a className="text-sm font-medium text-teal-700 hover:underline" href="#">
+                <Link className="text-sm font-medium text-teal-700 hover:underline" to="/forget-password">
                   Forgot password?
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -169,9 +169,9 @@ const BookCycleLogin = () => {
             <div className="mt-8 text-center">
               <p className="text-sm text-gray-600">
                 Don't have an account?{' '}
-                <a className="font-bold text-teal-700 hover:underline" href="/register">
+                <Link className="font-bold text-teal-700 hover:underline" to="/register">
                   Create one
-                </a>
+                </Link>
               </p>
             </div>
           </div>

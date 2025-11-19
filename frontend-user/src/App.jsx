@@ -16,6 +16,7 @@ import ProtectedRoute from "./layout/ProtectedRoute.jsx";
 import NavigationProvider from "./components/common/NavigationProvider.jsx";
 
 import NotificationPage from "./pages/notification/NotificationPage.jsx";
+import ForgotPassword from "./pages/forgetPassword/ForgotPassword.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -52,6 +53,7 @@ function App() {
           </Route>
         </Route>
         <Route path="/login" element={<BookCycleLogin />} />
+        <Route path="/forget-password" element={<ForgotPassword />} />
         <Route path="/register" element={<BookShareRegister />} />
       </Routes>
       </NavigationProvider>
