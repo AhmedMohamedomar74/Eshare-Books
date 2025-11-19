@@ -8,10 +8,16 @@ const addBook = async (formData) => {
   return res.data;
 };
 
-// ✅ Get all books
-const getAllBooks = async () => {
-  const res = await api.get("/books/allbooks");
-  return res.data.books;
+// ✅ Get all books (with pagination + optional title)
+const getAllBooks = async (page = 1, limit = 10, title = "") => {
+  const params = new URLSearchParams();
+  params.append("page", page);
+  params.append("limit", limit);
+  if (title) params.append("title", title);
+
+  const res = await api.get(`/books/allbooks?${params.toString()}`);
+  // بيرجع { message, total, page, limit, books }
+  return res.data;
 };
 
 // ✅ Get single book by ID
@@ -19,10 +25,10 @@ const getBookById = async (id) => {
   const res = await api.get(`/books/${id}`);
   return res.data.book;
 };
-// ✅ Get books by search title
-const searchBooks = async (title) => {
-  const res = await api.get(`/books/allbooks?title=${encodeURIComponent(title)}`);
-  return res.data.books;
+
+// ✅ Get books by search title (لو محتاجة في مكان تاني)
+const searchBooks = async (title, page = 1, limit = 9) => {
+  return getAllBooks(page, limit, title);
 };
 
 // ✅ Get books by category
@@ -36,6 +42,7 @@ const getAllCategories = async () => {
   const res = await api.get(`/categories`);
   return res.data.data;
 };
+
 // ✅ Get books by transaction type
 const getBooksByType = async (type) => {
   const res = await api.get(`/books/type/${type}`);
@@ -49,9 +56,7 @@ const bookService = {
   searchBooks,
   getBooksByCategory,
   getAllCategories,
-  getBooksByType
+  getBooksByType,
 };
 
 export default bookService;
-
-

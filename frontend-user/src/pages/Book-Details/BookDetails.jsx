@@ -1,5 +1,4 @@
 import { Box, Chip, Typography, Snackbar, Alert } from "@mui/material";
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../axiosInstance/axiosInstance.js";
@@ -18,7 +17,7 @@ import BookHeader from "../../components/Book-detalis/BookHeader.jsx";
 const BookDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { wishlist, loading } = useSelector((state) => state.wishlist);
+  const { wishlist } = useSelector((state) => state.wishlist);
 
   const [book, setBook] = useState(null);
   const [loadingBook, setLoadingBook] = useState(true);
@@ -61,11 +60,14 @@ const BookDetails = () => {
   };
 
   const getTransactionLabel = (type) => {
+    if (!book) return "";
     switch (type) {
       case "toSale":
         return `For Sale: $${book.Price}`;
       case "toBorrow":
-        return "Available to Borrow";
+        return book.isBorrowedNow
+          ? "Not available (currently borrowed)"
+          : "Available to Borrow";
       case "toExchange":
         return "Available to Exchange";
       case "toDonate":
@@ -82,6 +84,9 @@ const BookDetails = () => {
         Book not found or unavailable.
       </Typography>
     );
+
+  const isBorrowDisabled =
+    book.TransactionType === "toBorrow" && book.isBorrowedNow;
 
   return (
     <Box
@@ -104,13 +109,14 @@ const BookDetails = () => {
           <BookImage src={book.image?.secure_url} alt={book.Title} />
 
           <Box sx={{ flex: 1 }}>
-            {/* Title + Heart */}
             <BookHeader
               title={book.Title}
               author={`${book.UserID?.firstName || ""} ${
                 book.UserID?.secondName || ""
               }`.trim()}
               bookId={book._id}
+              inWishlist={inWishlist}
+              onToggleWishlist={handleToggleWishlist}
             />
 
             <Box sx={{ display: "flex", gap: "10px", mb: 2, flexWrap: "wrap" }}>
@@ -143,12 +149,33 @@ const BookDetails = () => {
               userId={book.UserID?._id}
             />
 
-            <BookActions bookId={book._id} />
+            {isBorrowDisabled && (
+              <>
+                <Typography color="error" sx={{ mt: 2, fontWeight: "bold" }}>
+                  This book is currently borrowed and not available for new
+                  requests.
+                </Typography>
+
+                {book.currentBorrow?.endDate && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 1 }}
+                  >
+                    Expected to be available again after{" "}
+                    {new Date(book.currentBorrow.endDate).toLocaleDateString()}
+                  </Typography>
+                )}
+              </>
+            )}
+
+            <BookActions bookId={book._id} disabled={isBorrowDisabled} />
+
+            
           </Box>
         </Box>
       </Box>
 
-      {/* Snackbar */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
