@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
+import PersonIcon from "@mui/icons-material/Person";
 
 const PendingInvitationItem = ({
   invitation,
@@ -44,10 +45,9 @@ const PendingInvitationItem = ({
               width: isMobile ? 36 : 40,
               height: isMobile ? 36 : 40,
               bgcolor: "primary.main",
-              fontSize: "1rem",
             }}
           >
-            {invitation.fromUserId?.slice(0, 2).toUpperCase() || "??"}
+            <PersonIcon fontSize="small" />
           </Avatar>
 
           <Box flex={1}>
