@@ -57,6 +57,7 @@ export const createOperation = asyncHandler(async (req, res) => {
   } = req.validatedBody;
 
   const user_src = req.user._id;
+  const srcUser = await findUserById(user_src);
 
   if (user_src.toString() === user_dest.toString()) {
     throw new AppError("You cannot perform an operation with yourself.", 400);
@@ -157,7 +158,7 @@ export const createOperation = asyncHandler(async (req, res) => {
     fromUserId: user_src,
     toUserId: user_dest,
     invitationType: "operation_request",
-    message: `You have a new ${operationType} request.`,
+    message: `You have a new ${operationType} request from ${srcUser.firstName} ${srcUser.secondName}`,
     metadata: {
       operationId: newOperation._id.toString(),
       bookId: book_dest_id.toString(),
