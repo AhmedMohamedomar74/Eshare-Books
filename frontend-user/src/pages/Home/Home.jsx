@@ -18,58 +18,107 @@ export default function Home() {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
+
+  const [activeFilter, setActiveFilter] = useState({
+    type: null,
+    categoryId: null,
+  });
+
   useEffect(() => {
     fetchBooks();
     fetchCategories();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   const fetchBooks = async () => {
-    const data = await bookService.getAllBooks();
-    setBooks(data);
+    if (activeFilter.type) {
+      const data = await bookService.getBooksByType(activeFilter.type);
+      setBooks(data || []);
+      setTotalPages(1);
+      return;
+    }
+
+    if (activeFilter.categoryId) {
+      const data = await bookService.getBooksByCategory(activeFilter.categoryId);
+      setBooks(data || []);
+      setTotalPages(1);
+      return;
+    }
+
+    const data = await bookService.getAllBooks(page, limit, searchTerm);
+    setBooks(data?.books || []);
+    const pages = Math.ceil((data?.total || 0) / (data?.limit || limit));
+    setTotalPages(pages || 1);
   };
 
   const fetchCategories = async () => {
     const cats = await bookService.getAllCategories();
-    setCategories(cats);
+    setCategories(cats || []);
   };
 
   // 🔍 Search by title
   const handleSearch = async (e) => {
     const value = e.target.value;
     setSearchTerm(value);
+    setPage(1);
+    setActiveFilter({ type: null, categoryId: null });
 
-    if (value.trim() === "") {
-      fetchBooks();
-    } else {
-      const data = await bookService.searchBooks(value);
-      setBooks(data);
-    }
+    const data = await bookService.getAllBooks(1, limit, value);
+    setBooks(data?.books || []);
+    const pages = Math.ceil((data?.total || 0) / (data?.limit || limit));
+    setTotalPages(pages || 1);
   };
 
   // 🏷️ Filter by category
   const handleCategoryChange = async (selectedCategoryIds) => {
     if (selectedCategoryIds.length === 0) {
+      setActiveFilter((prev) => ({ ...prev, categoryId: null }));
+      setPage(1);
       fetchBooks();
       return;
     }
-    const data = await bookService.getBooksByCategory(selectedCategoryIds[0]);
-    setBooks(data);
+
+    const catId = selectedCategoryIds[0];
+    setActiveFilter({ type: null, categoryId: catId });
+    setPage(1);
+
+    const data = await bookService.getBooksByCategory(catId);
+    setBooks(data || []);
+    setTotalPages(1);
   };
 
   // 💡 Filter by type
   const handleTypeChange = async (selectedType) => {
     if (!selectedType) {
+      setActiveFilter((prev) => ({ ...prev, type: null }));
+      setPage(1);
       fetchBooks();
       return;
     }
+
+    setActiveFilter({ type: selectedType, categoryId: null });
+    setPage(1);
+
     const data = await bookService.getBooksByType(selectedType);
-    setBooks(data);
+    setBooks(data || []);
+    setTotalPages(1);
   };
 
   // 🔄 Clear all filters
   const handleClearFilters = () => {
     setSearchTerm("");
+    setActiveFilter({ type: null, categoryId: null });
+    setPage(1);
     fetchBooks();
+  };
+
+  // ⏭️ Page change
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -127,36 +176,38 @@ export default function Home() {
             />
           </Paper>
 
-          {/* Books Grid */}
-<Box sx={{ flex: 1 }}>
-  <BookGrid books={books} />
-  <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
-    <Pagination
-      count={5}
-      shape="rounded"
-      color="primary"
-      size="large" // تكبير الأزرار
-      sx={{
-        '& .MuiPaginationItem-root': {
-          borderRadius: 2,
-          fontWeight: 'bold',
-          color: '#1976d2',
-          '&:hover': {
-            backgroundColor: '#1976d2',
-            color: '#fff',
-            transform: 'scale(1.1)',
-          },
-        },
-        '& .Mui-selected': {
-          backgroundColor: '#1976d2',
-          color: '#fff',
-          fontWeight: 'bold',
-        },
-      }}
-    />
-  </Box>
-</Box>
+          {/* Books Grid + Pagination */}
+          <Box sx={{ flex: 1 }}>
+            <BookGrid books={books} />
 
+            <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
+              <Pagination
+                page={page}
+                count={totalPages}
+                onChange={handlePageChange}
+                shape="rounded"
+                color="primary"
+                size="large"
+                sx={{
+                  "& .MuiPaginationItem-root": {
+                    borderRadius: 2,
+                    fontWeight: "bold",
+                    color: "#1976d2",
+                    "&:hover": {
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      transform: "scale(1.1)",
+                    },
+                  },
+                  "& .Mui-selected": {
+                    backgroundColor: "#1976d2",
+                    color: "#fff",
+                    fontWeight: "bold",
+                  },
+                }}
+              />
+            </Box>
+          </Box>
         </Box>
       </Container>
     </Box>
