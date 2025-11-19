@@ -11,7 +11,6 @@ import mongoose from "mongoose";
 import Operation from "../../DB/models/operation.model.js";
 import { operationStatusEnum, operationTypeEnum } from "../../enum.js";
 
-
 // Helper Function: Upload to Cloudinary
 const uploadToCloudinary = (fileBuffer, folder) => {
   return new Promise((resolve, reject) => {
@@ -98,30 +97,33 @@ export const addBook = asyncHandler(async (req, res, next) => {
 });
 
 /* ──────────────────────────────
-   📘 Get All Books (Home) 
+   📘 Get All Books (Home) + Pagination
    - Ignore Deleted
-   - Hide sold books (buy + completed)
+   - Hide sold/donated books (buy/donate + completed)
    - Mark borrowed now (borrow + completed & date in range)
 ────────────────────────────── */
 export const getAllBooks = asyncHandler(async (req, res, next) => {
-  const { title, page = 1, limit = 10 } = req.query;
+  let { title, page = 1, limit = 10 } = req.query;
+
   const filter = { isDeleted: false };
   if (title) filter.Title = { $regex: title, $options: "i" };
 
-  const skip = (page - 1) * limit;
+  const pageNum = Number(page) || 1;
+  const limitNum = Number(limit) || 10;
+  const skip = (pageNum - 1) * limitNum;
   const now = new Date();
 
-  // 1️⃣ الكتب اللي اتباعت (عمليات BUY مكتملة)
+  // 1️⃣ الكتب اللي اتباعت أو اتمدت (BUY + DONATE مكتملة)
   const soldBookIds = await Operation.distinct("book_dest_id", {
-    operationType: operationTypeEnum.BUY,       // "buy"
-    status: operationStatusEnum.COMPLETED,      // "completed"
+    operationType: { $in: [operationTypeEnum.BUY, operationTypeEnum.DONATE] },
+    status: operationStatusEnum.COMPLETED,
     isDeleted: false,
   });
 
   // 2️⃣ عمليات الـ BORROW النشطة حاليًا
   const activeBorrowOps = await Operation.find({
-    operationType: operationTypeEnum.BORROW,    // "borrow"
-    status: operationStatusEnum.COMPLETED,      // عندك الـ confirm بيكمّلها على طول
+    operationType: operationTypeEnum.BORROW,
+    status: operationStatusEnum.COMPLETED,
     isDeleted: false,
     startDate: { $lte: now },
     endDate: { $gte: now },
@@ -131,18 +133,19 @@ export const getAllBooks = asyncHandler(async (req, res, next) => {
     activeBorrowOps.map((op) => op.book_dest_id.toString())
   );
 
-  // 3️⃣ نجيب الكتب اللي مش متباعة
+  // 3️⃣ نجيب الكتب اللي مش متباعة/متمدية – الأحدث أولاً
   const books = await Book.find({
     ...filter,
     _id: { $nin: soldBookIds },
   })
-    .populate("UserID", "firstName secondName email")
+    .populate("UserID", "firstName secondName email avatar name")
     .populate("categoryId", "name")
+    .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(Number(limit))
-    .lean(); // عشان نقدر نعمل spread object
+    .limit(limitNum)
+    .lean();
 
-  // 4️⃣ نضيف فلاغ availability لكل كتاب
+  // 4️⃣ فلاغ availability
   const booksWithAvailability = books.map((book) => ({
     ...book,
     isBorrowedNow: activeBorrowIds.has(book._id.toString()),
@@ -156,27 +159,26 @@ export const getAllBooks = asyncHandler(async (req, res, next) => {
   res.json({
     message: "✅ Books fetched successfully",
     total: count,
-    page: Number(page),
+    page: pageNum,
+    limit: limitNum,
     books: booksWithAvailability,
   });
 });
 
 /* ──────────────────────────────
    📘 Get Books by Category
-   - نفس منطق availability
+   - نفس منطق availability + إخفاء الكتب المباعة/المتمدية
 ────────────────────────────── */
 export const getBooksByCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
   const now = new Date();
 
-  // الكتب اللي اتباعت
   const soldBookIds = await Operation.distinct("book_dest_id", {
-    operationType: operationTypeEnum.BUY,
+    operationType: { $in: [operationTypeEnum.BUY, operationTypeEnum.DONATE] },
     status: operationStatusEnum.COMPLETED,
     isDeleted: false,
   });
 
-  // عمليات الـ borrow النشطة حاليًا
   const activeBorrowOps = await Operation.find({
     operationType: operationTypeEnum.BORROW,
     status: operationStatusEnum.COMPLETED,
@@ -194,7 +196,7 @@ export const getBooksByCategory = asyncHandler(async (req, res) => {
     isDeleted: false,
     _id: { $nin: soldBookIds },
   })
-    .populate("UserID", "firstName secondName email")
+    .populate("UserID", "firstName secondName email avatar name")
     .populate("categoryId", "name")
     .lean();
 
@@ -212,13 +214,52 @@ export const getBooksByCategory = asyncHandler(async (req, res) => {
 
 /* ──────────────────────────────
    📘 Get Book by ID
+   - يخفي الكتب اللي اتباعت أو اتمدت (BUY / DONATE + COMPLETED)
+   - يعلّم الكتب المستعارة حاليًا بـ isBorrowedNow + currentBorrow
 ────────────────────────────── */
 export const getBookById = asyncHandler(async (req, res) => {
-  const book = await Book.findOne({ _id: req.params.id, isDeleted: false })
-    .populate("UserID", "firstName secondName email")
+  const { id } = req.params;
+  const now = new Date();
+
+  // 1️⃣ لو فيه عملية BUY أو DONATE مكتملة على الكتاب → اعتبره غير موجود
+  const soldOrDonatedOp = await Operation.findOne({
+    book_dest_id: id,
+    operationType: { $in: [operationTypeEnum.BUY, operationTypeEnum.DONATE] },
+    status: operationStatusEnum.COMPLETED,
+    isDeleted: false,
+  });
+
+  if (soldOrDonatedOp) {
+    throw new AppError("❌ Book not found", 404);
+  }
+
+  // 2️⃣ هل فيه عملية BORROW نشطة حاليًا على الكتاب؟
+  const activeBorrowOp = await Operation.findOne({
+    book_dest_id: id,
+    operationType: operationTypeEnum.BORROW,
+    status: operationStatusEnum.COMPLETED,
+    isDeleted: false,
+    startDate: { $lte: now },
+    endDate: { $gte: now },
+  });
+
+  // 3️⃣ نجيب الكتاب نفسه
+  const bookDoc = await Book.findOne({ _id: id, isDeleted: false })
+    .populate("UserID", "firstName secondName email avatar name")
     .populate("categoryId", "name");
 
-  if (!book) throw new AppError("❌ Book not found", 404);
+  if (!bookDoc) throw new AppError("❌ Book not found", 404);
+
+  // 4️⃣ نضيف فلاغ isBorrowedNow + مدة الاستعارة (لو موجودة)
+  const book = bookDoc.toObject();
+  book.isBorrowedNow = !!activeBorrowOp;
+  book.currentBorrow = activeBorrowOp
+    ? {
+        startDate: activeBorrowOp.startDate,
+        endDate: activeBorrowOp.endDate,
+      }
+    : null;
+
   res.json({ message: "✅ Book fetched successfully", book });
 });
 
@@ -292,14 +333,12 @@ export const getBooksByTransactionType = asyncHandler(async (req, res) => {
 
   const now = new Date();
 
-  // الكتب اللي اتباعت
   const soldBookIds = await Operation.distinct("book_dest_id", {
-    operationType: operationTypeEnum.BUY,
+    operationType: { $in: [operationTypeEnum.BUY, operationTypeEnum.DONATE] },
     status: operationStatusEnum.COMPLETED,
     isDeleted: false,
   });
 
-  // عمليات الـ borrow النشطة حاليًا
   const activeBorrowOps = await Operation.find({
     operationType: operationTypeEnum.BORROW,
     status: operationStatusEnum.COMPLETED,
@@ -317,7 +356,7 @@ export const getBooksByTransactionType = asyncHandler(async (req, res) => {
     isDeleted: false,
     _id: { $nin: soldBookIds },
   })
-    .populate("UserID", "firstName secondName email")
+    .populate("UserID", "firstName secondName email avatar name")
     .populate("categoryId", "name")
     .lean();
 
@@ -348,7 +387,7 @@ export const getBooksByUserId = asyncHandler(async (req, res) => {
     UserID: userId,
     isDeleted: false,
   })
-    .populate("UserID", "firstName secondName email")
+    .populate("UserID", "firstName secondName email avatar name")
     .populate("categoryId", "name")
     .sort({ createdAt: -1 });
 

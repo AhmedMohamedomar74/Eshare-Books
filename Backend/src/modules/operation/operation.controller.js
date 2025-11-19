@@ -43,8 +43,8 @@ export const getAllOperation = asyncHandler(async (req, res) => {
 });
 
 // ----------------------------------------------------------------------
-// @desc    Create new operation (buy / exchange / borrow / donate)
-// @route   POST /api/operations
+// @desc    Create new operation (buy / exchange / borrow / donate)
+// @route   POST /api/operations
 export const createOperation = asyncHandler(async (req, res) => {
   const {
     user_dest,
@@ -76,13 +76,13 @@ export const createOperation = asyncHandler(async (req, res) => {
   const exchangeBook =
     operationType === "exchange" && book_src_id
       ? await findBookById(book_src_id)
-      : null; //  (Transaction Type Validation)
+      : null;
 
   await validateBookTransactionType({
     operationType,
     srcBook: mainBook,
     destBook: exchangeBook,
-  }); //  (Ownership Validation)
+  });
 
   await validateOperationOwnership({
     operationType,
@@ -147,14 +147,14 @@ export const createOperation = asyncHandler(async (req, res) => {
 
     newOperationData.totalPrice = pricePerDay * days;
   }
-
-  if (operationType === "buy") {
+   if (operationType === "buy") {
     const bookPrice = Number(mainBook.Price) || 0;
     newOperationData.totalPrice = bookPrice;
   }
+  // --- نهاية منطق الاستعارة ---
 
   const newOperation = await operationModel.create(newOperationData);
-  await NotificationInstance.send({
+    await NotificationInstance.send({
     fromUserId: user_src,
     toUserId: user_dest,
     invitationType: "operation_request",
