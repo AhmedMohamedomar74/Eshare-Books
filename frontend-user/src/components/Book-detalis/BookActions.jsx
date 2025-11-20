@@ -1,8 +1,8 @@
-import { Box, Button, Alert, Snackbar } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { ChatBubbleOutline, OutlinedFlag } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
-const BookActions = ({ bookId }) => {
+const BookActions = ({ bookId, disabled = false }) => {
   return (
     <>
       {/* Buttons section */}
@@ -14,6 +14,7 @@ const BookActions = ({ bookId }) => {
           flexDirection: { xs: "column", sm: "row" },
         }}
       >
+        {/* Contact Owner - يفضل يفضل شغال حتى لو الكتاب مستعار */}
         <Button
           variant="contained"
           fullWidth
@@ -28,21 +29,40 @@ const BookActions = ({ bookId }) => {
         </Button>
 
         {/* Proceed to Order */}
-        <Button
-          component={Link}
-          to={`/order/${bookId}`}
-          variant="contained"
-          fullWidth
-          sx={{
-            textTransform: "none",
-            backgroundColor: "#c0a427",
-            color: "black",
-            fontWeight: "bold",
-            "&:hover": { backgroundColor: "#b39b20" },
-          }}
-        >
-          Proceed to Order
-        </Button>
+        {disabled ? (
+          // ⛔ لو الكتاب مستعار حاليًا → الزرار يتقفل وميبقاش لينك
+          <Button
+            variant="contained"
+            fullWidth
+            disabled
+            sx={{
+              textTransform: "none",
+              backgroundColor: "#bdbdbd",
+              color: "#555",
+              fontWeight: "bold",
+              "&:hover": { backgroundColor: "#bdbdbd" },
+            }}
+          >
+            Not available now
+          </Button>
+        ) : (
+          // ✅ عادي لو الكتاب مش مستعار أو نوعه مش borrow
+          <Button
+            component={Link}
+            to={`/order/${bookId}`}
+            variant="contained"
+            fullWidth
+            sx={{
+              textTransform: "none",
+              backgroundColor: "#c0a427",
+              color: "black",
+              fontWeight: "bold",
+              "&:hover": { backgroundColor: "#b39b20" },
+            }}
+          >
+            Proceed to Order
+          </Button>
+        )}
       </Box>
 
       {/* Report */}
