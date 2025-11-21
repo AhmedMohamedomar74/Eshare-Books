@@ -66,10 +66,12 @@ export class Books implements OnInit {
   loadCategories(): void {
     this.categoryService.getAllCategories().subscribe({
       next: (res) => {
-        this.categories = res.categories || [];
+        this.categories = res.data || [];
+        console.log('Categories loaded:', this.categories);
       },
-      error: () => {
-        // حتى لو فشل، مش هيأثر على الكتب
+      error: (err) => {
+        console.error('Error loading categories:', err);
+        this.categories = [];
       },
     });
   }
@@ -122,21 +124,18 @@ export class Books implements OnInit {
   // Dropdown Handlers
   toggleCategoryDropdown(): void {
     this.categoryDropdownOpen = !this.categoryDropdownOpen;
-    // Close other dropdowns
     this.statusDropdownOpen = false;
     this.transactionTypeDropdownOpen = false;
   }
 
   toggleStatusDropdown(): void {
     this.statusDropdownOpen = !this.statusDropdownOpen;
-    // Close other dropdowns
     this.categoryDropdownOpen = false;
     this.transactionTypeDropdownOpen = false;
   }
 
   toggleTransactionTypeDropdown(): void {
     this.transactionTypeDropdownOpen = !this.transactionTypeDropdownOpen;
-    // Close other dropdowns
     this.categoryDropdownOpen = false;
     this.statusDropdownOpen = false;
   }

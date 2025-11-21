@@ -48,9 +48,7 @@ export class BooksService {
     });
   }
 
-  // ===================================================================
   // ADMIN ENDPOINTS
-  // ===================================================================
 
   getAllBooksAdmin(token: string, params?: any): Observable<any> {
     const headers = this.buildHeaders(token);
