@@ -1,14 +1,20 @@
-<div class="stats-container">
-  <div class="stat-card" *ngFor="let stat of stats">
-    <div class="stat-header">
-      <span class="stat-label">{{ stat.label }}</span>
-      <div class="stat-icon" [ngClass]="stat.iconColor">
-        <i [class]="stat.icon"></i>
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+  </div>
+
+  <div class="stats-container">
+    <div class="stat-card" *ngFor="let stat of stats">
+      <div class="stat-header">
+        <span class="stat-label">{{ stat.label }}</span>
+        <div class="stat-icon" [ngClass]="stat.iconColor">
+          <i [class]="stat.icon"></i>
+        </div>
       </div>
-    </div>
-    <div class="stat-value">{{ stat.value }}</div>
-    <div class="stat-change" [ngClass]="stat.isPositive ? 'positive' : 'negative'">
-      {{ stat.change }}
+
+      <div class="stat-value" [class.loading]="stat.loading">
+        {{ stat.loading ? 'Loading...' : stat.value }}
+      </div>
     </div>
   </div>
 </div>

@@ -175,7 +175,7 @@
           type="button"
           class="btn btn-primary"
           (click)="updateReportStatus()"
-          [disabled]="loading || newStatus === selectedReport?.status"
+          [disabled]="loading || newStatus === selectedReport.status"
         >
           {{ loading ? 'Updating...' : 'Update Status' }}
         </button>
