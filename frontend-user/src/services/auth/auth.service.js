@@ -56,3 +56,33 @@ export const uploadImage = async (file, id) => {
     throw error;
   }
 };
+
+export const forgetPasswordSendEmail = async (email) => {
+  try {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const verifyResetCode = async (email, resetCode) => {
+  try {
+    const response = await api.post('/auth/verify-reset-code', { email, resetCode });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const resetPassword = async ( resetToken , newPassword) => {
+  try {
+    const response = await api.post('/auth/reset-password', { resetToken, newPassword });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}

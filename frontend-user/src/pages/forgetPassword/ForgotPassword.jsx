@@ -4,6 +4,7 @@ import Button from '../../components/form/buttonComponent.jsx';
 import Input from '../../components/form/inputComponents.jsx';
 import { validateEmail, validatePassword, validateConfirmPassword } from '../../components/form/validation.js';
 import { useNavigate } from 'react-router-dom';
+import { forgetPasswordSendEmail, resetPassword, verifyResetCode } from '../../services/auth/auth.service.js';
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1); // 1: Email, 2: Code, 3: New Password
@@ -14,6 +15,7 @@ const ForgotPassword = () => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
+  const [resetToken, setResetToken] = useState('');
   const navigate = useNavigate();
 
   // Validation functions
@@ -26,6 +28,7 @@ const ForgotPassword = () => {
   // Step 1: Request reset code
   const handleSendCode = async () => {
     const emailError = validateEmail(email);
+    
     if (emailError) {
       setErrors({ email: emailError });
       setTouched({ email: true });
@@ -36,7 +39,7 @@ const ForgotPassword = () => {
     try {
       // Replace with your API call
       // await forgotPasswordService.sendCode(email);
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+      const response = await forgetPasswordSendEmail(email); // Simulate API call
       
       setStep(2);
       setErrors({});
@@ -61,8 +64,9 @@ const ForgotPassword = () => {
     try {
       // Replace with your API call
       // await forgotPasswordService.verifyCode(email, code);
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-      
+      // await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+      const response = await verifyResetCode(email, code);
+      setResetToken(response.data.resetToken)
       setStep(3);
       setErrors({});
       setTouched({});
@@ -92,8 +96,8 @@ const ForgotPassword = () => {
     try {
       // Replace with your API call
       // await forgotPasswordService.resetPassword(email, code, newPassword);
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-      
+      // await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+      await resetPassword( resetToken  , newPassword);
       // Success - redirect to login
       navigate('/login');
     } catch (error) {
