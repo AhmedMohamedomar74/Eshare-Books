@@ -61,6 +61,12 @@ const userSchema = new Schema({
     profilePic: {
         type: String,
     },
+    resetCode: {
+        type: String
+    },
+    resetCodeExpires: {
+        type: Date
+    },
     // Friend requests sent by this user
     sentFriendRequests: [friendRequestSchema],
     // Friend requests received by this user
@@ -71,15 +77,15 @@ const userSchema = new Schema({
         ref: "user"
     }]
 },
-{
-    timestamps: true,
-    toObject: {
-        virtuals: true
-    },
-    toJSON: {
-        virtuals: true
-    }
-})
+    {
+        timestamps: true,
+        toObject: {
+            virtuals: true
+        },
+        toJSON: {
+            virtuals: true
+        }
+    })
 
 userSchema.virtual("fullName").get(function () {
     return `${this.firstName} ${this.secondName}`

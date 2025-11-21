@@ -326,3 +326,99 @@ export const template = (email) => {
 </html>
   `;
 };
+
+
+export const resetPasswordTemplate = (resetCode, expiryTime = "15 minutes") => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset Code</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .code {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #f8f9fa;
+            color: #dc3545;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            border-radius: 6px;
+            border: 2px dashed #dc3545;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #c82333;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Password Reset Request</h2>
+        <p>Hello!</p>
+        <p>We received a request to reset your password. Use the following verification code to proceed:</p>
+        
+        <center>
+            <div class="code">${resetCode}</div>
+        </center>
+        
+        <div class="warning">
+            <strong>Important:</strong> 
+            <ul>
+                <li>This code is valid for ${expiryTime} only</li>
+                <li>Do not share this code with anyone</li>
+                <li>If you didn't request a password reset, please ignore this email</li>
+            </ul>
+        </div>
+        
+        <p>Enter this code on the password reset page to create a new password for your account.</p>
+        
+        <div class="footer">
+            <p>For security reasons, this code will expire in <strong>${expiryTime}</strong></p>
+            <p>If you're having trouble, please contact our support team.</p>
+        </div>
+    </div>
+</body>
+</html>
+  `;
+};

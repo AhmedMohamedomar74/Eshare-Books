@@ -12,3 +12,14 @@ sendEmailEvent.on("confirmEmail",async (data)=>
         console.log("Can not send email to",data.to)
     }
 })
+
+
+sendEmailEvent.on("resetPassword" , async(data) =>
+{
+    try {
+        sendEmail({to:data.to , subject : data.subject || "Reset Password", html:data.html})
+        console.log(`success to send ${data.to}`)
+    } catch (error) {
+        console.log("Can not send email to",data.to)
+    }
+})
