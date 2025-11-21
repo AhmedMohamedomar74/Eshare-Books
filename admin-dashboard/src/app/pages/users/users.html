@@ -53,11 +53,6 @@
         <option value="confirmed">Status: Confirmed</option>
         <option value="pending">Status: Pending</option>
       </select>
-
-      <button class="btn-add-user" (click)="addNewUser()" [disabled]="loading">
-        <i class="bi bi-plus-lg"></i>
-        Add New User
-      </button>
     </div>
   </div>
 
@@ -109,7 +104,7 @@
             <button
               class="btn-action role-toggle"
               [title]="user.role === 'admin' ? 'Demote to User' : 'Promote to Admin'"
-              (click)="toggleRole(user)"
+              (click)="openRoleModal(user)"
               [disabled]="loading"
             >
               <i [class]="user.role === 'admin' ? 'bi bi-arrow-down' : 'bi bi-arrow-up'"></i>
@@ -118,7 +113,7 @@
               *ngIf="!user.isConfirmed"
               class="btn-action confirm"
               title="Confirm User"
-              (click)="toggleConfirmation(user)"
+              (click)="openConfirmModal(user)"
               [disabled]="loading"
             >
               <i class="bi bi-check-lg"></i>
@@ -126,7 +121,7 @@
             <button
               class="btn-action delete"
               title="Delete"
-              (click)="deleteUser(user)"
+              (click)="openDeleteModal(user)"
               [disabled]="loading"
             >
               <i class="bi bi-trash"></i>
@@ -165,6 +160,142 @@
           </li>
         </ul>
       </nav>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div
+    *ngIf="showToastMessage"
+    class="toast message-toast"
+    [ngClass]="toastType === 'success' ? 'alert-success' : 'alert-danger'"
+  >
+    {{ toastMessage }}
+  </div>
+
+  <!-- Role Change Modal -->
+  <div
+    *ngIf="showRoleModal"
+    class="modal-overlay"
+    (click)="!modalLoading && (showRoleModal = false)"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>
+          {{ userForRoleChange?.role === 'admin' ? 'Demote to User' : 'Promote to Admin' }}
+        </h5>
+        <button
+          class="btn-close"
+          (click)="showRoleModal = false"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to
+          <strong>{{ userForRoleChange?.role === 'admin' ? 'demote ' : 'promote ' }}</strong>
+          <strong>{{ userForRoleChange?.firstName }} {{ userForRoleChange?.secondName }}</strong>
+          to <strong>{{ userForRoleChange?.role === 'admin' ? 'User' : 'Admin' }}</strong
+          >?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showRoleModal = false" [disabled]="modalLoading">
+          Cancel
+        </button>
+        <button class="btn btn-primary" (click)="confirmRoleChange()" [disabled]="modalLoading">
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            {{ userForRoleChange?.role === 'admin' ? 'Demoting...' : 'Promoting...' }}
+          </span>
+          <span *ngIf="!modalLoading">
+            {{ userForRoleChange?.role === 'admin' ? 'Demote' : 'Promote' }}
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm User Modal -->
+  <div
+    *ngIf="showConfirmModal"
+    class="modal-overlay"
+    (click)="!modalLoading && (showConfirmModal = false)"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>Confirm User</h5>
+        <button
+          class="btn-close"
+          (click)="showConfirmModal = false"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to confirm
+          <strong>{{ userForConfirmation?.firstName }} {{ userForConfirmation?.secondName }}</strong
+          >?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          (click)="showConfirmModal = false"
+          [disabled]="modalLoading"
+        >
+          Cancel
+        </button>
+        <button class="btn btn-primary" (click)="confirmUser()" [disabled]="modalLoading">
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Confirming...
+          </span>
+          <span *ngIf="!modalLoading">Confirm</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete User Modal -->
+  <div
+    *ngIf="showDeleteModal"
+    class="modal-overlay"
+    (click)="!modalLoading && (showDeleteModal = false)"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>Delete User</h5>
+        <button
+          class="btn-close"
+          (click)="showDeleteModal = false"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to delete
+          <strong>{{ userForDeletion?.firstName }} {{ userForDeletion?.secondName }}</strong
+          >?
+          <br />
+          <small class="text-danger">This action cannot be undone.</small>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          (click)="showDeleteModal = false"
+          [disabled]="modalLoading"
+        >
+          Cancel
+        </button>
+        <button class="btn btn-danger" (click)="confirmDelete()" [disabled]="modalLoading">
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Deleting...
+          </span>
+          <span *ngIf="!modalLoading">Delete</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

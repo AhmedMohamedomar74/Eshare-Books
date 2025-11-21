@@ -23,6 +23,24 @@ export class Users implements OnInit {
 
   users: User[] = [];
 
+  // Modals
+  showRoleModal: boolean = false;
+  showConfirmModal: boolean = false;
+  showDeleteModal: boolean = false;
+
+  // Selected users for modals
+  userForRoleChange: User | null = null;
+  userForConfirmation: User | null = null;
+  userForDeletion: User | null = null;
+
+  // Modal loading states
+  modalLoading: boolean = false;
+
+  // Toast
+  showToastMessage: boolean = false;
+  toastMessage: string = '';
+  toastType: 'success' | 'error' = 'success';
+
   constructor(private usersService: UsersService) {}
 
   ngOnInit(): void {
@@ -47,6 +65,7 @@ export class Users implements OnInit {
         error: (error) => {
           console.error('Failed to load users:', error);
           this.loading = false;
+          this.showToast('Failed to load users', 'error');
         },
       });
   }
@@ -54,7 +73,7 @@ export class Users implements OnInit {
   get filteredUsers(): User[] {
     let filtered = [...this.users];
 
-    // Apply status filter locally since API doesn't support it
+    // Apply status filter locally
     if (this.statusFilter !== 'all') {
       const isConfirmed = this.statusFilter === 'confirmed';
       filtered = filtered.filter((u) => u.isConfirmed === isConfirmed);
@@ -126,80 +145,108 @@ export class Users implements OnInit {
   }
 
   onStatusFilter(): void {
-    // Local filter only, no API call needed
+    this.currentPage = 1;
   }
 
   onSortChange(): void {
     // Local sort only, no API call needed
   }
 
-  addNewUser(): void {
-    console.log('Add new user clicked');
+  // ---------- Toast ----------
+  private showToast(message: string, type: 'success' | 'error' = 'success'): void {
+    this.toastMessage = message;
+    this.toastType = type;
+    this.showToastMessage = true;
+    setTimeout(() => (this.showToastMessage = false), 3000);
   }
 
-  toggleRole(user: User): void {
-    this.loading = true;
-    if (user.role === 'user') {
-      this.usersService.promoteToAdmin(user._id).subscribe({
-        next: (updatedUser) => {
-          user.role = 'admin';
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Failed to promote user:', error);
-          this.loading = false;
-        },
-      });
-    } else {
-      this.usersService.demoteToUser(user._id).subscribe({
-        next: (updatedUser) => {
-          user.role = 'user';
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Failed to demote user:', error);
-          this.loading = false;
-        },
-      });
-    }
+  // ---------- Role Change Modal ----------
+  openRoleModal(user: User): void {
+    this.userForRoleChange = user;
+    this.showRoleModal = true;
   }
 
-  toggleConfirmation(user: User): void {
-    this.loading = true;
-    if (!user.isConfirmed) {
-      this.usersService.confirmUser(user._id).subscribe({
-        next: (updatedUser) => {
-          user.isConfirmed = true;
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Failed to confirm user:', error);
-          this.loading = false;
-        },
-      });
-    }
-    // Note: We don't have unconfirm functionality in the API
+  confirmRoleChange(): void {
+    if (!this.userForRoleChange) return;
+
+    this.modalLoading = true;
+    const newRole = this.userForRoleChange.role === 'user' ? 'admin' : 'user';
+    const action = newRole === 'admin' ? 'promote' : 'demote';
+
+    const serviceCall =
+      newRole === 'admin'
+        ? this.usersService.promoteToAdmin(this.userForRoleChange._id)
+        : this.usersService.demoteToUser(this.userForRoleChange._id);
+
+    serviceCall.subscribe({
+      next: (updatedUser) => {
+        this.userForRoleChange!.role = newRole;
+        this.showRoleModal = false;
+        this.modalLoading = false;
+        this.showToast(
+          `User ${action === 'promote' ? 'promoted to admin' : 'demoted to user'} successfully!`,
+          'success'
+        );
+      },
+      error: (error) => {
+        console.error(`Failed to ${action} user:`, error);
+        this.modalLoading = false;
+        this.showToast(`Failed to ${action} user`, 'error');
+      },
+    });
   }
 
-  deleteUser(user: User): void {
-    if (
-      confirm(
-        `Are you sure you want to delete ${user.firstName} ${user.secondName}? This action cannot be undone.`
-      )
-    ) {
-      this.loading = true;
-      this.usersService.deleteUser(user._id).subscribe({
-        next: () => {
-          this.loadUsers(); // Reload the list
-        },
-        error: (error) => {
-          console.error('Failed to delete user:', error);
-          this.loading = false;
-        },
-      });
-    }
+  // ---------- Confirmation Modal ----------
+  openConfirmModal(user: User): void {
+    this.userForConfirmation = user;
+    this.showConfirmModal = true;
   }
 
+  confirmUser(): void {
+    if (!this.userForConfirmation) return;
+
+    this.modalLoading = true;
+    this.usersService.confirmUser(this.userForConfirmation._id).subscribe({
+      next: (updatedUser) => {
+        this.userForConfirmation!.isConfirmed = true;
+        this.showConfirmModal = false;
+        this.modalLoading = false;
+        this.showToast('User confirmed successfully!', 'success');
+      },
+      error: (error) => {
+        console.error('Failed to confirm user:', error);
+        this.modalLoading = false;
+        this.showToast('Failed to confirm user', 'error');
+      },
+    });
+  }
+
+  // ---------- Delete Modal ----------
+  openDeleteModal(user: User): void {
+    this.userForDeletion = user;
+    this.showDeleteModal = true;
+  }
+
+  confirmDelete(): void {
+    if (!this.userForDeletion) return;
+
+    this.modalLoading = true;
+    this.usersService.deleteUser(this.userForDeletion._id).subscribe({
+      next: () => {
+        this.loadUsers(); // Reload the list
+        this.showDeleteModal = false;
+        this.modalLoading = false;
+        this.showToast('User deleted successfully!', 'success');
+      },
+      error: (error) => {
+        console.error('Failed to delete user:', error);
+        this.modalLoading = false;
+        this.showToast('Failed to delete user', 'error');
+      },
+    });
+  }
+
+  // ---------- Pagination ----------
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
       this.currentPage = page;
