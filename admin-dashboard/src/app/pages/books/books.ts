@@ -1,180 +1,131 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
-import { BooksService, Book, Category } from '../../shared/services/books';
+import { Component, OnInit } from '@angular/core';
+import { BooksService } from '../../shared/services/books';
 import { AuthService } from '../../shared/services/auth';
+import { CategoriesService } from '../../shared/services/categories';
+import { CommonModule } from '@angular/common';
+
+interface Book {
+  _id: string;
+  Title: string;
+  Description: string;
+  TransactionType: string;
+  Price?: number;
+  PricePerDay?: number;
+  image: { secure_url: string; public_id: string };
+  categoryId: { _id: string; name: string };
+  UserID: { _id: string; firstName: string; secondName: string; email: string };
+  IsModerated: boolean;
+  isDeleted: boolean;
+  isSold: boolean;
+  isDonated: boolean;
+  isBorrowedNow: boolean;
+  status: 'available' | 'sold' | 'donated' | 'borrowed' | 'deleted';
+  createdAt: string;
+}
+
+interface Category {
+  _id: string;
+  name: string;
+}
 
 @Component({
   selector: 'app-books',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './books.html',
   styleUrls: ['./books.css'],
 })
-export class Books implements OnInit, OnDestroy {
-  // Data
+export class Books implements OnInit {
   books: Book[] = [];
   categories: Category[] = [];
+  loading = true;
+  error: string | null = null;
 
-  // Search and Filters
-  searchQuery: string = '';
-  selectedCategory: string = '';
-  selectedStatus: string = '';
-  selectedTransactionType: string = '';
+  // Filters
+  searchQuery = '';
+  selectedCategory = '';
+  selectedStatus = '';
+  selectedTransactionType = '';
 
   // Pagination
-  currentPage: number = 1;
-  itemsPerPage: number = 10;
-  totalResults: number = 0;
-  totalPages: number = 0;
+  currentPage = 1;
+  limit = 10;
+  totalResults = 0;
 
-  // Loading States
-  loading: boolean = false;
-  modalLoading: boolean = false;
-  error: string = '';
-
-  // Toast Notification
-  showToastMessage: boolean = false;
-  toastMessage: string = '';
-  toastType: 'success' | 'error' = 'success';
-
-  // Modals State
-  showDeleteModal: boolean = false;
+  // Modals
+  showDeleteModal = false;
+  showRestoreModal = false;
+  showModerationModal = false;
   bookToDelete: Book | null = null;
-
-  showRestoreModal: boolean = false;
   bookToRestore: Book | null = null;
-
-  showModerationModal: boolean = false;
   bookToModerate: Book | null = null;
   moderationAction: 'approve' | 'unapprove' = 'approve';
+  modalLoading = false;
 
-  // Cleanup
-  private destroy$ = new Subject<void>();
+  // Toast
+  showToastMessage = false;
+  toastMessage = '';
+  toastType: 'success' | 'error' = 'success';
 
   constructor(
     private booksService: BooksService,
     private authService: AuthService,
-    private router: Router
+    private categoryService: CategoriesService
   ) {}
 
   ngOnInit(): void {
-    this.initializeComponent();
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  // ════════════════════════════════════════════════════════════════
-  // 🎯 INITIALIZATION
-  // ════════════════════════════════════════════════════════════════
-
-  private initializeComponent(): void {
     this.loadCategories();
     this.loadBooks();
   }
 
-  // ════════════════════════════════════════════════════════════════
-  // 📚 DATA LOADING
-  // ════════════════════════════════════════════════════════════════
-
   loadCategories(): void {
-    const token = this.authService.getAccessToken();
-    if (!token) return;
-
-    this.booksService
-      .getCategories(token)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          // Handle different response structures
-          if (Array.isArray(response)) {
-            this.categories = response;
-          } else if (response?.categories) {
-            this.categories = response.categories;
-          } else if (response?.data?.categories) {
-            this.categories = response.data.categories;
-          } else {
-            this.categories = [];
-          }
-        },
-        error: (err) => {
-          console.error('Error loading categories:', err);
-          // Fallback to default categories
-          this.categories = [
-            { _id: '69035f89eaacbd26c8796758', name: 'Science Fiction' },
-            { _id: '69035fa6eaacbd26c8796760', name: 'Biography' },
-            { _id: '69035fc0eaacbd26c8796764', name: 'Education' },
-            { _id: '69035fe8eaacbd26c8796768', name: 'Self Development' },
-          ];
-        },
-      });
+    this.categoryService.getAllCategories().subscribe({
+      next: (res) => {
+        this.categories = res.categories || [];
+      },
+      error: () => {
+        // حتى لو فشل، مش هيأثر على الكتب
+      },
+    });
   }
 
   loadBooks(): void {
     this.loading = true;
-    this.error = '';
+    this.error = null;
 
-    const token = this.authService.getAccessToken();
-    if (!token) {
-      this.error = 'Authentication required';
-      this.loading = false;
-      this.router.navigate(['/login']);
-      return;
+    const token = this.authService.getAccessToken()!;
+    const params: any = {
+      page: this.currentPage,
+      limit: this.limit,
+      includeDeleted: 'true',
+    };
+
+    if (this.searchQuery.trim()) params.title = this.searchQuery.trim();
+    if (this.selectedCategory) params.category = this.selectedCategory;
+    if (this.selectedTransactionType) params.transactionType = this.selectedTransactionType;
+    if (
+      this.selectedStatus &&
+      this.selectedStatus !== 'active' &&
+      this.selectedStatus !== 'inactive'
+    ) {
+      params.status = this.selectedStatus;
     }
 
-    // Map UI status to backend status
-    const backendStatus = this.mapStatusToBackend(this.selectedStatus);
-
-    this.booksService
-      .getAllBooksIncludingAll(
-        token,
-        this.currentPage,
-        this.itemsPerPage,
-        this.searchQuery || undefined,
-        this.selectedCategory || undefined,
-        backendStatus,
-        this.selectedTransactionType || undefined,
-        true
-      )
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.books = response?.books || [];
-          this.totalResults = Number(response?.total ?? 0);
-          this.totalPages = Number(
-            response?.totalPages ?? Math.ceil(this.totalResults / this.itemsPerPage) ?? 0
-          );
-          if (response?.page) {
-            this.currentPage = Number(response.page);
-          }
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Error loading books:', err);
-          this.loading = false;
-          this.error = this.getErrorMessage(err);
-          this.showToast(this.error, 'error');
-
-          if (err.status === 401 || err.status === 403) {
-            this.authService.logout();
-            this.router.navigate(['/login']);
-          }
-        },
-      });
+    this.booksService.getAllBooksAdmin(token, params).subscribe({
+      next: (res) => {
+        this.books = res.books;
+        this.totalResults = res.total;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Failed to load books';
+        this.loading = false;
+      },
+    });
   }
 
-  // ════════════════════════════════════════════════════════════════
-  // 🔍 FILTERS & SEARCH
-  // ════════════════════════════════════════════════════════════════
-
-  onSearch(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchQuery = target.value;
+  // Filters
+  onSearch(event: any): void {
+    this.searchQuery = event.target.value;
     this.currentPage = 1;
     this.loadBooks();
   }
@@ -206,156 +157,7 @@ export class Books implements OnInit, OnDestroy {
     this.loadBooks();
   }
 
-  // ════════════════════════════════════════════════════════════════
-  // 🗑️ DELETE OPERATIONS
-  // ════════════════════════════════════════════════════════════════
-
-  openDeleteModal(book: Book): void {
-    if (!this.authService.isAdmin()) {
-      this.showToast('Unauthorized — Admin role required', 'error');
-      return;
-    }
-    this.bookToDelete = book;
-    this.showDeleteModal = true;
-  }
-
-  confirmDeleteBook(): void {
-    if (!this.bookToDelete) return;
-
-    this.modalLoading = true;
-    const token = this.authService.getAccessToken();
-
-    if (!token) {
-      this.showToast('Authentication required', 'error');
-      this.modalLoading = false;
-      return;
-    }
-
-    this.booksService
-      .deleteBook(this.bookToDelete._id, token)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.loadBooks();
-          this.closeDeleteModal();
-          this.modalLoading = false;
-          this.showToast('Book deleted successfully!', 'success');
-        },
-        error: (err) => {
-          console.error('Error deleting book:', err);
-          this.modalLoading = false;
-          this.showToast(this.getErrorMessage(err), 'error');
-        },
-      });
-  }
-
-  closeDeleteModal(): void {
-    this.showDeleteModal = false;
-    this.bookToDelete = null;
-  }
-
-  // ════════════════════════════════════════════════════════════════
-  // 🔄 RESTORE OPERATIONS
-  // ════════════════════════════════════════════════════════════════
-
-  openRestoreModal(book: Book): void {
-    if (!this.authService.isAdmin()) {
-      this.showToast('Unauthorized — Admin role required', 'error');
-      return;
-    }
-    this.bookToRestore = book;
-    this.showRestoreModal = true;
-  }
-
-  confirmRestoreBook(): void {
-    if (!this.bookToRestore) return;
-
-    this.modalLoading = true;
-    const token = this.authService.getAccessToken();
-
-    if (!token) {
-      this.showToast('Authentication required', 'error');
-      this.modalLoading = false;
-      return;
-    }
-
-    this.booksService
-      .restoreBook(this.bookToRestore._id, token)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.loadBooks();
-          this.closeRestoreModal();
-          this.modalLoading = false;
-          this.showToast('Book restored successfully!', 'success');
-        },
-        error: (err) => {
-          console.error('Error restoring book:', err);
-          this.modalLoading = false;
-          this.showToast(this.getErrorMessage(err), 'error');
-        },
-      });
-  }
-
-  closeRestoreModal(): void {
-    this.showRestoreModal = false;
-    this.bookToRestore = null;
-  }
-
-  // ════════════════════════════════════════════════════════════════
-  // ✅ MODERATION OPERATIONS
-  // ════════════════════════════════════════════════════════════════
-
-  openModerationModal(book: Book): void {
-    if (!this.authService.isAdmin()) {
-      this.showToast('Unauthorized — Admin role required', 'error');
-      return;
-    }
-    this.bookToModerate = book;
-    this.moderationAction = book.IsModerated ? 'unapprove' : 'approve';
-    this.showModerationModal = true;
-  }
-
-  confirmModeration(): void {
-    if (!this.bookToModerate) return;
-
-    const token = this.authService.getAccessToken();
-    if (!token) {
-      this.showToast('Authentication required', 'error');
-      return;
-    }
-
-    this.modalLoading = true;
-    const body = { IsModerated: !this.bookToModerate.IsModerated };
-
-    this.booksService
-      .updateBook(this.bookToModerate._id, body, token)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.loadBooks();
-          this.closeModerationModal();
-          this.modalLoading = false;
-          const action = this.bookToModerate!.IsModerated ? 'unapproved' : 'approved';
-          this.showToast(`Book ${action} successfully!`, 'success');
-        },
-        error: (err) => {
-          console.error('Error updating book moderation:', err);
-          this.modalLoading = false;
-          this.showToast('Failed to update book moderation', 'error');
-        },
-      });
-  }
-
-  closeModerationModal(): void {
-    this.showModerationModal = false;
-    this.bookToModerate = null;
-  }
-
-  // ════════════════════════════════════════════════════════════════
-  // 📄 PAGINATION
-  // ════════════════════════════════════════════════════════════════
-
+  // Pagination
   previousPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
@@ -364,166 +166,228 @@ export class Books implements OnInit, OnDestroy {
   }
 
   nextPage(): void {
-    if (this.currentPage < this.totalPages) {
+    if (!this.isLastPage()) {
       this.currentPage++;
       this.loadBooks();
     }
   }
 
   goToPage(page: number | string): void {
-    if (typeof page !== 'number') return;
-    if (page === this.currentPage) return;
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-    this.loadBooks();
+    if (typeof page === 'number' && page !== this.currentPage) {
+      this.currentPage = page;
+      this.loadBooks();
+    }
+  }
+
+  isLastPage(): boolean {
+    return this.currentPage * this.limit >= this.totalResults;
+  }
+
+  getTotalPages(): number {
+    return Math.ceil(this.totalResults / this.limit);
   }
 
   getVisiblePages(): (number | string)[] {
-    const total = this.totalPages;
+    const total = this.getTotalPages();
     const current = this.currentPage;
-    const maxButtons = 7;
-
-    if (total <= maxButtons) {
-      return Array.from({ length: total }, (_, i) => i + 1);
-    }
-
     const pages: (number | string)[] = [];
-    const left = Math.max(2, current - 1);
-    const right = Math.min(total - 1, current + 1);
 
-    pages.push(1);
-
-    if (left > 2) {
-      pages.push('...');
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) pages.push(i);
+    } else {
+      if (current <= 4) {
+        pages.push(1, 2, 3, 4, 5, '...', total);
+      } else if (current >= total - 3) {
+        pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total);
+      } else {
+        pages.push(1, '...', current - 1, current, current + 1, '...', total);
+      }
     }
-
-    for (let p = left; p <= right; p++) {
-      pages.push(p);
-    }
-
-    if (right < total - 1) {
-      pages.push('...');
-    }
-
-    pages.push(total);
-
-    return pages.filter((v, i, arr) => arr.indexOf(v) === i);
+    return pages;
   }
 
   getStartIndex(): number {
-    return this.totalResults === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1;
+    return (this.currentPage - 1) * this.limit + 1;
   }
 
   getEndIndex(): number {
-    return Math.min(this.currentPage * this.itemsPerPage, this.totalResults);
+    return Math.min(this.currentPage * this.limit, this.totalResults);
   }
 
-  // ════════════════════════════════════════════════════════════════
-  // 🎨 UI HELPERS
-  // ════════════════════════════════════════════════════════════════
-
+  // Helpers
   getSelectedCategoryName(): string {
-    if (!this.selectedCategory) return 'Category';
-    const category = this.categories.find((c) => c._id === this.selectedCategory);
-    return category?.name ?? 'Category';
+    if (!this.selectedCategory) return 'All Categories';
+    const cat = this.categories.find((c) => c._id === this.selectedCategory);
+    return cat?.name || 'Category';
   }
 
   getSelectedStatusName(): string {
-    if (!this.selectedStatus) return 'Status';
-    const statusMap: Record<string, string> = {
-      active: 'Active',
-      inactive: 'Inactive',
+    const map: any = {
+      '': 'All Status',
+      available: 'Available',
+      borrowed: 'Borrowed',
       sold: 'Sold',
       donated: 'Donated',
-      borrowed: 'Borrowed',
-      available: 'Available',
+      active: 'Active (Not Deleted)',
+      inactive: 'Inactive (Deleted)',
     };
-    return statusMap[this.selectedStatus] ?? this.selectedStatus;
+    return map[this.selectedStatus] || 'Status';
   }
 
   getSelectedTransactionTypeName(): string {
-    if (!this.selectedTransactionType) return 'Transaction Type';
-    return this.getTransactionTypeDisplay(this.selectedTransactionType);
-  }
-
-  getTransactionTypeDisplay(type: string): string {
-    const typeMap: Record<string, string> = {
+    const map: any = {
+      '': 'All Types',
       toSale: 'Sell',
       toBorrow: 'Borrow',
       toExchange: 'Swap',
       toDonate: 'Giveaway',
     };
-    return typeMap[type] ?? type;
+    return map[this.selectedTransactionType] || 'Type';
+  }
+
+  getTransactionTypeDisplay(type: string): string {
+    return this.getSelectedTransactionTypeName() === 'Type'
+      ? type
+      : {
+          toSale: 'Sell',
+          toBorrow: 'Borrow',
+          toExchange: 'Swap',
+          toDonate: 'Giveaway',
+        }[type] || type;
   }
 
   getPriceDisplay(book: Book): string {
-    if (book.TransactionType === 'toSale' && book.Price) {
-      return `$${book.Price}`;
-    } else if (book.TransactionType === 'toBorrow' && book.PricePerDay) {
-      return `$${book.PricePerDay}/day`;
-    }
-    return 'N/A';
+    if (book.TransactionType === 'toSale') return `${book.Price || 0} EGP`;
+    if (book.TransactionType === 'toBorrow') return `${book.PricePerDay || 0} EGP/day`;
+    if (book.TransactionType === 'toExchange') return 'Swap';
+    return 'Free';
   }
 
   getOwnerName(book: Book): string {
-    const fullName = `${book.UserID?.firstName || ''} ${book.UserID?.secondName || ''}`.trim();
-    return fullName || 'Unknown User';
+    return `${book.UserID?.firstName || ''} ${book.UserID?.secondName || ''}`.trim() || 'Unknown';
   }
 
   getBookStatus(book: Book): string {
     if (book.isDeleted) return 'Deleted';
-    if (book.isSold) return 'Sold';
-    if (book.isDonated) return 'Donated';
-    if (book.isBorrowedNow) return 'Borrowed';
-    return 'Available';
+    return book.status.charAt(0).toUpperCase() + book.status.slice(1);
   }
 
   getStatusBadgeClass(book: Book): string {
-    if (book.isDeleted) return 'bg-danger-light text-danger';
-    if (book.isSold) return 'bg-info-light text-info';
-    if (book.isDonated) return 'bg-secondary-light text-secondary';
-    if (book.isBorrowedNow) return 'bg-warning-light text-warning';
-    return 'bg-success-light text-success';
+    if (book.isDeleted) return 'bg-secondary-light text-secondary';
+    switch (book.status) {
+      case 'available':
+        return 'bg-success-light text-success';
+      case 'borrowed':
+        return 'bg-warning-light text-warning';
+      case 'sold':
+        return 'bg-danger-light text-danger';
+      case 'donated':
+        return 'bg-info-light text-info';
+      default:
+        return 'bg-light text-dark';
+    }
   }
 
-  // ════════════════════════════════════════════════════════════════
-  // 🔔 TOAST NOTIFICATIONS
-  // ════════════════════════════════════════════════════════════════
+  // Actions
+  openDeleteModal(book: Book): void {
+    this.bookToDelete = book;
+    this.showDeleteModal = true;
+  }
 
-  private showToast(message: string, type: 'success' | 'error' = 'success'): void {
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.bookToDelete = null;
+  }
+
+  confirmDeleteBook(): void {
+    if (!this.bookToDelete) return;
+    this.modalLoading = true;
+    const token = this.authService.getAccessToken()!;
+
+    this.booksService
+      .adminDeleteBook(this.bookToDelete._id, token)
+      .subscribe({
+        next: () => {
+          this.showToast('Book deleted successfully', 'success');
+          this.loadBooks();
+          this.closeDeleteModal();
+        },
+        error: (err) => {
+          this.showToast(err.error?.message || 'Failed to delete book', 'error');
+        },
+      })
+      .add(() => {
+        this.modalLoading = false;
+      });
+  }
+
+  openRestoreModal(book: Book): void {
+    this.bookToRestore = book;
+    this.showRestoreModal = true;
+  }
+
+  closeRestoreModal(): void {
+    this.showRestoreModal = false;
+    this.bookToRestore = null;
+  }
+
+  confirmRestoreBook(): void {
+    if (!this.bookToRestore) return;
+    this.modalLoading = true;
+    const token = this.authService.getAccessToken()!;
+
+    this.booksService
+      .adminRestoreBook(this.bookToRestore._id, token)
+      .subscribe({
+        next: () => {
+          this.showToast('Book restored successfully', 'success');
+          this.loadBooks();
+          this.closeRestoreModal();
+        },
+        error: (err) => {
+          this.showToast(err.error?.message || 'Cannot restore sold/donated book', 'error');
+        },
+      })
+      .add(() => (this.modalLoading = false));
+  }
+
+  openModerationModal(book: Book): void {
+    this.bookToModerate = book;
+    this.moderationAction = book.IsModerated ? 'unapprove' : 'approve';
+    this.showModerationModal = true;
+  }
+
+  closeModerationModal(): void {
+    this.showModerationModal = false;
+    this.bookToModerate = null;
+  }
+
+  confirmModeration(): void {
+    if (!this.bookToModerate) return;
+    this.modalLoading = true;
+    const token = this.authService.getAccessToken()!;
+    const newStatus = this.moderationAction === 'approve';
+
+    this.booksService
+      .adminUpdateModeration(this.bookToModerate._id, newStatus, token)
+      .subscribe({
+        next: () => {
+          this.showToast(`Book ${newStatus ? 'approved' : 'unapproved'} successfully`, 'success');
+          this.loadBooks();
+          this.closeModerationModal();
+        },
+        error: (err) => {
+          this.showToast(err.error?.message || 'Failed to update moderation', 'error');
+        },
+      })
+      .add(() => (this.modalLoading = false));
+  }
+
+  // Toast
+  showToast(message: string, type: 'success' | 'error'): void {
     this.toastMessage = message;
     this.toastType = type;
     this.showToastMessage = true;
-    setTimeout(() => {
-      this.showToastMessage = false;
-    }, 3000);
-  }
-
-  // ════════════════════════════════════════════════════════════════
-  // 🛠️ UTILITY METHODS
-  // ════════════════════════════════════════════════════════════════
-
-  private mapStatusToBackend(uiStatus: string): string | undefined {
-    const statusMap: Record<string, string> = {
-      active: 'available',
-      inactive: 'deleted',
-    };
-    return statusMap[uiStatus] ?? (uiStatus || undefined);
-  }
-
-  private getErrorMessage(error: any): string {
-    if (error?.status === 401) return 'Unauthorized - Please login again';
-    if (error?.status === 403) return 'Access denied - Admin role required';
-    if (error?.status === 404) return 'Books not found';
-    if (error?.status === 500) return 'Server error - Please try again later';
-    return error?.message || 'Failed to load books';
-  }
-
-  isLastPage(): boolean {
-    return this.currentPage === this.totalPages;
-  }
-
-  getTotalPages(): number {
-    return this.totalPages;
+    setTimeout(() => (this.showToastMessage = false), 4000);
   }
 }
