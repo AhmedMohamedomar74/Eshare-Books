@@ -5,7 +5,7 @@ import { create, findOne } from "../../DB/db.services.js"
 import { compareHash, genrateHash } from "../../utils/secuirty/hash.services.js"
 import { decodeEmailToken, generateAuthTokens, generateEmailTokens, genrateToken, verify } from "../../utils/secuirty/token.services.js"
 import { sendEmailEvent } from "../../Events/sendEmail.event.js"
-import { template } from "../../utils/email.services.js"
+import { resetPasswordTemplate, template } from "../../utils/email.services.js"
 import { decode } from "jsonwebtoken"
 import { genrateRandomNumber } from "../../utils/random.services.js" 
 export const signup = asyncHandler(async (req, res, next) => {
@@ -142,7 +142,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
     // Send reset code via email
     sendEmailEvent.emit("resetPassword", { 
         to: email, 
-        html: template(resetCode, "passwordReset") // You might want to create a different template for reset codes
+        html: resetPasswordTemplate(resetCode) // You might want to create a different template for reset codes
     });
 
     successResponce({ 
