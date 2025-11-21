@@ -17,13 +17,14 @@ import NavigationProvider from "./components/common/NavigationProvider.jsx";
 
 import NotificationPage from "./pages/notification/NotificationPage.jsx";
 import ForgotPassword from "./pages/forgetPassword/ForgotPassword.jsx";
+import NotFound from "./pages/NotFound/NotFound.jsx";
 function App() {
   return (
     <BrowserRouter>
-    <NavigationProvider>
-      {/* <Navbar /> */}
-      <Routes>
-        {/* <Route path="/" element={<Home />} />
+      <NavigationProvider>
+        {/* <Navbar /> */}
+        <Routes>
+          {/* <Route path="/" element={<Home />} />
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/add-book" element={<AddBook />} />
@@ -35,27 +36,28 @@ function App() {
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/reports/:type/:targetId" element={<Report />} />
         <Route path="/myreports" element={<MyReports />} /> */}
-        <Route element={<UserLayout />}>
-          <Route path="/details/:id" element={<BookDetails />} />
-          <Route path="/" element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/public-profile/:userId" element={<PublicProfile />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/notification" element ={<NotificationPage />} />
-            <Route path="/profile" element={<BookShareDashboard />} />
-            <Route path="/order/:id" element={<OrderPage />} />
+          <Route element={<UserLayout />}>
+            <Route path="/details/:id" element={<BookDetails />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/public-profile/:userId" element={<PublicProfile />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/notification" element={<NotificationPage />} />
+              <Route path="/profile" element={<BookShareDashboard />} />
+              <Route path="/order/:id" element={<OrderPage />} />
 
-            {/* <Route path="/order/:userId" element={<OrderPage />} /> */}
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/reports/:type/:targetId" element={<Report />} />
-            <Route path="/myreports" element={<MyReports />} />
-            <Route path="/add-book" element={<AddBook />} />
+              {/* <Route path="/order/:userId" element={<OrderPage />} /> */}
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/reports/:type/:targetId" element={<Report />} />
+              <Route path="/myreports" element={<MyReports />} />
+              <Route path="/add-book" element={<AddBook />} />
+            </Route>
           </Route>
-        </Route>
-        <Route path="/login" element={<BookCycleLogin />} />
-        <Route path="/forget-password" element={<ForgotPassword />} />
-        <Route path="/register" element={<BookShareRegister />} />
-      </Routes>
+          <Route path="/login" element={<BookCycleLogin />} />
+          <Route path="/forget-password" element={<ForgotPassword />} />
+          <Route path="/register" element={<BookShareRegister />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </NavigationProvider>
     </BrowserRouter>
   );
