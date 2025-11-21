@@ -171,7 +171,7 @@ export const verifyResetCode = asyncHandler(async (req, res, next) => {
 
     // Generate a temporary token for password reset
     const resetToken = genrateToken({
-        payload: { 
+        data: { 
             _id: user._id,
             purpose: 'password_reset'
         },
