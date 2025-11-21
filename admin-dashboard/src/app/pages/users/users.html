@@ -14,61 +14,85 @@
         class="form-control"
         placeholder="Search by name, email, or ID..."
         [(ngModel)]="searchTerm"
-        name="searchTerm"
+        (input)="onSearch()"
+        [disabled]="loading"
       />
     </div>
 
     <div class="filter-group">
-      <select class="filter-select" [(ngModel)]="sortBy" name="sortBy">
+      <select
+        class="filter-select"
+        [(ngModel)]="sortBy"
+        (change)="onSortChange()"
+        [disabled]="loading"
+      >
         <option value="name">Sort by: Name</option>
         <option value="email">Sort by: Email</option>
         <option value="role">Sort by: Role</option>
         <option value="date">Sort by: Date</option>
       </select>
 
-      <select class="filter-select" [(ngModel)]="roleFilter" name="roleFilter">
+      <select
+        class="filter-select"
+        [(ngModel)]="roleFilter"
+        (change)="onRoleFilter()"
+        [disabled]="loading"
+      >
         <option value="all">Role: All</option>
         <option value="admin">Role: Admin</option>
         <option value="user">Role: User</option>
       </select>
 
-      <select class="filter-select" [(ngModel)]="statusFilter" name="statusFilter">
+      <select
+        class="filter-select"
+        [(ngModel)]="statusFilter"
+        (change)="onStatusFilter()"
+        [disabled]="loading"
+      >
         <option value="all">Status: All</option>
         <option value="confirmed">Status: Confirmed</option>
         <option value="pending">Status: Pending</option>
       </select>
 
-      <button class="btn-add-user" (click)="addNewUser()">
+      <button class="btn-add-user" (click)="addNewUser()" [disabled]="loading">
         <i class="bi bi-plus-lg"></i>
         Add New User
       </button>
     </div>
   </div>
 
+  <!-- Loading Indicator -->
+  <div *ngIf="loading" class="loading-indicator">
+    <div class="spinner"></div>
+    <span>Loading users...</span>
+  </div>
+
   <!-- Users Table -->
-  <div class="table-container">
+  <div class="table-container" *ngIf="!loading">
     <table class="table user-table">
       <thead>
         <tr>
           <th>PROFILE PIC</th>
           <th>FIRST NAME</th>
           <th>SECOND NAME</th>
-          <th>ID</th>
           <th>EMAIL</th>
           <th>ROLE</th>
-          <th>IS CONFIRMED</th>
-          <th>FRIENDS</th>
+          <th>STATUS</th>
+          <th>JOINED DATE</th>
           <th>ACTIONS</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let user of paginatedUsers">
           <td>
-            <img [src]="user.profilePic" [alt]="user.firstName" class="profile-pic" />
+            <img
+              [src]="user.profilePic || '/default-admin.png'"
+              [alt]="user.firstName"
+              class="profile-pic"
+            />
           </td>
           <td>{{ user.firstName }}</td>
-          <td>{{ user.lastName }}</td>
-          <td>{{ user.id }}</td>
+          <td>{{ user.secondName }}</td>
           <td>{{ user.email }}</td>
           <td>
             <span class="badge-role" [class.badge-role-admin]="user.role === 'admin'">
@@ -80,27 +104,49 @@
               {{ user.isConfirmed ? 'Confirmed' : 'Pending' }}
             </span>
           </td>
-          <td>{{ user.friends }}</td>
+          <td>{{ user.createdAt | date : 'mediumDate' }}</td>
           <td>
-            <button class="btn-action edit" title="Edit" (click)="editUser(user)">
-              <i class="bi bi-pencil"></i>
+            <button
+              class="btn-action role-toggle"
+              [title]="user.role === 'admin' ? 'Demote to User' : 'Promote to Admin'"
+              (click)="toggleRole(user)"
+              [disabled]="loading"
+            >
+              <i [class]="user.role === 'admin' ? 'bi bi-arrow-down' : 'bi bi-arrow-up'"></i>
             </button>
-            <button class="btn-action delete" title="Delete" (click)="deleteUser(user)">
+            <button
+              *ngIf="!user.isConfirmed"
+              class="btn-action confirm"
+              title="Confirm User"
+              (click)="toggleConfirmation(user)"
+              [disabled]="loading"
+            >
+              <i class="bi bi-check-lg"></i>
+            </button>
+            <button
+              class="btn-action delete"
+              title="Delete"
+              (click)="deleteUser(user)"
+              [disabled]="loading"
+            >
               <i class="bi bi-trash"></i>
             </button>
           </td>
+        </tr>
+        <tr *ngIf="paginatedUsers.length === 0">
+          <td colspan="8" class="no-data">No users found</td>
         </tr>
       </tbody>
     </table>
 
     <!-- Pagination -->
-    <div class="pagination-wrapper">
+    <div class="pagination-wrapper" *ngIf="totalResults > 0">
       <div class="pagination-info">
         Showing {{ startIndex }} to {{ endIndex }} of {{ totalResults }} results
       </div>
       <nav>
         <ul class="pagination">
-          <li class="page-item" [class.disabled]="currentPage === 1">
+          <li class="page-item" [class.disabled]="currentPage === 1 || loading">
             <a class="page-link" (click)="goToPage(currentPage - 1)" tabindex="-1">
               <i class="bi bi-chevron-left"></i>
             </a>
@@ -112,17 +158,7 @@
           >
             <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
           </li>
-          <ng-container *ngIf="visiblePages[visiblePages.length - 1] < totalPages - 1">
-            <li class="page-item disabled"><span class="page-link">...</span></li>
-          </ng-container>
-          <ng-container
-            *ngIf="totalPages > 1 && visiblePages[visiblePages.length - 1] < totalPages"
-          >
-            <li class="page-item">
-              <a class="page-link" (click)="goToPage(totalPages)">{{ totalPages }}</a>
-            </li>
-          </ng-container>
-          <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <li class="page-item" [class.disabled]="currentPage === totalPages || loading">
             <a class="page-link" (click)="goToPage(currentPage + 1)">
               <i class="bi bi-chevron-right"></i>
             </a>

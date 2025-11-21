@@ -14,16 +14,21 @@ export interface User {
   address?: string;
   createdAt: string;
   updatedAt: string;
-  friendCount?: number;
+  friends: any[];
+  sentFriendRequests: any[];
+  receivedFriendRequests: any[];
+  __v?: number;
+  fullName: string;
+  id: string;
 }
 
 export interface PaginationInfo {
   currentPage: number;
   totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
+  totalCount: number;
+  limit: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 export interface UsersResponse {
@@ -44,13 +49,22 @@ export interface GetUsersParams {
   role?: 'admin' | 'user';
 }
 
+export interface UsersStats {
+  totalUsers: number;
+  confirmedUsers: number;
+  unconfirmedUsers: number;
+  adminUsers: number;
+  regularUsers: number;
+  recentRegistrations: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UsersService {
   private baseUrl = 'http://localhost:3000/user';
 
   constructor(private http: HttpClient) {}
 
-  // Get all users with pagination and filters
+  // Get all users with pagination and filters (Admin only)
   getAllUsers(params: GetUsersParams = {}): Observable<UsersResponse> {
     let httpParams = new HttpParams();
 
@@ -68,23 +82,12 @@ export class UsersService {
     );
   }
 
-  // Get user by ID
+  // Get user by ID (Admin only)
   getUserById(id: string): Observable<User> {
     return this.http.get<ApiResponse<User>>(`${this.baseUrl}/${id}`).pipe(
       map((response) => response.data),
       catchError((error) => {
         console.error('Failed to get user:', error);
-        throw error;
-      })
-    );
-  }
-
-  // Get user public profile
-  getUserPublicProfile(id: string): Observable<User> {
-    return this.http.get<ApiResponse<User>>(`${this.baseUrl}/public-profile/${id}`).pipe(
-      map((response) => response.data),
-      catchError((error) => {
-        console.error('Failed to get user profile:', error);
         throw error;
       })
     );
@@ -123,35 +126,76 @@ export class UsersService {
     );
   }
 
-  // Get users statistics (for dashboard)
-  getUsersStats(): Observable<{
-    totalUsers: number;
-    confirmedUsers: number;
-    unconfirmedUsers: number;
-    adminUsers: number;
-    regularUsers: number;
-  }> {
-    return this.getAllUsers({ limit: 1 }).pipe(
+  // Get users statistics (for admin dashboard) - UPDATED
+  getUsersStats(): Observable<UsersStats> {
+    return this.getAllUsers({ limit: 1000 }).pipe(
       map((response) => {
-        const total = response.pagination.totalItems;
+        const users = response.users;
+        const total = response.pagination.totalCount;
+
+        const confirmedUsers = users.filter((user) => user.isConfirmed).length;
+        const adminUsers = users.filter((user) => user.role === 'admin').length;
+
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const recentRegistrations = users.filter(
+          (user) => new Date(user.createdAt) > weekAgo
+        ).length;
+
         return {
           totalUsers: total,
-          confirmedUsers: 0,
-          unconfirmedUsers: 0,
-          adminUsers: 0,
-          regularUsers: 0,
+          confirmedUsers: confirmedUsers,
+          unconfirmedUsers: total - confirmedUsers,
+          adminUsers: adminUsers,
+          regularUsers: total - adminUsers,
+          recentRegistrations: recentRegistrations,
         };
       })
     );
   }
 
-  // Search users
+  // Search users (Admin only)
   searchUsers(query: string, page = 1, limit = 10): Observable<UsersResponse> {
     return this.getAllUsers({ search: query, page, limit });
   }
 
-  // Filter users by role
+  // Filter users by role (Admin only)
   filterUsersByRole(role: 'admin' | 'user', page = 1, limit = 10): Observable<UsersResponse> {
     return this.getAllUsers({ role, page, limit });
+  }
+
+  // Get unconfirmed users (Admin only)
+  getUnconfirmedUsers(page = 1, limit = 10): Observable<UsersResponse> {
+    return this.getAllUsers({ page, limit }).pipe(
+      map((response) => ({
+        ...response,
+        users: response.users.filter((user) => !user.isConfirmed),
+      }))
+    );
+  }
+
+  // Promote user to admin (Admin only)
+  promoteToAdmin(id: string): Observable<User> {
+    return this.updateUser(id, { role: 'admin' });
+  }
+
+  // Demote admin to user (Admin only)
+  demoteToUser(id: string): Observable<User> {
+    return this.updateUser(id, { role: 'user' });
+  }
+
+  // Bulk confirm users (Admin only)
+  bulkConfirmUsers(userIds: string[]): Observable<void> {
+    const confirmRequests = userIds.map((id) => this.confirmUser(id).toPromise());
+    return new Observable((observer) => {
+      Promise.all(confirmRequests)
+        .then(() => {
+          observer.next();
+          observer.complete();
+        })
+        .catch((error) => {
+          observer.error(error);
+        });
+    });
   }
 }

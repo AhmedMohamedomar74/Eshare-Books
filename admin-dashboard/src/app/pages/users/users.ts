@@ -1,17 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  isConfirmed: boolean;
-  friends: number;
-  profilePic: string;
-}
+import { UsersService, User } from '../../shared/services/users';
 
 @Component({
   selector: 'app-userss',
@@ -27,110 +17,70 @@ export class Users implements OnInit {
   statusFilter: string = 'all';
 
   currentPage: number = 1;
-  itemsPerPage: number = 5;
-  totalResults: number = 2345;
+  itemsPerPage: number = 10;
+  totalResults: number = 0;
+  loading: boolean = false;
 
-  users: User[] = [
-    {
-      id: 'USR-001',
-      firstName: 'Olivia',
-      lastName: 'Martin',
-      email: 'olivia.martin@example.com',
-      role: 'Admin',
-      isConfirmed: true,
-      friends: 128,
-      profilePic: 'https://i.pravatar.cc/150?img=1',
-    },
-    {
-      id: 'USR-002',
-      firstName: 'Liam',
-      lastName: 'Garcia',
-      email: 'liam.garcia@example.com',
-      role: 'User',
-      isConfirmed: true,
-      friends: 75,
-      profilePic: 'https://i.pravatar.cc/150?img=12',
-    },
-    {
-      id: 'USR-003',
-      firstName: 'Emma',
-      lastName: 'Rodriguez',
-      email: 'emma.rodriguez@example.com',
-      role: 'User',
-      isConfirmed: false,
-      friends: 42,
-      profilePic: 'https://i.pravatar.cc/150?img=5',
-    },
-    {
-      id: 'USR-004',
-      firstName: 'Noah',
-      lastName: 'Smith',
-      email: 'noah.smith@example.com',
-      role: 'User',
-      isConfirmed: true,
-      friends: 91,
-      profilePic: 'https://i.pravatar.cc/150?img=13',
-    },
-    {
-      id: 'USR-005',
-      firstName: 'Ava',
-      lastName: 'Johnson',
-      email: 'ava.johnson@example.com',
-      role: 'User',
-      isConfirmed: false,
-      friends: 15,
-      profilePic: 'https://i.pravatar.cc/150?img=9',
-    },
-  ];
+  users: User[] = [];
 
-  ngOnInit(): void {}
+  constructor(private usersService: UsersService) {}
+
+  ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  loadUsers(): void {
+    this.loading = true;
+    this.usersService
+      .getAllUsers({
+        page: this.currentPage,
+        limit: this.itemsPerPage,
+        search: this.searchTerm,
+        role: this.roleFilter !== 'all' ? (this.roleFilter as 'admin' | 'user') : undefined,
+      })
+      .subscribe({
+        next: (response) => {
+          this.users = response.users;
+          this.totalResults = response.pagination.totalCount;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Failed to load users:', error);
+          this.loading = false;
+        },
+      });
+  }
 
   get filteredUsers(): User[] {
     let filtered = [...this.users];
 
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (u) =>
-          u.firstName.toLowerCase().includes(term) ||
-          u.lastName.toLowerCase().includes(term) ||
-          u.email.toLowerCase().includes(term) ||
-          u.id.toLowerCase().includes(term)
-      );
-    }
-
-    if (this.roleFilter !== 'all') {
-      filtered = filtered.filter((u) => u.role.toLowerCase() === this.roleFilter.toLowerCase());
-    }
-
+    // Apply status filter locally since API doesn't support it
     if (this.statusFilter !== 'all') {
       const isConfirmed = this.statusFilter === 'confirmed';
       filtered = filtered.filter((u) => u.isConfirmed === isConfirmed);
     }
 
+    // Apply local sorting
     filtered.sort((a, b) => {
       switch (this.sortBy) {
         case 'name':
-          return (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName);
+          return (a.firstName + ' ' + a.secondName).localeCompare(b.firstName + ' ' + b.secondName);
         case 'email':
           return a.email.localeCompare(b.email);
         case 'role':
           return a.role.localeCompare(b.role);
         case 'date':
-          return b.id.localeCompare(a.id);
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         default:
           return 0;
       }
     });
 
-    this.totalResults = filtered.length;
     return filtered;
   }
 
   get paginatedUsers(): User[] {
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredUsers.slice(start, end);
+    return this.filteredUsers;
   }
 
   get totalPages(): number {
@@ -165,26 +115,95 @@ export class Users implements OnInit {
     return pages.filter((p) => p > 0);
   }
 
+  onSearch(): void {
+    this.currentPage = 1;
+    this.loadUsers();
+  }
+
+  onRoleFilter(): void {
+    this.currentPage = 1;
+    this.loadUsers();
+  }
+
+  onStatusFilter(): void {
+    // Local filter only, no API call needed
+  }
+
+  onSortChange(): void {
+    // Local sort only, no API call needed
+  }
+
   addNewUser(): void {
     console.log('Add new user clicked');
   }
 
-  editUser(user: User): void {
-    console.log('Edit user:', user);
+  toggleRole(user: User): void {
+    this.loading = true;
+    if (user.role === 'user') {
+      this.usersService.promoteToAdmin(user._id).subscribe({
+        next: (updatedUser) => {
+          user.role = 'admin';
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Failed to promote user:', error);
+          this.loading = false;
+        },
+      });
+    } else {
+      this.usersService.demoteToUser(user._id).subscribe({
+        next: (updatedUser) => {
+          user.role = 'user';
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Failed to demote user:', error);
+          this.loading = false;
+        },
+      });
+    }
+  }
+
+  toggleConfirmation(user: User): void {
+    this.loading = true;
+    if (!user.isConfirmed) {
+      this.usersService.confirmUser(user._id).subscribe({
+        next: (updatedUser) => {
+          user.isConfirmed = true;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Failed to confirm user:', error);
+          this.loading = false;
+        },
+      });
+    }
+    // Note: We don't have unconfirm functionality in the API
   }
 
   deleteUser(user: User): void {
-    if (confirm(`Delete user ${user.firstName} ${user.lastName}?`)) {
-      this.users = this.users.filter((u) => u.id !== user.id);
-      if (this.paginatedUsers.length === 0 && this.currentPage > 1) {
-        this.currentPage--;
-      }
+    if (
+      confirm(
+        `Are you sure you want to delete ${user.firstName} ${user.secondName}? This action cannot be undone.`
+      )
+    ) {
+      this.loading = true;
+      this.usersService.deleteUser(user._id).subscribe({
+        next: () => {
+          this.loadUsers(); // Reload the list
+        },
+        error: (error) => {
+          console.error('Failed to delete user:', error);
+          this.loading = false;
+        },
+      });
     }
   }
 
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
       this.currentPage = page;
+      this.loadUsers();
     }
   }
 }

@@ -93,6 +93,38 @@
   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
+/* Loading Indicator */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  background-color: white;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #0d6efd;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 /* Table */
 .table-container {
   background-color: white;
@@ -133,6 +165,13 @@
   border-bottom: none;
 }
 
+.no-data {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 40px !important;
+}
+
 .profile-pic {
   width: 40px;
   height: 40px;
@@ -164,29 +203,48 @@
   color: #856404;
 }
 
+.badge-role {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
 .badge-role-admin {
   background-color: #d1ecf1;
   color: #0c5460;
 }
 
-/* Action Buttons - نفس الـ Reports */
+/* Action Buttons */
 .btn-action {
   background: none;
   border: none;
   cursor: pointer;
   color: #a0aec0;
-  padding: 4px 8px;
-  margin: 0 4px;
-  transition: color 0.3s ease;
-  font-size: 16px;
+  padding: 6px 8px;
+  margin: 0 2px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  font-size: 14px;
 }
 
-.btn-action:hover {
-  color: #2d3748;
+.btn-action:hover:not(:disabled) {
+  background-color: #f8f9fa;
 }
 
-.btn-action.delete:hover {
+.btn-action.role-toggle:hover:not(:disabled) {
+  color: #0d6efd;
+}
+
+.btn-action.confirm:hover:not(:disabled) {
+  color: #198754;
+}
+
+.btn-action.delete:hover:not(:disabled) {
   color: #e53e3e;
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Add User Button */
@@ -205,8 +263,13 @@
   transition: background-color 0.2s;
 }
 
-.btn-add-user:hover {
+.btn-add-user:hover:not(:disabled) {
   background-color: #0b5ed7;
+}
+
+.btn-add-user:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-add-user i {
@@ -308,5 +371,9 @@
   .profile-pic {
     width: 32px;
     height: 32px;
+  }
+  .pagination-wrapper {
+    flex-direction: column;
+    gap: 16px;
   }
 }
