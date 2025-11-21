@@ -1,27 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { BooksService } from '../../shared/services/books';
+import { BooksService, Book } from '../../shared/services/books';
 import { AuthService } from '../../shared/services/auth';
 import { CategoriesService } from '../../shared/services/categories';
 import { CommonModule } from '@angular/common';
-
-interface Book {
-  _id: string;
-  Title: string;
-  Description: string;
-  TransactionType: string;
-  Price?: number;
-  PricePerDay?: number;
-  image: { secure_url: string; public_id: string };
-  categoryId: { _id: string; name: string };
-  UserID: { _id: string; firstName: string; secondName: string; email: string };
-  IsModerated: boolean;
-  isDeleted: boolean;
-  isSold: boolean;
-  isDonated: boolean;
-  isBorrowedNow: boolean;
-  status: 'available' | 'sold' | 'donated' | 'borrowed' | 'deleted';
-  createdAt: string;
-}
 
 interface Category {
   _id: string;
@@ -96,19 +77,12 @@ export class Books implements OnInit {
     const params: any = {
       page: this.currentPage,
       limit: this.limit,
-      includeDeleted: 'true',
     };
 
-    if (this.searchQuery.trim()) params.title = this.searchQuery.trim();
+    if (this.searchQuery.trim()) params.search = this.searchQuery.trim();
     if (this.selectedCategory) params.category = this.selectedCategory;
     if (this.selectedTransactionType) params.transactionType = this.selectedTransactionType;
-    if (
-      this.selectedStatus &&
-      this.selectedStatus !== 'active' &&
-      this.selectedStatus !== 'inactive'
-    ) {
-      params.status = this.selectedStatus;
-    }
+    if (this.selectedStatus) params.status = this.selectedStatus;
 
     this.booksService.getAllBooksAdmin(token, params).subscribe({
       next: (res) => {
@@ -228,8 +202,7 @@ export class Books implements OnInit {
       borrowed: 'Borrowed',
       sold: 'Sold',
       donated: 'Donated',
-      active: 'Active (Not Deleted)',
-      inactive: 'Inactive (Deleted)',
+      deleted: 'Deleted',
     };
     return map[this.selectedStatus] || 'Status';
   }
@@ -239,28 +212,25 @@ export class Books implements OnInit {
       '': 'All Types',
       toSale: 'Sell',
       toBorrow: 'Borrow',
-      toExchange: 'Swap',
-      toDonate: 'Giveaway',
+      toDonate: 'Donate',
     };
     return map[this.selectedTransactionType] || 'Type';
   }
 
   getTransactionTypeDisplay(type: string): string {
-    return this.getSelectedTransactionTypeName() === 'Type'
-      ? type
-      : {
-          toSale: 'Sell',
-          toBorrow: 'Borrow',
-          toExchange: 'Swap',
-          toDonate: 'Giveaway',
-        }[type] || type;
+    const typeMap: any = {
+      toSale: 'Sell',
+      toBorrow: 'Borrow',
+      toDonate: 'Donate',
+    };
+    return typeMap[type] || type;
   }
 
   getPriceDisplay(book: Book): string {
     if (book.TransactionType === 'toSale') return `${book.Price || 0} EGP`;
     if (book.TransactionType === 'toBorrow') return `${book.PricePerDay || 0} EGP/day`;
-    if (book.TransactionType === 'toExchange') return 'Swap';
-    return 'Free';
+    if (book.TransactionType === 'toDonate') return 'Free';
+    return 'N/A';
   }
 
   getOwnerName(book: Book): string {
@@ -269,23 +239,19 @@ export class Books implements OnInit {
 
   getBookStatus(book: Book): string {
     if (book.isDeleted) return 'Deleted';
+    if (book.isDonated) return 'Donated';
+    if (book.isSold) return 'Sold';
+    if (book.isBorrowedNow) return 'Borrowed';
     return book.status.charAt(0).toUpperCase() + book.status.slice(1);
   }
 
   getStatusBadgeClass(book: Book): string {
     if (book.isDeleted) return 'bg-secondary-light text-secondary';
-    switch (book.status) {
-      case 'available':
-        return 'bg-success-light text-success';
-      case 'borrowed':
-        return 'bg-warning-light text-warning';
-      case 'sold':
-        return 'bg-danger-light text-danger';
-      case 'donated':
-        return 'bg-info-light text-info';
-      default:
-        return 'bg-light text-dark';
-    }
+    if (book.isDonated) return 'bg-info-light text-info';
+    if (book.isSold) return 'bg-danger-light text-danger';
+    if (book.isBorrowedNow) return 'bg-warning-light text-warning';
+    if (book.status === 'available') return 'bg-success-light text-success';
+    return 'bg-light text-dark';
   }
 
   // Actions
@@ -345,7 +311,7 @@ export class Books implements OnInit {
           this.closeRestoreModal();
         },
         error: (err) => {
-          this.showToast(err.error?.message || 'Cannot restore sold/donated book', 'error');
+          this.showToast(err.error?.message || 'Cannot restore book', 'error');
         },
       })
       .add(() => (this.modalLoading = false));

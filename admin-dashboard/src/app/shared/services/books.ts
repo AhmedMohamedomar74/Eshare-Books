@@ -1,14 +1,41 @@
-// src/app/services/books.service.ts
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
+export interface Book {
+  _id: string;
+  Title: string;
+  Description: string;
+  TransactionType: 'toSale' | 'toBorrow' | 'toDonate';
+  Price?: number;
+  PricePerDay?: number;
+  image: { secure_url: string; public_id: string };
+  categoryId: { _id: string; name: string };
+  UserID: { _id: string; firstName: string; secondName: string; email: string };
+  IsModerated: boolean;
+  isDeleted: boolean;
+  isSold: boolean;
+  isDonated: boolean;
+  isBorrowedNow: boolean;
+  status: 'available' | 'sold' | 'donated' | 'borrowed';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BooksResponse {
+  message: string;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  includeDeleted: boolean;
+  books: Book[];
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class BooksService {
-  // نفس الطريقة اللي بتستخدمها في AuthService
   private baseUrl = 'http://localhost:3000/books';
 
   constructor(private http: HttpClient) {}
@@ -61,60 +88,5 @@ export class BooksService {
       { IsModerated },
       { headers }
     );
-  }
-
-  // ===================================================================
-  // USER ENDPOINTS
-  // ===================================================================
-
-  getAllBooks(token: string, params?: any): Observable<any> {
-    const headers = this.buildHeaders(token);
-    let httpParams = new HttpParams();
-    if (params) {
-      Object.keys(params).forEach((key) => {
-        if (params[key]) httpParams = httpParams.set(key, params[key]);
-      });
-    }
-    return this.http.get(`${this.baseUrl}/allbooks`, { headers, params: httpParams });
-  }
-
-  getBookById(bookId: string, token: string): Observable<any> {
-    const headers = this.buildHeaders(token);
-    return this.http.get(`${this.baseUrl}/${bookId}`, { headers });
-  }
-
-  addBook(formData: FormData, token: string): Observable<any> {
-    const headers = new HttpHeaders({
-      Authorization: `admin ${token}`,
-      // لا Content-Type → المتصفح بيحطه مع boundary
-    });
-    return this.http.post(`${this.baseUrl}/addbook`, formData, { headers });
-  }
-
-  updateBook(bookId: string, formData: FormData, token: string): Observable<any> {
-    const headers = new HttpHeaders({
-      Authorization: `admin ${token}`,
-    });
-    return this.http.patch(`${this.baseUrl}/${bookId}`, formData, { headers });
-  }
-
-  deleteBook(bookId: string, token: string): Observable<any> {
-    const headers = this.buildHeaders(token);
-    return this.http.delete(`${this.baseUrl}/${bookId}`, { headers });
-  }
-
-  getBooksByCategory(categoryId: string, token: string): Observable<any> {
-    const headers = this.buildHeaders(token);
-    return this.http.get(`${this.baseUrl}/category/${categoryId}`, { headers });
-  }
-
-  getBooksByTransactionType(type: string, token: string): Observable<any> {
-    const headers = this.buildHeaders(token);
-    return this.http.get(`${this.baseUrl}/type/${type}`, { headers });
-  }
-
-  getBooksByUserId(userId: string): Observable<any> {
-    // عام، مش محتاج token
-    return this.http.get(`${this.baseUrl}/user/${userId}`);
   }
 }
