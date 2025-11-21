@@ -27,6 +27,11 @@ export class Books implements OnInit {
   selectedStatus = '';
   selectedTransactionType = '';
 
+  // Dropdown states
+  categoryDropdownOpen = false;
+  statusDropdownOpen = false;
+  transactionTypeDropdownOpen = false;
+
   // Pagination
   currentPage = 1;
   limit = 10;
@@ -79,7 +84,17 @@ export class Books implements OnInit {
       limit: this.limit,
     };
 
-    if (this.searchQuery.trim()) params.search = this.searchQuery.trim();
+    // Search by title or bookId
+    if (this.searchQuery.trim()) {
+      // Check if it's a valid bookId (24 character hex string)
+      const isBookId = /^[0-9a-fA-F]{24}$/.test(this.searchQuery.trim());
+      if (isBookId) {
+        params.bookId = this.searchQuery.trim();
+      } else {
+        params.title = this.searchQuery.trim();
+      }
+    }
+
     if (this.selectedCategory) params.category = this.selectedCategory;
     if (this.selectedTransactionType) params.transactionType = this.selectedTransactionType;
     if (this.selectedStatus) params.status = this.selectedStatus;
@@ -104,21 +119,52 @@ export class Books implements OnInit {
     this.loadBooks();
   }
 
+  // Dropdown Handlers
+  toggleCategoryDropdown(): void {
+    this.categoryDropdownOpen = !this.categoryDropdownOpen;
+    // Close other dropdowns
+    this.statusDropdownOpen = false;
+    this.transactionTypeDropdownOpen = false;
+  }
+
+  toggleStatusDropdown(): void {
+    this.statusDropdownOpen = !this.statusDropdownOpen;
+    // Close other dropdowns
+    this.categoryDropdownOpen = false;
+    this.transactionTypeDropdownOpen = false;
+  }
+
+  toggleTransactionTypeDropdown(): void {
+    this.transactionTypeDropdownOpen = !this.transactionTypeDropdownOpen;
+    // Close other dropdowns
+    this.categoryDropdownOpen = false;
+    this.statusDropdownOpen = false;
+  }
+
+  closeAllDropdowns(): void {
+    this.categoryDropdownOpen = false;
+    this.statusDropdownOpen = false;
+    this.transactionTypeDropdownOpen = false;
+  }
+
   onCategoryFilter(categoryId: string): void {
     this.selectedCategory = categoryId;
     this.currentPage = 1;
+    this.closeAllDropdowns();
     this.loadBooks();
   }
 
   onStatusFilter(status: string): void {
     this.selectedStatus = status;
     this.currentPage = 1;
+    this.closeAllDropdowns();
     this.loadBooks();
   }
 
   onTransactionTypeFilter(type: string): void {
     this.selectedTransactionType = type;
     this.currentPage = 1;
+    this.closeAllDropdowns();
     this.loadBooks();
   }
 
@@ -128,6 +174,7 @@ export class Books implements OnInit {
     this.selectedStatus = '';
     this.selectedTransactionType = '';
     this.currentPage = 1;
+    this.closeAllDropdowns();
     this.loadBooks();
   }
 
