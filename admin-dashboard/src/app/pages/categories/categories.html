@@ -111,11 +111,15 @@
         <input
           type="text"
           class="form-control"
+          [class.is-invalid]="addCategoryError"
           placeholder="Category name"
           [(ngModel)]="newCategoryName"
           (keyup.enter)="!modalLoading && confirmAddCategory()"
           [disabled]="modalLoading"
         />
+        <div class="invalid-feedback" *ngIf="addCategoryError">
+          {{ addCategoryError }}
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="showAddModal = false" [disabled]="modalLoading">
@@ -155,10 +159,14 @@
         <input
           type="text"
           class="form-control"
+          [class.is-invalid]="editCategoryError"
           [(ngModel)]="editCategoryName"
           (keyup.enter)="!modalLoading && confirmEditCategory()"
           [disabled]="modalLoading"
         />
+        <div class="invalid-feedback" *ngIf="editCategoryError">
+          {{ editCategoryError }}
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="showEditModal = false" [disabled]="modalLoading">
