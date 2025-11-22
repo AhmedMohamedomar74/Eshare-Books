@@ -10,6 +10,7 @@ import { AuthGuard } from './guards/auth-guard';
 import { LoginGuard } from './guards/login-guard';
 import { MainLayout } from './layout/main-layout/main-layout';
 import { AuthLayout } from './layout/auth-layout/auth-layout';
+import { ForgotPassword } from './pages/forgot-password/forgot-password';
 
 export const routes: Routes = [
   {
@@ -18,6 +19,7 @@ export const routes: Routes = [
     children: [
       { path: 'login', component: Login, canActivate: [LoginGuard], title: 'Login' },
       { path: '', redirectTo: '/login', pathMatch: 'full' },
+      { path: 'forgot-password', component: ForgotPassword },
     ],
   },
 
