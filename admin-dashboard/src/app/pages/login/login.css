@@ -93,7 +93,7 @@
   backdrop-filter: blur(10px);
   border-radius: 0.75rem;
   padding: 2.5rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
 }
 
 /* Header */

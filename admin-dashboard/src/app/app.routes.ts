@@ -10,6 +10,7 @@ import { AuthGuard } from './guards/auth-guard';
 import { LoginGuard } from './guards/login-guard';
 import { MainLayout } from './layout/main-layout/main-layout';
 import { AuthLayout } from './layout/auth-layout/auth-layout';
+import { ContactSupport } from './pages/contact-support/contact-support';
 
 export const routes: Routes = [
   {
@@ -17,6 +18,7 @@ export const routes: Routes = [
     component: AuthLayout,
     children: [
       { path: 'login', component: Login, canActivate: [LoginGuard], title: 'Login' },
+      { path: 'support', component: ContactSupport, title: 'Contact Support' },
       { path: '', redirectTo: '/login', pathMatch: 'full' },
     ],
   },
