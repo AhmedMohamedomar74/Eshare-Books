@@ -28,6 +28,7 @@ export class Login implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initForm();
+
   }
 
   initForm(): void {
@@ -88,6 +89,10 @@ export class Login implements OnInit, OnDestroy {
     }
   }
 
+  goToForgotPassword(): void {
+    this.router.navigate(['/forgot-password']);
+  }
+  
   onSubmit(): void {
     // Mark all fields as touched to show validation errors
     Object.keys(this.loginForm.controls).forEach((key) => {
