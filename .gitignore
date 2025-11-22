@@ -8,3 +8,5 @@ frontend-user/.vite
 admin-dashboard/node_modules/
 admin-dashboard/.angular
 
+frontend-user/dist
+frontend-user/.vite
