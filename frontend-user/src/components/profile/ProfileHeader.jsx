@@ -33,9 +33,6 @@ const ProfileHeader = ({ user }) => {
             </div>
           </div>
         </div>
-        <button className="h-10 px-4 bg-[#f6f7f7] border border-[#dfe2e2] rounded-lg text-sm font-bold hover:bg-[#4c7b7b]/10 transition-colors">
-          Edit Profile
-        </button>
       </div>
     </div>
   );
