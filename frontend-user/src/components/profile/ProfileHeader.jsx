@@ -18,7 +18,7 @@ const ProfileHeader = ({ user }) => {
           <div
             className="rounded-full min-h-24 w-24 sm:min-h-32 sm:w-32 bg-cover bg-center"
             style={{
-              backgroundImage: `url("${user.profilePic}")`,
+              backgroundImage: `url("${user.profilePic || "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"}")`,
             }}
           />
           <div className="flex flex-col justify-center">
@@ -26,7 +26,7 @@ const ProfileHeader = ({ user }) => {
             <p className="text-[#6f7b7b] text-sm sm:text-base">{user.email}</p>
             <p className="text-[#6f7b7b] text-sm sm:text-base">{user.address}</p>
             <div className="flex gap-4 mt-2">
-              <span className="text-[#6f7b7b] text-sm">Friends: {user.friends?.length || 0}</span>
+              {/* <span className="text-[#6f7b7b] text-sm">Friends: {user.friends?.length || 0}</span> */}
               <span className="text-[#6f7b7b] text-sm">
                 Member since: {new Date(user.createdAt).toLocaleDateString()}
               </span>
