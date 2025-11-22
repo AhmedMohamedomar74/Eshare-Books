@@ -9,13 +9,12 @@ const BookActions = ({ bookId, disabled = false }) => {
       <Box
         sx={{
           display: "flex",
-          gap: "15px",
+          justifyContent: "center",
           mt: 4,
-          flexDirection: { xs: "column", sm: "row" },
         }}
       >
-        {/* Contact Owner - يفضل يفضل شغال حتى لو الكتاب مستعار */}
-        <Button
+        {/* Contact Owner (currently disabled) */}
+        {/* <Button
           variant="contained"
           fullWidth
           startIcon={<ChatBubbleOutline />}
@@ -26,14 +25,13 @@ const BookActions = ({ bookId, disabled = false }) => {
           }}
         >
           Contact Owner
-        </Button>
+        </Button> */}
 
         {/* Proceed to Order */}
         {disabled ? (
-          // ⛔ لو الكتاب مستعار حاليًا → الزرار يتقفل وميبقاش لينك
+          // ⛔ If the book is currently borrowed → button disabled and not a link
           <Button
             variant="contained"
-            fullWidth
             disabled
             sx={{
               textTransform: "none",
@@ -46,17 +44,17 @@ const BookActions = ({ bookId, disabled = false }) => {
             Not available now
           </Button>
         ) : (
-          // ✅ عادي لو الكتاب مش مستعار أو نوعه مش borrow
+          // ✅ Normal case → book is available
           <Button
             component={Link}
             to={`/order/${bookId}`}
             variant="contained"
-            fullWidth
             sx={{
               textTransform: "none",
               backgroundColor: "#c0a427",
               color: "black",
               fontWeight: "bold",
+              px: 3,
               "&:hover": { backgroundColor: "#b39b20" },
             }}
           >
@@ -76,7 +74,7 @@ const BookActions = ({ bookId, disabled = false }) => {
           gap: "6px",
           fontSize: "0.8rem",
           color: "#0e0101",
-          marginTop: "32px",
+          marginTop: "24px",
           fontWeight: "bold",
           textDecoration: "none",
           "&:hover": { textDecoration: "underline" },
