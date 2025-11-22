@@ -55,6 +55,7 @@ const BookActions = ({ bookId, disabled = false }) => {
               color: "black",
               fontWeight: "bold",
               px: 3,
+              py: 1.5,
               "&:hover": { backgroundColor: "#b39b20" },
             }}
           >
