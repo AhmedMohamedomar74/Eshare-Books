@@ -11,7 +11,7 @@ const PublicProfileHeader = ({ user, onReportUser }) => {
           <div
             className="rounded-full min-h-24 w-24 sm:min-h-32 sm:w-32 bg-cover bg-center"
             style={{
-              backgroundImage: `url("${user?.profilePic}")`,
+              backgroundImage: `url("${user?.profilePic || "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"}")`,
             }}
           />
           <div className="flex flex-col justify-center">

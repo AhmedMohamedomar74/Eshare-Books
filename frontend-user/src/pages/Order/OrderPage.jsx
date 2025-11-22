@@ -71,6 +71,27 @@ const OrderPage = () => {
   const handleCompleteClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // ✅ Only open confirm dialog if borrow dates are valid
+    if (operationType === "borrow") {
+      if (!startDate || !endDate) {
+        enqueueSnackbar(
+          "Please select both start and end dates for borrowing.",
+          {
+            variant: "warning",
+          }
+        );
+        return;
+      }
+
+      if (borrowDays <= 0) {
+        enqueueSnackbar("End date must be after start date.", {
+          variant: "warning",
+        });
+        return;
+      }
+    }
+
     setConfirmOpen(true);
   };
 
@@ -104,11 +125,11 @@ const OrderPage = () => {
       operationData.startDate = startDate;
       operationData.endDate = endDate;
 
-      // لو حابب تخزنهم في الداتا بيز (اختياري)
+      // Optional: save borrowDays and totalPrice in DB
       // operationData.numberOfDays = borrowDays;
       // operationData.totalPrice = totalPrice;
     }
-    
+
     const result = await dispatch(createOperation(operationData));
 
     if (createOperation.fulfilled.match(result)) {
@@ -156,7 +177,7 @@ const OrderPage = () => {
         totalPrice={totalPrice}
       />
 
-      {/* Dialog Confirmation */}
+      {/* Confirmation Dialog */}
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}

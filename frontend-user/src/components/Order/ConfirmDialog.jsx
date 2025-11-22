@@ -6,6 +6,7 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
+import { Link } from "react-router-dom";
 
 const ConfirmDialog = ({ open, onClose, onConfirm, operationType }) => {
   return (
@@ -22,6 +23,8 @@ const ConfirmDialog = ({ open, onClose, onConfirm, operationType }) => {
           Cancel
         </Button>
         <Button
+          component={Link}
+          to="/"
           onClick={onConfirm}
           color="success"
           variant="contained"

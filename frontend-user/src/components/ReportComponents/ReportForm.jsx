@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Stack, Box, Snackbar, Alert } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import ReportHeader from './ReportHeader';
 import ReportReasonSelect from './ReportReasonSelect';
 import ReportDescriptionField from './ReportDescriptionField';
@@ -9,6 +10,7 @@ import { createNewReport, clearReportMessage } from '../../redux/slices/report.s
 
 export default function ReportForm({ targetType, targetId }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { loading, successMessage, error } = useSelector((state) => state.reports);
 
   const [reason, setReason] = useState('');
@@ -37,9 +39,7 @@ export default function ReportForm({ targetType, targetId }) {
   };
 
   const handleCancel = () => {
-    setReason('');
-    setDescription('');
-    setErrors({});
+    navigate(-1); // Go back to previous page
   };
 
   const handleSendReport = () => {
@@ -66,7 +66,14 @@ export default function ReportForm({ targetType, targetId }) {
       setOpenSnackbar(true);
       setReason('');
       setDescription('');
-      setTimeout(() => dispatch(clearReportMessage()), 3000);
+
+      // Navigate to previous page after 3 seconds
+      const timer = setTimeout(() => {
+        dispatch(clearReportMessage());
+        navigate(-1);
+      }, 3000);
+
+      return () => clearTimeout(timer);
     } else if (error) {
       let userFriendlyError = 'Failed to send report. Please try again.';
 
@@ -89,7 +96,7 @@ export default function ReportForm({ targetType, targetId }) {
       setOpenSnackbar(true);
       setTimeout(() => dispatch(clearReportMessage()), 3000);
     }
-  }, [successMessage, error, dispatch]);
+  }, [successMessage, error, dispatch, navigate]);
 
   return (
     <Box sx={{ position: 'relative' }}>

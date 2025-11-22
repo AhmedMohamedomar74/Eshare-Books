@@ -57,9 +57,12 @@ api.interceptors.response.use(
         const originalRequest = error.config;
 
         // Skip token refresh for auth endpoints
-        const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
-                               originalRequest.url?.includes('/auth/signup') ||
-                               originalRequest.url?.includes('/auth/refresh-token');
+        const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
+            originalRequest.url?.includes('/auth/signup') ||
+            originalRequest.url?.includes('/auth/refresh-token') ||
+            originalRequest.url?.includes('/auth//forgot-password') ||
+            originalRequest.url?.includes('/auth/reset-password') ||
+            originalRequest.url?.includes('/auth/verify-reset-code');
 
         // If error is 401 and we haven't tried refreshing yet
         if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
@@ -111,7 +114,7 @@ api.interceptors.response.use(
                 // Refresh failed - clear tokens and redirect to login
                 processQueue(refreshError, null);
                 clearTokens();
-                
+
                 // Use React Router navigation instead of window.location
                 if (navigationCallback) {
                     navigationCallback('/login');
@@ -119,7 +122,7 @@ api.interceptors.response.use(
                     // Fallback to window.location if callback not set
                     window.location.href = '/login';
                 }
-                
+
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;

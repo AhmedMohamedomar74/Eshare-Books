@@ -101,7 +101,7 @@ const OperationForm = ({
           Complete {operationType}
         </Button>
 
-        <Button
+        {/* <Button
           variant="contained"
           startIcon={<EmailOutlined />}
           sx={{
@@ -115,7 +115,7 @@ const OperationForm = ({
           }}
         >
           Contact Owner
-        </Button>
+        </Button> */}
       </Box>
     </Box>
   );
