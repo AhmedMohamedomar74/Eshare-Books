@@ -1,0 +1,221 @@
+<div class="categories-page">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Manage Categories</h1>
+    <button class="btn btn-primary" (click)="openAddCategoryModal()" [disabled]="loading">
+      <i class="bi bi-plus"></i>
+      <span *ngIf="modalLoading && showAddModal" class="loading-spinner">
+        <span class="spinner-border spinner-border-sm"></span>
+        Adding...
+      </span>
+      <span *ngIf="!modalLoading || !showAddModal">Add New Category</span>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div
+    *ngIf="loading && !showAddModal && !showEditModal && !showDeleteModal"
+    class="alert alert-info"
+  >
+    Loading categories...
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+    <button class="btn btn-sm btn-outline-secondary ms-2" (click)="retryLoadCategories()">
+      Retry
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar">
+    <i class="bi bi-search"></i>
+    <input
+      type="text"
+      placeholder="Search categories..."
+      (input)="onSearch($event)"
+      [value]="searchQuery"
+      [disabled]="loading"
+    />
+  </div>
+
+  <!-- Table -->
+  <div class="table-container" [class.loading]="loading">
+    <table class="table categories-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Books</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let category of displayedCategories">
+          <td>{{ category.name }}</td>
+          <td>{{ category.bookCount ?? 0 }}</td>
+          <td>
+            <button class="btn-action edit" (click)="openEditModal(category)" [disabled]="loading">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button
+              class="btn-action delete"
+              (click)="openDeleteModal(category)"
+              [disabled]="loading"
+            >
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && displayedCategories.length === 0">
+          <td colspan="3" style="text-align: center">No categories found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-section">
+    <div class="pagination-controls">
+      <button
+        class="btn btn-light"
+        [disabled]="currentPage === 1 || loading"
+        (click)="previousPage()"
+      >
+        Previous
+      </button>
+      <span class="pagination-info">Page {{ currentPage }} of {{ getTotalPages() }}</span>
+      <button class="btn btn-light" [disabled]="isLastPage() || loading" (click)="nextPage()">
+        Next
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div
+    *ngIf="showToastMessage"
+    class="toast message-toast"
+    [ngClass]="toastType === 'success' ? 'alert-success' : 'alert-danger'"
+  >
+    {{ toastMessage }}
+  </div>
+
+  <!-- Add Modal -->
+  <div *ngIf="showAddModal" class="modal-overlay" (click)="!modalLoading && (showAddModal = false)">
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>Add Category</h5>
+        <button class="btn-close" (click)="showAddModal = false" [disabled]="modalLoading"></button>
+      </div>
+      <div class="modal-body">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Category name"
+          [(ngModel)]="newCategoryName"
+          (keyup.enter)="!modalLoading && confirmAddCategory()"
+          [disabled]="modalLoading"
+        />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showAddModal = false" [disabled]="modalLoading">
+          Cancel
+        </button>
+        <button
+          class="btn btn-primary"
+          (click)="confirmAddCategory()"
+          [disabled]="modalLoading || !newCategoryName.trim()"
+        >
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Adding...
+          </span>
+          <span *ngIf="!modalLoading">Add</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div
+    *ngIf="showEditModal"
+    class="modal-overlay"
+    (click)="!modalLoading && (showEditModal = false)"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>Edit Category</h5>
+        <button
+          class="btn-close"
+          (click)="showEditModal = false"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="editCategoryName"
+          (keyup.enter)="!modalLoading && confirmEditCategory()"
+          [disabled]="modalLoading"
+        />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showEditModal = false" [disabled]="modalLoading">
+          Cancel
+        </button>
+        <button
+          class="btn btn-primary"
+          (click)="confirmEditCategory()"
+          [disabled]="modalLoading || !editCategoryName.trim()"
+        >
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Saving...
+          </span>
+          <span *ngIf="!modalLoading">Save</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div
+    *ngIf="showDeleteModal"
+    class="modal-overlay"
+    (click)="!modalLoading && (showDeleteModal = false)"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>Delete Category</h5>
+        <button
+          class="btn-close"
+          (click)="showDeleteModal = false"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to delete category <strong>{{ categoryToDelete?.name }}</strong
+          >?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          (click)="showDeleteModal = false"
+          [disabled]="modalLoading"
+        >
+          Cancel
+        </button>
+        <button class="btn btn-danger" (click)="confirmDeleteCategory()" [disabled]="modalLoading">
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Deleting...
+          </span>
+          <span *ngIf="!modalLoading">Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
