@@ -3,12 +3,8 @@ import {
   Box,
   Button,
   Container,
-  TextField,
   Typography,
-  ToggleButton,
-  ToggleButtonGroup,
   Paper,
-  Alert,
   CircularProgress,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -16,11 +12,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateBook, clearMessages } from "../../redux/slices/bookSlice.js";
 import bookService from "../../services/book.service.js";
 import { useParams, useNavigate } from "react-router-dom";
+import EditBookFields from "../../components/Edit Book/EditBookFields.jsx";
+import EditBookAlerts from "../../components/Edit Book/EditBookAlerts.jsx";
+import EditBookTypeSelector from "../../components/Edit Book/EditBookTypeSelector.jsx";
 
 export default function EditBook() {
-  const { id } = useParams(); // Book ID from URL
+  const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const { loading, error, successMessage } = useSelector(
     (state) => state.books
   );
@@ -48,54 +48,37 @@ export default function EditBook() {
     Description: "",
   });
 
-  // Fetch book data and categories
+  // Load book + categories
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoadingBook(true);
 
-        // Fetch categories
         const categoriesData = await bookService.getAllCategories();
-        console.log("📂 Categories:", categoriesData);
         setCategories(categoriesData || []);
 
-        // Fetch book data
         const bookData = await bookService.getBookById(id);
-        console.log("📦 Raw Book Data:", bookData);
+        const book = bookData?.book || bookData;
 
-        // ✅ Handle different response structures
-        const book = bookData?.book || bookData?.data?.book || bookData;
-        console.log("📖 Parsed Book:", book);
+        const catId =
+          book.categoryId?._id ||
+          book.categoryId ||
+          book.category?._id ||
+          book.category ||
+          "";
 
-        if (book) {
-          // ✅ Extract category ID properly
-          const extractedCategoryId =
-            book.categoryId?._id ||
-            book.categoryId ||
-            book.category?._id ||
-            book.category ||
-            "";
+        setForm({
+          Title: book.Title || "",
+          categoryId: catId,
+          Price: book.Price?.toString() || "",
+          PricePerDay: book.PricePerDay?.toString() || "",
+          Description: book.Description || "",
+        });
 
-          console.log("🏷️ Category ID:", extractedCategoryId);
-
-          setForm({
-            Title: book.Title || "",
-            categoryId: extractedCategoryId,
-            Price: book.Price?.toString() || "",
-            PricePerDay: book.PricePerDay?.toString() || "",
-            Description: book.Description || "",
-          });
-
-          setType(book.TransactionType || "toSale");
-          setExistingImage(book.image?.secure_url || book.image || null);
-
-          console.log("✅ Form populated successfully");
-        } else {
-          throw new Error("Book data not found in response");
-        }
+        setType(book.TransactionType || "toSale");
+        setExistingImage(book.image?.secure_url || book.image || null);
       } catch (err) {
-        console.error("❌ Error fetching data:", err);
-        alert(`Failed to load book data: ${err.message}`);
+        alert("Failed to load the book data.");
         navigate("/profile");
       } finally {
         setLoadingBook(false);
@@ -104,16 +87,12 @@ export default function EditBook() {
 
     fetchData();
 
-    return () => {
-      dispatch(clearMessages());
-    };
+    return () => dispatch(clearMessages());
   }, [id, dispatch, navigate]);
 
   useEffect(() => {
     if (successMessage) {
-      setTimeout(() => {
-        navigate("/profile"); // Redirect to profile after successful update
-      }, 2000);
+      setTimeout(() => navigate("/profile"), 2000);
     }
   }, [successMessage, navigate]);
 
@@ -121,8 +100,8 @@ export default function EditBook() {
     if (!newType) return;
 
     setType(newType);
-    setForm((prevForm) => ({
-      ...prevForm,
+    setForm((prev) => ({
+      ...prev,
       Price: "",
       PricePerDay: "",
     }));
@@ -133,8 +112,8 @@ export default function EditBook() {
     }));
   };
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
@@ -149,7 +128,7 @@ export default function EditBook() {
     if (file.size > maxSizeMB * 1024 * 1024) {
       setFieldErrors((prev) => ({
         ...prev,
-        image: `Image size must be less than ${maxSizeMB}MB`,
+        image: `Image must be less than ${maxSizeMB}MB`,
       }));
       return;
     }
@@ -178,67 +157,45 @@ export default function EditBook() {
   };
 
   const validateField = (name, value) => {
-    let errorMsg = "";
+    let err = "";
 
-    if (name === "Title") {
-      if (!value.trim()) errorMsg = "Title is required";
-      else if (value.trim().length < 2)
-        errorMsg = "Title must be at least 2 characters";
-    }
+    if (name === "Title" && (!value.trim() || value.trim().length < 2))
+      err = "Title must be at least 2 characters";
 
-    if (name === "categoryId") {
-      if (!value) errorMsg = "Category is required";
-    }
+    if (name === "categoryId" && !value) err = "Category is required";
 
-    if (name === "Description") {
-      if (!value.trim()) errorMsg = "Description is required";
-      else if (value.trim().length < 10)
-        errorMsg = "Description must be at least 10 characters";
-    }
+    if (name === "Description" && (!value.trim() || value.trim().length < 10))
+      err = "Description must be at least 10 characters";
 
-    if (name === "Price" && type === "toSale") {
-      if (value === "" || value === null)
-        errorMsg = "Price is required for sale";
-      else if (Number(value) <= 0) errorMsg = "Price must be greater than zero";
-    }
+    if (name === "Price" && type === "toSale" && Number(value) <= 0)
+      err = "Price must be greater than zero";
 
-    if (name === "PricePerDay" && type === "toBorrow") {
-      if (value === "" || value === null)
-        errorMsg = "Price per day is required for borrowing";
-      else if (Number(value) <= 0)
-        errorMsg = "Price per day must be greater than zero";
-    }
+    if (name === "PricePerDay" && type === "toBorrow" && Number(value) <= 0)
+      err = "Price per day must be greater than zero";
 
-    setFieldErrors((prev) => ({ ...prev, [name]: errorMsg }));
-    return errorMsg === "";
+    setFieldErrors((prev) => ({ ...prev, [name]: err }));
+    return err === "";
   };
 
   const validateForm = () => {
     const errors = {};
 
-    if (!form.Title.trim()) errors.Title = "Title is required";
-    else if (form.Title.trim().length < 2)
-      errors.Title = "Title must be at least 2 characters";
+    if (!form.Title.trim() || form.Title.trim().length < 2)
+      errors.Title = "Title is required";
 
     if (!form.categoryId) errors.categoryId = "Category is required";
 
-    if (!form.Description.trim())
-      errors.Description = "Description is required";
-    else if (form.Description.trim().length < 10)
+    if (!form.Description.trim() || form.Description.trim().length < 10)
       errors.Description = "Description must be at least 10 characters";
 
     if (type === "toSale") {
-      if (form.Price === "" || form.Price === null)
-        errors.Price = "Price is required for sale";
-      else if (Number(form.Price) <= 0)
-        errors.Price = "Price must be greater than zero";
+      if (!form.Price || Number(form.Price) <= 0)
+        errors.Price = "Price is required";
     }
 
     if (type === "toBorrow") {
-      if (form.PricePerDay === "" || form.PricePerDay === null)
-        errors.PricePerDay = "Price per day is required for borrowing";
-      else if (Number(form.PricePerDay) <= 0)
-        errors.PricePerDay = "Price per day must be greater than zero";
+      if (!form.PricePerDay || Number(form.PricePerDay) <= 0)
+        errors.PricePerDay = "Price per day is required";
     }
 
     setFieldErrors((prev) => ({ ...prev, ...errors }));
@@ -248,8 +205,7 @@ export default function EditBook() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isValid = validateForm();
-    if (!isValid) return;
+    if (!validateForm()) return;
 
     const formData = new FormData();
     formData.append("Title", form.Title.trim());
@@ -268,10 +224,10 @@ export default function EditBook() {
     return (
       <Box
         sx={{
+          minHeight: "100vh",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: "100vh",
         }}
       >
         <CircularProgress />
@@ -304,7 +260,7 @@ export default function EditBook() {
             Edit Your Book
           </Typography>
 
-          {/* 📸 Current Image Preview */}
+          {/* Current Image */}
           {existingImage && !image && (
             <Box sx={{ textAlign: "center", mb: 2 }}>
               <Typography variant="body2" color="text.secondary" mb={1}>
@@ -312,7 +268,7 @@ export default function EditBook() {
               </Typography>
               <img
                 src={existingImage}
-                alt="Current book cover"
+                alt="Current cover"
                 style={{
                   maxWidth: "200px",
                   maxHeight: "200px",
@@ -323,7 +279,7 @@ export default function EditBook() {
             </Box>
           )}
 
-          {/* 📸 Upload New Image */}
+          {/* Upload New Image */}
           <input
             type="file"
             accept="image/*"
@@ -338,149 +294,36 @@ export default function EditBook() {
               color={fieldErrors.image ? "error" : "primary"}
               startIcon={<CloudUploadIcon />}
               fullWidth
-              sx={{
-                mb: 1,
-                py: 2,
-                fontSize: "1rem",
-              }}
+              sx={{ mb: 1, py: 2 }}
             >
-              {image
-                ? `New Image: ${image.name}`
-                : "Change Book Cover (Optional)"}
+              {image ? `New Image: ${image.name}` : "Change Book Cover"}
             </Button>
           </label>
 
-          {fieldErrors.image && (
-            <Typography variant="body2" color="error" sx={{ mb: 2 }}>
-              {fieldErrors.image}
-            </Typography>
-          )}
-
-          {/* 🏷️ Title */}
-          <TextField
-            fullWidth
-            label="Title"
-            name="Title"
-            value={form.Title}
-            onChange={handleChange}
-            onBlur={(e) => validateField("Title", e.target.value)}
-            sx={{ mb: 2 }}
-            error={Boolean(fieldErrors.Title)}
-            helperText={fieldErrors.Title}
+          {/* Fields */}
+          <EditBookFields
+            form={form}
+            categories={categories}
+            type={type}
+            fieldErrors={fieldErrors}
+            handleChange={handleChange}
+            validateField={validateField}
           />
 
-          {/* 📂 Category Dropdown */}
-          <TextField
-            select
-            fullWidth
-            name="categoryId"
-            value={form.categoryId}
-            onChange={handleChange}
-            onBlur={(e) => validateField("categoryId", e.target.value)}
-            SelectProps={{ native: true }}
-            sx={{ mb: 2 }}
-            error={Boolean(fieldErrors.categoryId)}
-            helperText={fieldErrors.categoryId}
-          >
-            <option value="" disabled>
-              Select category
-            </option>
-            {categories.map((cat) => (
-              <option key={cat._id} value={cat._id}>
-                {cat.name}
-              </option>
-            ))}
-          </TextField>
-
-          {/* 💰 Price (only if toSale) */}
-          {type === "toSale" && (
-            <TextField
-              fullWidth
-              label="Price"
-              name="Price"
-              type="number"
-              value={form.Price}
-              onChange={handleChange}
-              onBlur={(e) => validateField("Price", e.target.value)}
-              sx={{ mb: 2 }}
-              inputProps={{ min: 1 }}
-              error={Boolean(fieldErrors.Price)}
-              helperText={fieldErrors.Price}
-            />
-          )}
-
-          {/* 📅 Price Per Day (only if toBorrow) */}
-          {type === "toBorrow" && (
-            <TextField
-              fullWidth
-              label="Price Per Day"
-              name="PricePerDay"
-              type="number"
-              value={form.PricePerDay}
-              onChange={handleChange}
-              onBlur={(e) => validateField("PricePerDay", e.target.value)}
-              sx={{ mb: 2 }}
-              inputProps={{ min: 1 }}
-              error={Boolean(fieldErrors.PricePerDay)}
-              helperText={fieldErrors.PricePerDay}
-            />
-          )}
-
-          {/* 📝 Description */}
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            label="Description"
-            name="Description"
-            value={form.Description}
-            onChange={handleChange}
-            onBlur={(e) => validateField("Description", e.target.value)}
-            sx={{ mb: 2 }}
-            error={Boolean(fieldErrors.Description)}
-            helperText={fieldErrors.Description}
+          {/* Type Selector */}
+          <EditBookTypeSelector
+            type={type}
+            handleTypeChange={handleTypeChange}
           />
 
-          {/* 🔘 Type Selector */}
-          <ToggleButtonGroup
-            value={type}
-            exclusive
-            onChange={handleTypeChange}
-            fullWidth
-            sx={{ mt: 3 }}
-          >
-            <ToggleButton value="toSale">Sell</ToggleButton>
-            <ToggleButton value="toDonate">Donate</ToggleButton>
-            <ToggleButton value="toBorrow">Borrow</ToggleButton>
-          </ToggleButtonGroup>
+          {/* Alerts */}
+          <EditBookAlerts
+            loading={loading}
+            error={error}
+            successMessage={successMessage}
+          />
 
-          {/* 🌀 Loading */}
-          {loading && (
-            <Alert
-              severity="info"
-              sx={{ mt: 3, display: "flex", alignItems: "center", gap: 2 }}
-            >
-              <CircularProgress size={20} />
-              Updating your book...
-            </Alert>
-          )}
-
-          {/* ⚠️ Error */}
-          {error && !loading && (
-            <Alert severity="error" sx={{ mt: 3 }}>
-              {error}
-            </Alert>
-          )}
-
-          {/* ✅ Success */}
-          {successMessage && !loading && (
-            <Alert severity="success" sx={{ mt: 3 }}>
-              Book updated successfully! ✅ <br />
-              Redirecting to your profile...
-            </Alert>
-          )}
-
-          {/* 🚀 Submit */}
+          {/* Buttons */}
           <Button
             type="submit"
             variant="contained"
