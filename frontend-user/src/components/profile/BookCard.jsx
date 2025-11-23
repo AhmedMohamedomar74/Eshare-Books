@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { deleteBook } from "../../redux/slices/bookSlice";
 
-const BookCard = ({ book }) => {
+const BookCard = ({ book, onDelete }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [openMenu, setOpenMenu] = useState(false);
-  const [openConfirm, setOpenConfirm] = useState(false); // للتحكم في المودال
+  const [openConfirm, setOpenConfirm] = useState(false);
   const menuRef = useRef(null);
 
-  // Format transaction type for display
   const formatTransactionType = (type) => {
     const typeMap = {
       toSale: "For Sale",
@@ -21,7 +20,6 @@ const BookCard = ({ book }) => {
     return typeMap[type] || type;
   };
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -49,14 +47,14 @@ const BookCard = ({ book }) => {
 
   const handleDeleteClick = (e) => {
     e.stopPropagation();
-    setOpenConfirm(true); // افتح المودال بدل window.confirm
+    setOpenConfirm(true);
     setOpenMenu(false);
   };
 
   const confirmDelete = () => {
     dispatch(deleteBook(book._id)).then(() => {
       setOpenConfirm(false);
-      window.location.reload(); // أو استخدم Redux state لتحديث بدون reload
+      onDelete(book._id);
     });
   };
 
@@ -69,7 +67,6 @@ const BookCard = ({ book }) => {
         onClick={handleCardClick}
       >
         <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300">
-          {/* Moderation Status Icon */}
           <div className="absolute top-2 left-2 p-1.5 bg-white/80 rounded-full z-10">
             {book.IsModerated ? (
               <svg
@@ -98,7 +95,6 @@ const BookCard = ({ book }) => {
             )}
           </div>
 
-          {/* Options Button with Menu */}
           <div className="absolute top-2 right-2 z-10" ref={menuRef}>
             <button
               onClick={(e) => {
@@ -128,19 +124,6 @@ const BookCard = ({ book }) => {
                   onClick={handleEditClick}
                   className="flex items-center w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                 >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
                   Edit Book
                 </button>
 
@@ -148,28 +131,13 @@ const BookCard = ({ book }) => {
                   onClick={handleDeleteClick}
                   className="flex items-center w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
                 >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
                   Delete Book
                 </button>
               </div>
             )}
           </div>
 
-          {/* Hover Overlay */}
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
           <img
             className="w-full h-full object-cover"
             alt={`Book cover of ${book.Title}`}
@@ -179,7 +147,6 @@ const BookCard = ({ book }) => {
 
         <div>
           <p className="text-base font-medium truncate">{book.Title}</p>
-          <p className="text-[#6f7b7b] text-sm" />
           <div className="flex justify-between items-center">
             <p className="text-[#6f7b7b] text-sm">
               {formatTransactionType(book.TransactionType)}
@@ -193,7 +160,6 @@ const BookCard = ({ book }) => {
         </div>
       </div>
 
-      {/* Modal لتأكيد الحذف */}
       {openConfirm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-80">

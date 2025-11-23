@@ -65,7 +65,16 @@ const BookShareDashboard = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "my-books":
-        return <BooksGrid books={books} />;
+        return (
+          <BooksGrid
+            books={books}
+            onDelete={(deletedBookId) =>
+              setBooks((prevBooks) =>
+                prevBooks.filter((b) => b._id !== deletedBookId)
+              )
+            }
+          />
+        );
       default:
         return <BooksGrid books={books} />;
     }
@@ -109,7 +118,6 @@ const BookShareDashboard = () => {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-[#f6f7f7]">
-      {/* Main Content */}
       <main className="px-4 sm:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
         <div className="flex flex-col max-w-screen-xl flex-1 w-full">
           <ProfileHeader
