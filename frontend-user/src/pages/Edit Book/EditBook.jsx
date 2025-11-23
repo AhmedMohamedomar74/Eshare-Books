@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Button,
   Container,
   Typography,
   Paper,
   CircularProgress,
 } from "@mui/material";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useDispatch, useSelector } from "react-redux";
 import { updateBook, clearMessages } from "../../redux/slices/bookSlice.js";
 import bookService from "../../services/book.service.js";
 import { useParams, useNavigate } from "react-router-dom";
-import EditBookFields from "../../components/Edit Book/EditBookFields.jsx";
 import EditBookAlerts from "../../components/Edit Book/EditBookAlerts.jsx";
-import EditBookTypeSelector from "../../components/Edit Book/EditBookTypeSelector.jsx";
+import EditBookForm from "../../components/Edit Book/EditBookForm.jsx";
+import EditBookButtons from "../../components/Edit Book/EditBookButtons.jsx";
 
 export default function EditBook() {
   const { id } = useParams();
@@ -260,60 +258,18 @@ export default function EditBook() {
             Edit Your Book
           </Typography>
 
-          {/* Current Image */}
-          {existingImage && !image && (
-            <Box sx={{ textAlign: "center", mb: 2 }}>
-              <Typography variant="body2" color="text.secondary" mb={1}>
-                Current Image:
-              </Typography>
-              <img
-                src={existingImage}
-                alt="Current cover"
-                style={{
-                  maxWidth: "200px",
-                  maxHeight: "200px",
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                }}
-              />
-            </Box>
-          )}
-
-          {/* Upload New Image */}
-          <input
-            type="file"
-            accept="image/*"
-            id="book-cover"
-            hidden
-            onChange={handleImageUpload}
-          />
-          <label htmlFor="book-cover">
-            <Button
-              component="span"
-              variant={fieldErrors.image ? "contained" : "outlined"}
-              color={fieldErrors.image ? "error" : "primary"}
-              startIcon={<CloudUploadIcon />}
-              fullWidth
-              sx={{ mb: 1, py: 2 }}
-            >
-              {image ? `New Image: ${image.name}` : "Change Book Cover"}
-            </Button>
-          </label>
-
-          {/* Fields */}
-          <EditBookFields
+          {/* Form Section */}
+          <EditBookForm
             form={form}
             categories={categories}
             type={type}
             fieldErrors={fieldErrors}
             handleChange={handleChange}
             validateField={validateField}
-          />
-
-          {/* Type Selector */}
-          <EditBookTypeSelector
-            type={type}
             handleTypeChange={handleTypeChange}
+            existingImage={existingImage}
+            image={image}
+            handleImageUpload={handleImageUpload}
           />
 
           {/* Alerts */}
@@ -324,25 +280,10 @@ export default function EditBook() {
           />
 
           {/* Buttons */}
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            sx={{ mt: 3, py: 1.3 }}
-            disabled={loading}
-          >
-            Update Book
-          </Button>
-
-          <Button
-            variant="outlined"
-            fullWidth
-            sx={{ mt: 2 }}
-            onClick={() => navigate("/profile")}
-            disabled={loading}
-          >
-            Cancel
-          </Button>
+          <EditBookButtons
+            loading={loading}
+            onCancel={() => navigate("/profile")}
+          />
         </Paper>
       </Container>
     </Box>
