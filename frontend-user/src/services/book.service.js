@@ -57,6 +57,12 @@ const updateBook = async (bookId, formData) => {
   return res.data;
 };
 
+// delete book
+const deleteBook = async (bookId) => {
+  const res = await api.delete(`/books/${bookId}`);
+  return res.data;
+};
+
 const bookService = {
   addBook,
   getAllBooks,
@@ -66,6 +72,7 @@ const bookService = {
   getAllCategories,
   getBooksByType,
   updateBook,
+  deleteBook,
 };
 
 export default bookService;

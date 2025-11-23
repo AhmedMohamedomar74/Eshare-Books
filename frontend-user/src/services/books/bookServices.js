@@ -33,4 +33,13 @@ export const bookService = {
       throw new Error(error.response?.data?.message || "Failed to update book");
     }
   },
+
+  deleteBook: async (bookId) => {
+    try {
+      const response = await api.delete(`/books/${bookId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to delete book");
+    }
+  },
 };

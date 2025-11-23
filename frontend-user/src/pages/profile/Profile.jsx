@@ -14,27 +14,31 @@ const BookShareDashboard = () => {
 
   // Fetch user profile data
   useEffect(() => {
-  const fetchUserProfile = async () => {
-    try {
-      setLoading(true);
-      const userResponse = await userService.getProfile();
-      setUser(userResponse.data);
+    const fetchUserProfile = async () => {
+      try {
+        setLoading(true);
+        const userResponse = await userService.getProfile();
+        setUser(userResponse.data);
 
-      // Use userResponse.data.id directly instead of user.id
-      const booksResponse = await bookService.getUserBooks(userResponse.data.id);
-      setBooks(booksResponse.books);
-      
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-      console.error("Error fetching user profile:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const booksResponse = await bookService.getUserBooks(
+          userResponse.data.id
+        );
+        const visibleBooks = booksResponse.books.filter(
+          (book) => !book.isDeleted
+        );
+        setBooks(visibleBooks);
 
-  fetchUserProfile();
-}, []);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+        console.error("Error fetching user profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   // Handle profile update
   const handleUpdateProfile = async (updatedData) => {

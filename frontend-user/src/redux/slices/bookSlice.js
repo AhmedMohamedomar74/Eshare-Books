@@ -44,7 +44,7 @@ export const fetchBookById = createAsyncThunk(
   }
 );
 
-// ✅ Update book
+// Update book
 export const updateBook = createAsyncThunk(
   "books/updateBook",
   async ({ bookId, formData }, { rejectWithValue }) => {
@@ -54,6 +54,21 @@ export const updateBook = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to update book"
+      );
+    }
+  }
+);
+
+// delete book
+export const deleteBook = createAsyncThunk(
+  "books/deleteBook",
+  async (bookId, { rejectWithValue }) => {
+    try {
+      await bookService.deleteBook(bookId);
+      return bookId;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to delete book"
       );
     }
   }
@@ -141,6 +156,22 @@ const bookSlice = createSlice({
         }
       })
       .addCase(updateBook.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      //delete book
+      .addCase(deleteBook.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteBook.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successMessage = "✅ Book deleted successfully!";
+        state.books = state.books.filter((book) => book._id !== action.payload);
+        if (state.currentBook?._id === action.payload) state.currentBook = null;
+      })
+      .addCase(deleteBook.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
