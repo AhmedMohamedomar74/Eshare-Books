@@ -49,6 +49,14 @@ const getBooksByType = async (type) => {
   return res.data.books;
 };
 
+// update book
+const updateBook = async (bookId, formData) => {
+  const res = await api.patch(`/books/${bookId}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
+};
+
 const bookService = {
   addBook,
   getAllBooks,
@@ -57,6 +65,7 @@ const bookService = {
   getBooksByCategory,
   getAllCategories,
   getBooksByType,
+  updateBook,
 };
 
 export default bookService;

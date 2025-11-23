@@ -52,7 +52,7 @@ function App() {
               <Route path="/reports/:type/:targetId" element={<Report />} />
               <Route path="/myreports" element={<MyReports />} />
               <Route path="/add-book" element={<AddBook />} />
-              <Route path="/edit-book" element={<EditBook />} />
+              <Route path="/edit-book/:id" element={<EditBook />} />
             </Route>
           </Route>
           <Route path="/login" element={<BookCycleLogin />} />

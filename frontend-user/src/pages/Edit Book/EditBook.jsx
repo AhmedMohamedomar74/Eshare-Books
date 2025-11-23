@@ -56,29 +56,47 @@ export default function EditBook() {
 
         // Fetch categories
         const categoriesData = await bookService.getAllCategories();
+        console.log("📂 Categories:", categoriesData);
         setCategories(categoriesData || []);
 
         // Fetch book data
         const bookData = await bookService.getBookById(id);
+        console.log("📦 Raw Book Data:", bookData);
 
-        if (bookData && bookData.book) {
-          const book = bookData.book;
+        // ✅ Handle different response structures
+        const book = bookData?.book || bookData?.data?.book || bookData;
+        console.log("📖 Parsed Book:", book);
+
+        if (book) {
+          // ✅ Extract category ID properly
+          const extractedCategoryId =
+            book.categoryId?._id ||
+            book.categoryId ||
+            book.category?._id ||
+            book.category ||
+            "";
+
+          console.log("🏷️ Category ID:", extractedCategoryId);
 
           setForm({
             Title: book.Title || "",
-            categoryId: book.categoryId?._id || book.categoryId || "",
-            Price: book.Price || "",
-            PricePerDay: book.PricePerDay || "",
+            categoryId: extractedCategoryId,
+            Price: book.Price?.toString() || "",
+            PricePerDay: book.PricePerDay?.toString() || "",
             Description: book.Description || "",
           });
 
           setType(book.TransactionType || "toSale");
-          setExistingImage(book.image?.secure_url || null);
+          setExistingImage(book.image?.secure_url || book.image || null);
+
+          console.log("✅ Form populated successfully");
+        } else {
+          throw new Error("Book data not found in response");
         }
       } catch (err) {
-        console.error("Error fetching data:", err);
-        alert("Failed to load book data");
-        navigate("/profile"); // Redirect if book not found
+        console.error("❌ Error fetching data:", err);
+        alert(`Failed to load book data: ${err.message}`);
+        navigate("/profile");
       } finally {
         setLoadingBook(false);
       }
