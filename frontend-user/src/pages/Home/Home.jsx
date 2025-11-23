@@ -59,7 +59,6 @@ export default function Home() {
     setCategories(cats || []);
   };
 
-  // 🔍 Search by title
   const handleSearch = async (e) => {
     const value = e.target.value;
     setSearchTerm(value);
@@ -72,7 +71,6 @@ export default function Home() {
     setTotalPages(pages || 1);
   };
 
-  // 🏷️ Filter by category
   const handleCategoryChange = async (selectedCategoryIds) => {
     if (selectedCategoryIds.length === 0) {
       setActiveFilter((prev) => ({ ...prev, categoryId: null }));
@@ -90,7 +88,6 @@ export default function Home() {
     setTotalPages(1);
   };
 
-  // 💡 Filter by type
   const handleTypeChange = async (selectedType) => {
     if (!selectedType) {
       setActiveFilter((prev) => ({ ...prev, type: null }));
@@ -107,7 +104,6 @@ export default function Home() {
     setTotalPages(1);
   };
 
-  // 🔄 Clear all filters
   const handleClearFilters = () => {
     setSearchTerm("");
     setActiveFilter({ type: null, categoryId: null });
@@ -115,7 +111,6 @@ export default function Home() {
     fetchBooks();
   };
 
-  // ⏭️ Page change
   const handlePageChange = (event, value) => {
     setPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -156,17 +151,26 @@ export default function Home() {
           />
         </Paper>
 
+        {/* ✅ Layout: Filters always beside cards */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: { xs: "column", md: "row" },
+            flexDirection: "row", // ✅ always row, even on xs
             gap: 3,
+            alignItems: "flex-start",
+            overflowX: { xs: "auto", md: "visible" }, // ✅ horizontal scroll on small screens
           }}
         >
           {/* Filters */}
           <Paper
             elevation={1}
-            sx={{ p: 3, borderRadius: 3, bgcolor: "white", flex: "0 0 25%" }}
+            sx={{
+              p: 3,
+              borderRadius: 3,
+              bgcolor: "white",
+              flex: "0 0 280px",
+              minWidth: 320,
+            }}
           >
             <Filters
               categories={categories}
@@ -177,7 +181,7 @@ export default function Home() {
           </Paper>
 
           {/* Books Grid + Pagination */}
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <BookGrid books={books} />
 
             <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
