@@ -473,3 +473,39 @@
   align-items: center;
   gap: 8px;
 }
+
+/* Invalid input styling */
+.is-invalid {
+  border-color: #e53e3e !important;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1) !important;
+}
+
+.is-invalid:focus {
+  border-color: #e53e3e !important;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1) !important;
+}
+
+/* Error message styling */
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #e53e3e;
+  font-weight: 500;
+}
+
+/* Modal body spacing */
+.modal-body {
+  padding: 24px;
+  position: relative;
+}
+
+.modal-body .form-control {
+  margin-bottom: 0;
+}
+
+/* Ensure proper spacing when error is shown */
+.modal-body .invalid-feedback {
+  margin-top: 0.5rem;
+}

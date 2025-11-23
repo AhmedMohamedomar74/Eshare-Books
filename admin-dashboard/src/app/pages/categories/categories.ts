@@ -40,11 +40,13 @@ export class Categories implements OnInit {
   // Add Modal
   showAddModal: boolean = false;
   newCategoryName: string = '';
+  addCategoryError: string = '';
 
   // Edit Modal
   showEditModal: boolean = false;
   editCategoryName: string = '';
   categoryToEdit: Category | null = null;
+  editCategoryError: string = '';
 
   // Delete Modal
   showDeleteModal: boolean = false;
@@ -118,6 +120,34 @@ export class Categories implements OnInit {
     this.applyFilterAndPagination();
   }
 
+  // ---------- Validation Methods ----------
+  private isValidCategoryName(name: string): boolean {
+    const trimmedName = name.trim();
+
+    // Check minimum length
+    if (trimmedName.length < 3) {
+      return false;
+    }
+
+    // Check if contains only letters (English and Arabic) and spaces
+    const validNameRegex = /^[A-Za-z\u0600-\u06FF\s]+$/;
+    return validNameRegex.test(trimmedName);
+  }
+
+  private getValidationErrorMessage(name: string): string {
+    const trimmedName = name.trim();
+
+    if (trimmedName.length < 3) {
+      return 'Category name must be at least 3 characters long';
+    }
+
+    if (!/^[A-Za-z\u0600-\u06FF\s]+$/.test(trimmedName)) {
+      return 'Category name can only contain letters and spaces (no numbers or special characters)';
+    }
+
+    return '';
+  }
+
   // ---------- Toast ----------
   private showToast(message: string, type: 'success' | 'error' = 'success'): void {
     this.toastMessage = message;
@@ -138,12 +168,22 @@ export class Categories implements OnInit {
       return;
     }
     this.newCategoryName = '';
+    this.addCategoryError = '';
     this.showAddModal = true;
   }
 
   confirmAddCategory(): void {
     const name = this.newCategoryName.trim();
     if (!name) return;
+
+    // Reset error
+    this.addCategoryError = '';
+
+    // Validate category name
+    if (!this.isValidCategoryName(name)) {
+      this.addCategoryError = this.getValidationErrorMessage(name);
+      return;
+    }
 
     this.modalLoading = true;
 
@@ -154,6 +194,8 @@ export class Categories implements OnInit {
         this.applyFilterAndPagination();
         this.showAddModal = false;
         this.modalLoading = false;
+        this.newCategoryName = '';
+        this.addCategoryError = '';
         this.showToast('Category added successfully!', 'success');
       },
       error: () => {
@@ -171,6 +213,7 @@ export class Categories implements OnInit {
     }
     this.categoryToEdit = category;
     this.editCategoryName = category.name;
+    this.editCategoryError = '';
     this.showEditModal = true;
   }
 
@@ -178,6 +221,15 @@ export class Categories implements OnInit {
     if (!this.categoryToEdit) return;
     const name = this.editCategoryName.trim();
     if (!name) return;
+
+    // Reset error
+    this.editCategoryError = '';
+
+    // Validate category name
+    if (!this.isValidCategoryName(name)) {
+      this.editCategoryError = this.getValidationErrorMessage(name);
+      return;
+    }
 
     this.modalLoading = true;
 
@@ -187,6 +239,7 @@ export class Categories implements OnInit {
         this.applyFilterAndPagination();
         this.showEditModal = false;
         this.modalLoading = false;
+        this.editCategoryError = '';
         this.showToast('Category updated successfully!', 'success');
       },
       error: () => {
