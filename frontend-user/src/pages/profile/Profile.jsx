@@ -68,6 +68,8 @@ const BookShareDashboard = () => {
         return (
           <BooksGrid
             books={books}
+            isOwner={true}
+            userId={user?.id}
             onDelete={(deletedBookId) =>
               setBooks((prevBooks) =>
                 prevBooks.filter((b) => b._id !== deletedBookId)

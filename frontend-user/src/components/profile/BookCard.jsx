@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { deleteBook } from "../../redux/slices/bookSlice";
 
-const BookCard = ({ book, onDelete }) => {
+const BookCard = ({ book, onDelete, userId, isOwner }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [openMenu, setOpenMenu] = useState(false);
@@ -30,6 +30,7 @@ const BookCard = ({ book, onDelete }) => {
     if (openMenu) {
       document.addEventListener("mousedown", handleClickOutside);
     }
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -67,6 +68,7 @@ const BookCard = ({ book, onDelete }) => {
         onClick={handleCardClick}
       >
         <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300">
+          {/* Moderation Icon */}
           <div className="absolute top-2 left-2 p-1.5 bg-white/80 rounded-full z-10">
             {book.IsModerated ? (
               <svg
@@ -95,47 +97,50 @@ const BookCard = ({ book, onDelete }) => {
             )}
           </div>
 
-          <div className="absolute top-2 right-2 z-10" ref={menuRef}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpenMenu((prev) => !prev);
-              }}
-              className="p-1.5 bg-white/90 rounded-full hover:bg-white transition-colors duration-200 shadow-sm"
-            >
-              <svg
-                className="w-5 h-5 text-gray-700"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          {/* Menu button — owner only */}
+          {isOwner && (
+            <div className="absolute top-2 right-2 z-10" ref={menuRef}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenMenu((prev) => !prev);
+                }}
+                className="p-1.5 bg-white/90 rounded-full hover:bg-white transition-colors duration-200 shadow-sm"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                />
-              </svg>
-            </button>
-
-            {openMenu && (
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
-                <button
-                  onClick={handleEditClick}
-                  className="flex items-center w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                <svg
+                  className="w-5 h-5 text-gray-700"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  Edit Book
-                </button>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1      1 0 010 2z"
+                  />
+                </svg>
+              </button>
 
-                <button
-                  onClick={handleDeleteClick}
-                  className="flex items-center w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
-                >
-                  Delete Book
-                </button>
-              </div>
-            )}
-          </div>
+              {openMenu && (
+                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+                  <button
+                    onClick={handleEditClick}
+                    className="flex items-center w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  >
+                    Edit Book
+                  </button>
+
+                  <button
+                    onClick={handleDeleteClick}
+                    className="flex items-center w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
+                  >
+                    Delete Book
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <img
@@ -147,10 +152,12 @@ const BookCard = ({ book, onDelete }) => {
 
         <div>
           <p className="text-base font-medium truncate">{book.Title}</p>
+
           <div className="flex justify-between items-center">
             <p className="text-[#6f7b7b] text-sm">
               {formatTransactionType(book.TransactionType)}
             </p>
+
             {book.TransactionType === "toSale" && book.Price && (
               <p className="text-green-600 text-sm font-medium">
                 ${book.Price}
@@ -160,13 +167,15 @@ const BookCard = ({ book, onDelete }) => {
         </div>
       </div>
 
-      {openConfirm && (
+      {/* Confirm Delete Modal — only owner */}
+      {openConfirm && isOwner && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-80">
             <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
             <p className="text-sm text-gray-600 mb-6">
               Are you sure you want to delete this book?
             </p>
+
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setOpenConfirm(false)}
@@ -174,6 +183,7 @@ const BookCard = ({ book, onDelete }) => {
               >
                 Cancel
               </button>
+
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors duration-200"
