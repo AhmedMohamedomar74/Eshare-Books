@@ -147,14 +147,14 @@ export const createOperation = asyncHandler(async (req, res) => {
 
     newOperationData.totalPrice = pricePerDay * days;
   }
-   if (operationType === "buy") {
+  if (operationType === "buy") {
     const bookPrice = Number(mainBook.Price) || 0;
     newOperationData.totalPrice = bookPrice;
   }
   // --- نهاية منطق الاستعارة ---
 
   const newOperation = await operationModel.create(newOperationData);
-    await NotificationInstance.send({
+  await NotificationInstance.send({
     fromUserId: user_src,
     toUserId: user_dest,
     invitationType: "operation_request",
@@ -229,5 +229,27 @@ export const deleteOperation = asyncHandler(async (req, res) => {
     status: 200,
     message: "Operation deleted successfully",
     data: deleted,
+  });
+});
+
+// @desc    Get user operations (as source or destination)
+// @route   GET /api/operations/user
+// @access  Authenticated users
+export const getUserOperations = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const operations = await operationModel
+    .find({
+      $or: [{ user_src: userId }, { user_dest: userId }],
+      isDeleted: false,
+    })
+    .populate("book_dest_id", "_id Title")
+    .select("book_dest_id status operationType");
+
+  return successResponce({
+    res,
+    status: 200,
+    message: "User operations retrieved successfully",
+    data: operations,
   });
 });
