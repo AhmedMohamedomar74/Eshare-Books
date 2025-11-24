@@ -77,7 +77,7 @@ const NotificationMenu = ({
             key={inv.id}
             invitation={inv}
             onAccept={() => acceptInvitation(inv.id)}
-            onRefuse={() => refuseInvitation(inv.id)}
+            onRefuse={(reason) => refuseInvitation(inv.id, reason)}
             formatTime={formatTime}
           />
         )),

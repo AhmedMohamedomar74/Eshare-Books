@@ -4,6 +4,7 @@ import TabNavigation from "./../../components/profile/TabNavigation.jsx";
 import BooksGrid from "./../../components/profile/BooksGrid.jsx";
 import { userService } from "../../services/user/userService.js";
 import { bookService } from "../../services/books/bookServices.js";
+import { operationService } from "../../services/operations/operationService.js";
 
 const BookShareDashboard = () => {
   const [activeTab, setActiveTab] = useState("my-books");
@@ -11,15 +12,19 @@ const BookShareDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [books, setBooks] = useState([]);
+  const [booksWithPendingOps, setBooksWithPendingOps] = useState(new Set());
 
-  // Fetch user profile data
+  // Fetch user profile, books, and operations
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         setLoading(true);
+
+        // Fetch user data
         const userResponse = await userService.getProfile();
         setUser(userResponse.data);
 
+        // Fetch user books
         const booksResponse = await bookService.getUserBooks(
           userResponse.data.id
         );
@@ -27,6 +32,30 @@ const BookShareDashboard = () => {
           (book) => !book.isDeleted
         );
         setBooks(visibleBooks);
+
+        // ✅ Fetch user operations
+        try {
+          const operationsResponse = await operationService.getUserOperations();
+          const operations = operationsResponse.data || operationsResponse;
+
+          // ✅ Find books with pending operations
+          const pendingBookIds = new Set();
+          operations.forEach((op) => {
+            if (op.status === "pending" && op.book_dest_id) {
+              const bookId = op.book_dest_id._id || op.book_dest_id;
+              pendingBookIds.add(bookId.toString());
+            }
+          });
+
+          setBooksWithPendingOps(pendingBookIds);
+          console.log(
+            "📦 Books with pending operations:",
+            Array.from(pendingBookIds)
+          );
+        } catch (opError) {
+          console.error("Error fetching operations:", opError);
+          // Don't fail the whole page if operations fail
+        }
 
         setError(null);
       } catch (err) {
@@ -70,6 +99,7 @@ const BookShareDashboard = () => {
             books={books}
             isOwner={true}
             userId={user?.id}
+            booksWithPendingOps={booksWithPendingOps}
             onDelete={(deletedBookId) =>
               setBooks((prevBooks) =>
                 prevBooks.filter((b) => b._id !== deletedBookId)
