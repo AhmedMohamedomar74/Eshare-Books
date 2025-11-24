@@ -18,6 +18,7 @@ import NavigationProvider from "./components/common/NavigationProvider.jsx";
 import NotificationPage from "./pages/notification/NotificationPage.jsx";
 import ForgotPassword from "./pages/forgetPassword/ForgotPassword.jsx";
 import NotFound from "./pages/NotFound/NotFound.jsx";
+import EditBook from "./pages/Edit Book/EditBook.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -51,6 +52,7 @@ function App() {
               <Route path="/reports/:type/:targetId" element={<Report />} />
               <Route path="/myreports" element={<MyReports />} />
               <Route path="/add-book" element={<AddBook />} />
+              <Route path="/edit-book/:id" element={<EditBook />} />
             </Route>
           </Route>
           <Route path="/login" element={<BookCycleLogin />} />

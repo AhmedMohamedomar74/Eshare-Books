@@ -11,6 +11,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import HeroSection from "../../components/Home/HeroSection";
 import Filters from "../../components/Home/Filters";
 import BookGrid from "../../components/Home/BookGrid";
+import Spinner from "../../components/Spinner"; // ✅ عدلي المسار حسب مكان الملف عندك
 import bookService from "../../services/book.service";
 
 export default function Home() {
@@ -20,7 +21,10 @@ export default function Home() {
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 10;
+
+  const limit = 9; // ✅ هنا خليت العدد 9 كتب بس
+
+  const [loading, setLoading] = useState(false); // ✅ loading state
 
   const [activeFilter, setActiveFilter] = useState({
     type: null,
@@ -34,29 +38,47 @@ export default function Home() {
   }, [page]);
 
   const fetchBooks = async () => {
-    if (activeFilter.type) {
-      const data = await bookService.getBooksByType(activeFilter.type);
-      setBooks(data || []);
-      setTotalPages(1);
-      return;
-    }
+    try {
+      setLoading(true);
 
-    if (activeFilter.categoryId) {
-      const data = await bookService.getBooksByCategory(activeFilter.categoryId);
-      setBooks(data || []);
-      setTotalPages(1);
-      return;
-    }
+      if (activeFilter.type) {
+        const data = await bookService.getBooksByType(activeFilter.type);
+        setBooks((data || []).slice(0, 9)); // ✅ حتى لو رجع أكتر من 9 نقصهم
+        setTotalPages(1);
+        return;
+      }
 
-    const data = await bookService.getAllBooks(page, limit, searchTerm);
-    setBooks(data?.books || []);
-    const pages = Math.ceil((data?.total || 0) / (data?.limit || limit));
-    setTotalPages(pages || 1);
+      if (activeFilter.categoryId) {
+        const data = await bookService.getBooksByCategory(
+          activeFilter.categoryId
+        );
+        setBooks((data || []).slice(0, 9)); // ✅ نقصهم لـ 9
+        setTotalPages(1);
+        return;
+      }
+
+      const data = await bookService.getAllBooks(page, limit, searchTerm);
+
+      setBooks((data?.books || []).slice(0, 9)); // ✅ تأكيد 9
+      const pages = Math.ceil((data?.total || 0) / (data?.limit || limit));
+      setTotalPages(pages || 1);
+    } catch (err) {
+      console.error("Error fetching books:", err);
+      setBooks([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchCategories = async () => {
-    const cats = await bookService.getAllCategories();
-    setCategories(cats || []);
+    try {
+      const cats = await bookService.getAllCategories();
+      setCategories(cats || []);
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+      setCategories([]);
+    }
   };
 
   // 🔍 Search by title
@@ -66,10 +88,19 @@ export default function Home() {
     setPage(1);
     setActiveFilter({ type: null, categoryId: null });
 
-    const data = await bookService.getAllBooks(1, limit, value);
-    setBooks(data?.books || []);
-    const pages = Math.ceil((data?.total || 0) / (data?.limit || limit));
-    setTotalPages(pages || 1);
+    try {
+      setLoading(true);
+      const data = await bookService.getAllBooks(1, limit, value);
+      setBooks((data?.books || []).slice(0, 9));
+      const pages = Math.ceil((data?.total || 0) / (data?.limit || limit));
+      setTotalPages(pages || 1);
+    } catch (err) {
+      console.error("Error searching books:", err);
+      setBooks([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 🏷️ Filter by category
@@ -85,9 +116,18 @@ export default function Home() {
     setActiveFilter({ type: null, categoryId: catId });
     setPage(1);
 
-    const data = await bookService.getBooksByCategory(catId);
-    setBooks(data || []);
-    setTotalPages(1);
+    try {
+      setLoading(true);
+      const data = await bookService.getBooksByCategory(catId);
+      setBooks((data || []).slice(0, 9));
+      setTotalPages(1);
+    } catch (err) {
+      console.error("Error filtering by category:", err);
+      setBooks([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 💡 Filter by type
@@ -102,9 +142,18 @@ export default function Home() {
     setActiveFilter({ type: selectedType, categoryId: null });
     setPage(1);
 
-    const data = await bookService.getBooksByType(selectedType);
-    setBooks(data || []);
-    setTotalPages(1);
+    try {
+      setLoading(true);
+      const data = await bookService.getBooksByType(selectedType);
+      setBooks((data || []).slice(0, 9));
+      setTotalPages(1);
+    } catch (err) {
+      console.error("Error filtering by type:", err);
+      setBooks([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 🔄 Clear all filters
@@ -156,17 +205,28 @@ export default function Home() {
           />
         </Paper>
 
+        {/* ✅ Layout: Flex row + Filters same height as books */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: { xs: "column", md: "row" },
+            flexDirection: "row",
             gap: 3,
+            alignItems: "stretch", // ✅ important: يخلي الفلتر بطول الكتب
+            overflowX: { xs: "auto", md: "visible" },
           }}
         >
           {/* Filters */}
           <Paper
             elevation={1}
-            sx={{ p: 3, borderRadius: 3, bgcolor: "white", flex: "0 0 25%" }}
+            sx={{
+              p: 3,
+              borderRadius: 3,
+              bgcolor: "white",
+              flex: "0 0 280px",
+              minWidth: 340,
+              height: "100%", // ✅ stretch مع الكتب
+              minHeight: "185vh",
+            }}
           >
             <Filters
               categories={categories}
@@ -177,36 +237,43 @@ export default function Home() {
           </Paper>
 
           {/* Books Grid + Pagination */}
-          <Box sx={{ flex: 1 }}>
-            <BookGrid books={books} />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* ✅ Spinner وقت التحميل */}
+            {loading ? (
+              <Spinner />
+            ) : (
+              <>
+                <BookGrid books={books} />
 
-            <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
-              <Pagination
-                page={page}
-                count={totalPages}
-                onChange={handlePageChange}
-                shape="rounded"
-                color="primary"
-                size="large"
-                sx={{
-                  "& .MuiPaginationItem-root": {
-                    borderRadius: 2,
-                    fontWeight: "bold",
-                    color: "#1976d2",
-                    "&:hover": {
-                      backgroundColor: "#1976d2",
-                      color: "#fff",
-                      transform: "scale(1.1)",
-                    },
-                  },
-                  "& .Mui-selected": {
-                    backgroundColor: "#1976d2",
-                    color: "#fff",
-                    fontWeight: "bold",
-                  },
-                }}
-              />
-            </Box>
+                <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
+                  <Pagination
+                    page={page}
+                    count={totalPages}
+                    onChange={handlePageChange}
+                    shape="rounded"
+                    color="primary"
+                    size="large"
+                    sx={{
+                      "& .MuiPaginationItem-root": {
+                        borderRadius: 2,
+                        fontWeight: "bold",
+                        color: "#1976d2",
+                        "&:hover": {
+                          backgroundColor: "#1976d2",
+                          color: "#fff",
+                          transform: "scale(1.1)",
+                        },
+                      },
+                      "& .Mui-selected": {
+                        backgroundColor: "#1976d2",
+                        color: "#fff",
+                        fontWeight: "bold",
+                      },
+                    }}
+                  />
+                </Box>
+              </>
+            )}
           </Box>
         </Box>
       </Container>
