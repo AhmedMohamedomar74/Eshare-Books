@@ -35,8 +35,17 @@ const BookInfo = ({ book }) => {
         <Typography variant="h4" fontWeight="bold" mb={2}>
           {book.Title}
         </Typography>
-        <Typography color="text.secondary" mb={2}>
-          {book.Description}
+        <Typography
+          color="text.secondary"
+          mb={2}
+          sx={{
+            minHeight: "80px",
+            display: "flex",
+            alignItems: "flex-start",
+          }}
+        >
+          {book.Description?.split(" ").slice(0, 8).join(" ") +
+            (book.Description?.split(" ").length > 8 ? "..." : "")}
         </Typography>
         <Typography variant="body1" mb={1}>
           <strong>Category:</strong> {book.categoryId?.name || "N/A"}
