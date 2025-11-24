@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const BookCard = ({ book, hasPendingOperation }) => {
+const BookCard = ({ book, hasPendingOperation, isOwner }) => {
   const navigate = useNavigate();
   const [openMenu, setOpenMenu] = useState(false);
   const menuRef = useRef(null);
@@ -89,8 +89,8 @@ const BookCard = ({ book, hasPendingOperation }) => {
         </div>
 
         {/* Options Button with Menu */}
-        {/* ✅ Only show menu if no pending operation */}
-        {!hasPendingOperation && (
+        {/* ✅ Only show menu if owner AND no pending operation */}
+        {isOwner && !hasPendingOperation && (
           <div className="absolute top-2 right-2 z-10" ref={menuRef}>
             <button
               onClick={(e) => {
