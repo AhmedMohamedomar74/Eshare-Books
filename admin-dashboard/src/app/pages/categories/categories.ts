@@ -7,7 +7,6 @@ import { CategoriesService } from '../../shared/services/categories';
 interface Category {
   _id?: string;
   name: string;
-  bookCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -63,13 +62,9 @@ export class Categories implements OnInit {
     this.error = '';
 
     this.categoriesService.getAllCategories().subscribe({
-      next: async (res) => {
+      next: (res) => {
         const payload = res?.data ?? res;
         this.categories = Array.isArray(payload) ? payload : [];
-
-        // Load actual book counts for each category
-        await this.loadBooksCountForCategories();
-
         this.applyFilterAndPagination();
         this.loading = false;
       },
@@ -80,23 +75,6 @@ export class Categories implements OnInit {
         this.showToast('Failed to load categories', 'error');
       },
     });
-  }
-
-  // New method to load actual book counts
-  private async loadBooksCountForCategories(): Promise<void> {
-    for (const category of this.categories) {
-      if (category._id) {
-        try {
-          const booksResponse: any = await this.categoriesService
-            .getBooksByCategory(category._id)
-            .toPromise();
-          category.bookCount = booksResponse?.books?.length || 0;
-        } catch (error) {
-          console.error(`Error loading books for category ${category.name}:`, error);
-          category.bookCount = 0;
-        }
-      }
-    }
   }
 
   applyFilterAndPagination(): void {
@@ -129,9 +107,13 @@ export class Categories implements OnInit {
       return false;
     }
 
-    // Check if contains only letters (English and Arabic) and spaces
-    const validNameRegex = /^[A-Za-z\u0600-\u06FF\s]+$/;
-    return validNameRegex.test(trimmedName);
+    // Check if contains numbers (disallow numbers)
+    const hasNumbers = /\d/.test(trimmedName);
+    if (hasNumbers) {
+      return false;
+    }
+
+    return true;
   }
 
   private getValidationErrorMessage(name: string): string {
@@ -141,8 +123,8 @@ export class Categories implements OnInit {
       return 'Category name must be at least 3 characters long';
     }
 
-    if (!/^[A-Za-z\u0600-\u06FF\s]+$/.test(trimmedName)) {
-      return 'Category name can only contain letters and spaces (no numbers or special characters)';
+    if (/\d/.test(trimmedName)) {
+      return 'Category name cannot contain numbers';
     }
 
     return '';
@@ -190,7 +172,7 @@ export class Categories implements OnInit {
     this.categoriesService.createCategory({ name }).subscribe({
       next: (res) => {
         const newCat = res?.data ?? res;
-        this.categories.push({ bookCount: 0, ...newCat });
+        this.categories.push(newCat);
         this.applyFilterAndPagination();
         this.showAddModal = false;
         this.modalLoading = false;

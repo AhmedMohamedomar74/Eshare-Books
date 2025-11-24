@@ -6,7 +6,6 @@ import { AuthService } from '../../shared/services/auth';
 @Injectable({ providedIn: 'root' })
 export class CategoriesService {
   private baseUrl = 'http://localhost:3000/categories';
-  private booksBaseUrl = 'http://localhost:3000/books';
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
@@ -35,9 +34,5 @@ export class CategoriesService {
 
   deleteCategory(id: string): Observable<any> {
     return this.http.delete(`${this.baseUrl}/${id}`, this.getHeadersOptions());
-  }
-
-  getBooksByCategory(categoryId: string): Observable<any> {
-    return this.http.get(`${this.booksBaseUrl}/category/${categoryId}`, this.getHeadersOptions());
   }
 }

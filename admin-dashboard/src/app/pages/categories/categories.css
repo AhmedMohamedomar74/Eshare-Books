@@ -67,6 +67,7 @@
   width: 100%;
   text-align: left;
   border-collapse: collapse;
+  table-layout: fixed; /* Ensure equal column width */
 }
 
 .categories-table thead {
@@ -84,6 +85,16 @@
   border: none;
 }
 
+/* Equal column width */
+.categories-table .name-column {
+  width: 70%; /* 70% for name column */
+}
+
+.categories-table .actions-column {
+  width: 30%; /* 30% for actions column */
+  text-align: center;
+}
+
 .categories-table tbody td {
   padding: 16px;
   border-bottom: 1px solid #e2e8f0;
@@ -91,6 +102,7 @@
   color: #2d3748;
   vertical-align: middle;
   border: none;
+  word-wrap: break-word; /* Handle long category names */
 }
 
 .categories-table tbody tr:last-child td {
@@ -107,7 +119,7 @@
   cursor: pointer;
   color: #a0aec0;
   padding: 8px;
-  margin: 0 2px;
+  margin: 0 4px;
   transition: all 0.3s ease;
   font-size: 16px;
   border-radius: 4px;
@@ -371,6 +383,15 @@
     margin: 20px;
     width: calc(100% - 40px);
   }
+
+  /* Adjust column widths for mobile */
+  .categories-table .name-column {
+    width: 60%;
+  }
+
+  .categories-table .actions-column {
+    width: 40%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -393,6 +414,15 @@
 
   .pagination-controls .btn {
     width: 120px;
+  }
+
+  /* Further adjust column widths for very small screens */
+  .categories-table .name-column {
+    width: 55%;
+  }
+
+  .categories-table .actions-column {
+    width: 45%;
   }
 }
 

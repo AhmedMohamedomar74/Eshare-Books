@@ -45,16 +45,14 @@
     <table class="table categories-table">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Books</th>
-          <th>Actions</th>
+          <th class="name-column">Name</th>
+          <th class="actions-column">Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let category of displayedCategories">
-          <td>{{ category.name }}</td>
-          <td>{{ category.bookCount ?? 0 }}</td>
-          <td>
+          <td class="name-column">{{ category.name }}</td>
+          <td class="actions-column">
             <button class="btn-action edit" (click)="openEditModal(category)" [disabled]="loading">
               <i class="bi bi-pencil"></i>
             </button>
@@ -68,7 +66,7 @@
           </td>
         </tr>
         <tr *ngIf="!loading && displayedCategories.length === 0">
-          <td colspan="3" style="text-align: center">No categories found</td>
+          <td colspan="2" style="text-align: center">No categories found</td>
         </tr>
       </tbody>
     </table>
