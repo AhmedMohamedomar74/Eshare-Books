@@ -52,7 +52,7 @@
             >
               <i class="bi bi-tag"></i> {{ getSelectedCategoryName() }}
             </button>
-            <ul class="dropdown-menu" [class.show]="categoryDropdownOpen">
+            <ul class="dropdown-menu category-scroll-menu" [class.show]="categoryDropdownOpen">
               <li>
                 <a class="dropdown-item" href="javascript:void(0)" (click)="onCategoryFilter('')">
                   All Categories

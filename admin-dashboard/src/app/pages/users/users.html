@@ -101,31 +101,35 @@
           </td>
           <td>{{ user.createdAt | date : 'mediumDate' }}</td>
           <td>
-            <button
-              class="btn-action role-toggle"
-              [title]="user.role === 'admin' ? 'Demote to User' : 'Promote to Admin'"
-              (click)="openRoleModal(user)"
-              [disabled]="loading"
-            >
-              <i [class]="user.role === 'admin' ? 'bi bi-arrow-down' : 'bi bi-arrow-up'"></i>
-            </button>
-            <button
-              *ngIf="!user.isConfirmed"
-              class="btn-action confirm"
-              title="Confirm User"
-              (click)="openConfirmModal(user)"
-              [disabled]="loading"
-            >
-              <i class="bi bi-check-lg"></i>
-            </button>
-            <button
-              class="btn-action delete"
-              title="Delete"
-              (click)="openDeleteModal(user)"
-              [disabled]="loading"
-            >
-              <i class="bi bi-trash"></i>
-            </button>
+            <span *ngIf="user.role === 'admin'"></span>
+
+            <div *ngIf="user.role !== 'admin'">
+              <button
+                class="btn-action role-toggle"
+                title="Promote to Admin"
+                (click)="openRoleModal(user)"
+                [disabled]="loading"
+              >
+                <i class="bi bi-arrow-up"></i>
+              </button>
+              <button
+                *ngIf="!user.isConfirmed"
+                class="btn-action confirm"
+                title="Confirm User"
+                (click)="openConfirmModal(user)"
+                [disabled]="loading"
+              >
+                <i class="bi bi-check-lg"></i>
+              </button>
+              <button
+                class="btn-action delete"
+                title="Delete"
+                (click)="openDeleteModal(user)"
+                [disabled]="loading"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
           </td>
         </tr>
         <tr *ngIf="paginatedUsers.length === 0">
@@ -180,9 +184,7 @@
   >
     <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
       <div class="modal-header">
-        <h5>
-          {{ userForRoleChange?.role === 'admin' ? 'Demote to User' : 'Promote to Admin' }}
-        </h5>
+        <h5>Promote to Admin</h5>
         <button
           class="btn-close"
           (click)="showRoleModal = false"
@@ -191,11 +193,9 @@
       </div>
       <div class="modal-body">
         <p>
-          Are you sure you want to
-          <strong>{{ userForRoleChange?.role === 'admin' ? 'demote ' : 'promote ' }}</strong>
+          Are you sure you want to promote
           <strong>{{ userForRoleChange?.firstName }} {{ userForRoleChange?.secondName }}</strong>
-          to <strong>{{ userForRoleChange?.role === 'admin' ? 'User' : 'Admin' }}</strong
-          >?
+          to <strong>Admin</strong>?
         </p>
       </div>
       <div class="modal-footer">
@@ -205,11 +205,9 @@
         <button class="btn btn-primary" (click)="confirmRoleChange()" [disabled]="modalLoading">
           <span *ngIf="modalLoading" class="loading-spinner">
             <span class="spinner-border spinner-border-sm"></span>
-            {{ userForRoleChange?.role === 'admin' ? 'Demoting...' : 'Promoting...' }}
+            Promoting...
           </span>
-          <span *ngIf="!modalLoading">
-            {{ userForRoleChange?.role === 'admin' ? 'Demote' : 'Promote' }}
-          </span>
+          <span *ngIf="!modalLoading">Promote</span>
         </button>
       </div>
     </div>

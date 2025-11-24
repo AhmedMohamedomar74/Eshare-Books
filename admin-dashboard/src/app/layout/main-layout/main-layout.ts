@@ -24,7 +24,6 @@ import { Sidebar } from '../sidebar/sidebar';
     `
       .main-content {
         flex: 1;
-        // padding: 20px;
       }
     `,
   ],

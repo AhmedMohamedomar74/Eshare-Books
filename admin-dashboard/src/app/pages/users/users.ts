@@ -162,6 +162,10 @@ export class Users implements OnInit {
 
   // ---------- Role Change Modal ----------
   openRoleModal(user: User): void {
+    // منع فتح المودال لو اليوزر admin
+    if (user.role === 'admin') {
+      return;
+    }
     this.userForRoleChange = user;
     this.showRoleModal = true;
   }
@@ -170,28 +174,22 @@ export class Users implements OnInit {
     if (!this.userForRoleChange) return;
 
     this.modalLoading = true;
-    const newRole = this.userForRoleChange.role === 'user' ? 'admin' : 'user';
-    const action = newRole === 'admin' ? 'promote' : 'demote';
 
-    const serviceCall =
-      newRole === 'admin'
-        ? this.usersService.promoteToAdmin(this.userForRoleChange._id)
-        : this.usersService.demoteToUser(this.userForRoleChange._id);
+    // بس promote للـ admin ومفيش demote
+    const newRole = 'admin'; // دايماً بنحول لـ admin بس
+    const action = 'promote';
 
-    serviceCall.subscribe({
+    this.usersService.promoteToAdmin(this.userForRoleChange._id).subscribe({
       next: (updatedUser) => {
         this.userForRoleChange!.role = newRole;
         this.showRoleModal = false;
         this.modalLoading = false;
-        this.showToast(
-          `User ${action === 'promote' ? 'promoted to admin' : 'demoted to user'} successfully!`,
-          'success'
-        );
+        this.showToast('User promoted to admin successfully!', 'success');
       },
       error: (error) => {
-        console.error(`Failed to ${action} user:`, error);
+        console.error('Failed to promote user:', error);
         this.modalLoading = false;
-        this.showToast(`Failed to ${action} user`, 'error');
+        this.showToast('Failed to promote user', 'error');
       },
     });
   }

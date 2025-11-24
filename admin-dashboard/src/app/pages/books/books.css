@@ -358,6 +358,30 @@
   border-top: 1px solid #e2e8f0;
 }
 
+/* Category Dropdown with Scroll */
+.category-scroll-menu {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.category-scroll-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.category-scroll-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.category-scroll-menu::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.category-scroll-menu::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
 /* PAGINATION */
 .pagination {
   margin-bottom: 0;
