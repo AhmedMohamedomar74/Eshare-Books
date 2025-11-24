@@ -1,14 +1,11 @@
-import React from "react";
 import { Box, Button, Typography } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import CloseIcon from "@mui/icons-material/Close";
 
 const ImageUploader = ({
   existingImage,
   image,
   fieldError,
   handleImageUpload,
-  onRemoveImage,
 }) => {
   // Determine which image to show
   const imageToShow = image ? URL.createObjectURL(image) : existingImage;
