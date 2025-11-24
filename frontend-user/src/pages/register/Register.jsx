@@ -6,6 +6,7 @@ import FormStep2 from "./../../components/registration/FormStep2.jsx";
 import Popup from "../../components/common/Popup.jsx";
 import HeroSection from "../../components/registration/HeroSection.jsx";
 import LoginLink from "../../components/registration/LoginLink";
+import { useNavigate } from "react-router-dom";
 
 const BookShareRegister = () => {
   const {
@@ -26,6 +27,7 @@ const BookShareRegister = () => {
   } = useRegisterForm();
 
   const { popup, showPopup, hidePopup } = usePopup();
+  const navigate = useNavigate()
 
   const handleNext = async (e) => {
     e.preventDefault();
@@ -69,6 +71,7 @@ const BookShareRegister = () => {
       
       setTimeout(() => {
         // window.location.href = '/login'; // Uncomment to redirect
+        navigate('/login');
         setLoading(false);
       }, 2000);
       
