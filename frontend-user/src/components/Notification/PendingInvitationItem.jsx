@@ -123,7 +123,9 @@ const PendingInvitationItem = ({
               color="success"
               size="small"
               startIcon={<CheckIcon />}
-              onClick={onAccept}
+              onClick={() =>
+                onAccept(invitation.id, invitation.metadata?.operationId)
+              }
               fullWidth={isMobile}
             >
               Accept

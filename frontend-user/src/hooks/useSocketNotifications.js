@@ -9,7 +9,7 @@ export const useSocketNotifications = () => {
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [sentInvitations, setSentInvitations] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [paymentQueue, setPaymentQueue] = useState([]); // ⬅️ state للـ payments
+  const [paymentQueue, setPaymentQueue] = useState([]);
 
   const logsEndRef = useRef(null);
 
@@ -52,7 +52,11 @@ export const useSocketNotifications = () => {
       addLog(`📨 New invitation from user ${invitation.fromUserId}`, "info");
       setNotifications((prev) => [
         ...prev,
-        { ...invitation, type: "invitation", timestamp: new Date().toISOString() },
+        {
+          ...invitation,
+          type: "invitation",
+          timestamp: new Date().toISOString(),
+        },
       ]);
       setPendingInvitations((prev) => [...prev, invitation]);
 
@@ -91,7 +95,9 @@ export const useSocketNotifications = () => {
         ...prev,
         {
           type: "refusal",
-          message: `Your invitation was refused${data.reason ? `: ${data.reason}` : ""}`,
+          message: `Your invitation was refused${
+            data.reason ? `: ${data.reason}` : ""
+          }`,
           timestamp: new Date().toISOString(),
           ...data,
         },
@@ -151,7 +157,7 @@ export const useSocketNotifications = () => {
     socketService.on("pending-invitations", handlePendingInvitations);
     socketService.on("invitation-error", handleInvitationError);
     socketService.on("new-notification", handleNewNotification);
-    socketService.on("payment-required", handlePaymentRequired); // ⬅️ مهم للـ payment
+    socketService.on("payment-required", handlePaymentRequired);
 
     // Cleanup on unmount
     return () => {
@@ -178,13 +184,18 @@ export const useSocketNotifications = () => {
 
   const acceptInvitation = useCallback(
     (invitationId, operationId = null) => {
+      if (!currentUser?._id) return;
       addLog(`✅ Accepting invitation ${invitationId}`, "info");
-      socketService.acceptInvitation(invitationId, operationId);
+      socketService.acceptInvitation(
+        invitationId,
+        currentUser._id,
+        operationId
+      );
       setPendingInvitations((prev) =>
         prev.filter((inv) => inv.id !== invitationId)
       );
     },
-    [addLog]
+    [addLog, currentUser]
   );
 
   const refuseInvitation = useCallback(
@@ -220,7 +231,7 @@ export const useSocketNotifications = () => {
     notifications,
     pendingInvitations,
     sentInvitations,
-    paymentQueue, // ⬅️ للمكون اللي هيعرض زر Pay Now
+    paymentQueue,
     logs,
     logsEndRef,
     addLog,

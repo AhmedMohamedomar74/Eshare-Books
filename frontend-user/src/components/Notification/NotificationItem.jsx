@@ -22,14 +22,11 @@ const NotificationItem = ({ notification, formatTime }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [loading, setLoading] = useState(false);
 
-  // State للـ Modal والـ iframe
   const [paymentUrl, setPaymentUrl] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const handlePayNow = async () => {
     console.log("Notification received:", notification);
-
-    // نستخدم المفاتيح اللي جاية من السيرفر (operationId و totalPrice)
     if (!notification.operationId || !notification.totalPrice) {
       alert("Invalid payment notification.");
       return;
@@ -38,15 +35,15 @@ const NotificationItem = ({ notification, formatTime }) => {
     setLoading(true);
     try {
       const response = await api.post("/api/v1/orders/paymob/card", {
-        operationID: notification.operationId, // ⬅️ تحويل للاسم اللي الـ API محتاجه
-        amount: notification.totalPrice, // ⬅️ استخدام totalPrice كـ amount
+        operationID: notification.operationId,
+        amount: notification.totalPrice,
       });
 
       if (response.data.success && response.data.data?.iframeUrl) {
         setPaymentUrl(response.data.data.iframeUrl);
         setShowPaymentModal(true);
       } else {
-        alert("Payment failed ❌");
+        alert("Payment failed ");
       }
     } catch (error) {
       console.error("Payment error:", error);
@@ -120,7 +117,7 @@ const NotificationItem = ({ notification, formatTime }) => {
             {formatTime(notification.timestamp || notification.createdAt)}
           </Typography>
 
-          {/* زر Pay Now إذا نوع الإشعار payment */}
+          {/* payment */}
           {notification.type === "payment" && (
             <Button
               variant="contained"
@@ -136,7 +133,7 @@ const NotificationItem = ({ notification, formatTime }) => {
         </Box>
       </Stack>
 
-      {/* Modal لعرض شاشة الدفع */}
+      {/* Modal */}
       {showPaymentModal && (
         <Dialog
           open={showPaymentModal}

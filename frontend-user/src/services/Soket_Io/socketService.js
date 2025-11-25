@@ -61,8 +61,8 @@ class SocketService {
       "invitation-canceled",
       "pending-invitations",
       "invitation-error",
-      "new-notification", // ⬅️ مهم علشان يظهر زرار Pay Now
-      "payment-required", // ⬅️ لمتابعة حالة الدفع
+      "new-notification",
+      "payment-required",
     ];
 
     notificationEvents.forEach((event) => {
@@ -77,8 +77,12 @@ class SocketService {
     this.socket.emit("send-invitation", invitationData);
   }
 
-  acceptInvitation(invitationId) {
-    this.socket.emit("accept-invitation", { invitationId });
+  acceptInvitation(invitationId, userId, operationId) {
+    this.socket.emit("accept-invitation", {
+      invitationId,
+      userId,
+      operationId,
+    });
   }
 
   refuseInvitation(invitationId, reason) {
