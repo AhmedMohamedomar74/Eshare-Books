@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -10,7 +10,7 @@ import {
   Slider,
   Divider,
   Button,
-} from "@mui/material";
+} from '@mui/material';
 
 export default function Filters({
   categories = [],
@@ -20,7 +20,7 @@ export default function Filters({
   onClearFilters,
 }) {
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedType, setSelectedType] = useState('');
   const [priceRange, setPriceRange] = useState([0, 100]);
 
   const handleCategoryChange = (event) => {
@@ -41,7 +41,7 @@ export default function Filters({
 
   const handleClear = () => {
     setSelectedCategories([]);
-    setSelectedType("");
+    setSelectedType('');
     setPriceRange([0, 100]);
     onClearFilters?.();
   };
@@ -51,17 +51,17 @@ export default function Filters({
       sx={{
         p: 2.5,
         width: 250,
-        borderRight: "1px solid #e0e0e0",
-        bgcolor: "#fff",
-        height: "100%",
+        borderRight: '1px solid #e0e0e0',
+        bgcolor: '#fff',
+        height: '100%',
       }}
     >
       {/* Header */}
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           mb: 2,
         }}
       >
@@ -73,10 +73,10 @@ export default function Filters({
           size="small"
           onClick={handleClear}
           sx={{
-            color: "primary.main",
-            textTransform: "none",
+            color: 'primary.main',
+            textTransform: 'none',
             fontWeight: 500,
-            fontSize: "0.85rem",
+            fontSize: '0.85rem',
           }}
         >
           Clear Filters
@@ -88,28 +88,50 @@ export default function Filters({
         Category
       </Typography>
 
-      <FormGroup sx={{ mb: 2 }}>
-        {categories.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No categories found
-          </Typography>
-        ) : (
-          categories.map((cat) => (
-            <FormControlLabel
-              key={cat._id}
-              control={
-                <Checkbox
-                  checked={selectedCategories.includes(cat._id)}
-                  onChange={handleCategoryChange}
-                  value={cat._id}
-                  size="small"
-                />
-              }
-              label={<Typography variant="body2">{cat.name}</Typography>}
-            />
-          ))
-        )}
-      </FormGroup>
+      <Box
+        sx={{
+          maxHeight: 270,
+          overflowY: 'auto',
+          mb: 2,
+          '&::-webkit-scrollbar': {
+            width: 6,
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#f1f1f1',
+            borderRadius: 3,
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#c1c1c1',
+            borderRadius: 3,
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: '#a8a8a8',
+          },
+        }}
+      >
+        <FormGroup>
+          {categories.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No categories found
+            </Typography>
+          ) : (
+            categories.map((cat) => (
+              <FormControlLabel
+                key={cat._id}
+                control={
+                  <Checkbox
+                    checked={selectedCategories.includes(cat._id)}
+                    onChange={handleCategoryChange}
+                    value={cat._id}
+                    size="small"
+                  />
+                }
+                label={<Typography variant="body2">{cat.name}</Typography>}
+              />
+            ))
+          )}
+        </FormGroup>
+      </Box>
 
       <Divider sx={{ my: 2 }} />
 
@@ -118,16 +140,12 @@ export default function Filters({
         Transaction Type
       </Typography>
       <RadioGroup value={selectedType} onChange={handleTypeChange}>
-        {["toSale", "toBorrow",   "toDonate"].map((type) => (
+        {['toSale', 'toBorrow', 'toDonate'].map((type) => (
           <FormControlLabel
             key={type}
             value={type}
             control={<Radio size="small" />}
-            label={
-              <Typography variant="body2">
-                {type.replace("to", "To ")}
-              </Typography>
-            }
+            label={<Typography variant="body2">{type.replace('to', 'To ')}</Typography>}
           />
         ))}
       </RadioGroup>
