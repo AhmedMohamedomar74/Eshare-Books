@@ -12,6 +12,7 @@ import { MainLayout } from './layout/main-layout/main-layout';
 import { AuthLayout } from './layout/auth-layout/auth-layout';
 import { ContactSupport } from './pages/contact-support/contact-support';
 import { ForgotPassword } from './pages/forgot-password/forgot-password';
+import { SuggestedCategories } from './pages/suggest-categories/suggest-categories';
 
 export const routes: Routes = [
   {
@@ -35,6 +36,11 @@ export const routes: Routes = [
       { path: 'books', component: Books, title: 'Books' },
       { path: 'reports', component: Reports, title: 'Reports' },
       { path: 'categories', component: Categories, title: 'Categories' },
+      {
+        path: 'suggested-categories',
+        component: SuggestedCategories,
+        title: 'Suggested Categories',
+      },
     ],
   },
 
