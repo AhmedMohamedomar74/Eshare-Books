@@ -78,9 +78,8 @@ const NotificationMenu = ({
           <PendingInvitationItem
             key={inv.id}
             invitation={inv}
-            onAccept={
-              (invitationId, operationId) =>
-                acceptInvitation(invitationId, operationId)
+            onAccept={(invitationId, userId, operationId) =>
+              acceptInvitation(invitationId, userId, operationId)
             }
             onRefuse={(reason) => refuseInvitation(inv.id, reason)}
             formatTime={formatTime}
