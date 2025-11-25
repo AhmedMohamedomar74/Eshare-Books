@@ -1,15 +1,16 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { orderReducer } from "./slices/OrderSlice";
-import wishlistReducer from "./slices/wishlist.slice";
-import reportReducer from "./slices/report.slice";
-import bookReducer from "./slices/bookSlice.js";
-
+import { configureStore } from '@reduxjs/toolkit';
+import { orderReducer } from './slices/OrderSlice';
+import wishlistReducer from './slices/wishlist.slice';
+import reportReducer from './slices/report.slice';
+import bookReducer from './slices/bookSlice.js';
+import suggestCategoryReducer from './slices/suggestCategory.slice.js';
 const store = configureStore({
   reducer: {
     orders: orderReducer,
     wishlist: wishlistReducer,
     reports: reportReducer,
     books: bookReducer,
+    suggestCategory: suggestCategoryReducer,
   },
 });
 
