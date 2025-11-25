@@ -2,13 +2,34 @@
   <!-- Header -->
   <div class="page-header">
     <h1>Manage Categories</h1>
-    <button class="btn btn-primary" (click)="openAddCategoryModal()" [disabled]="loading">
+    <button
+      *ngIf="activeTab === 'categories'"
+      class="btn btn-primary"
+      (click)="openAddCategoryModal()"
+      [disabled]="loading"
+    >
       <i class="bi bi-plus"></i>
-      <span *ngIf="modalLoading && showAddModal" class="loading-spinner">
-        <span class="spinner-border spinner-border-sm"></span>
-        Adding...
-      </span>
-      <span *ngIf="!modalLoading || !showAddModal">Add New Category</span>
+      <span>Add New Category</span>
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'categories'"
+      (click)="switchTab('categories')"
+    >
+      <i class="bi bi-folder"></i>
+      Categories
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'suggested'"
+      (click)="switchTab('suggested')"
+    >
+      <i class="bi bi-lightbulb"></i>
+      Suggested Categories
     </button>
   </div>
 
@@ -17,19 +38,17 @@
     *ngIf="loading && !showAddModal && !showEditModal && !showDeleteModal"
     class="alert alert-info"
   >
-    Loading categories...
+    Loading {{ activeTab === 'categories' ? 'categories' : 'suggested categories' }}...
   </div>
 
   <!-- Error Message -->
   <div *ngIf="error" class="alert alert-danger">
     {{ error }}
-    <button class="btn btn-sm btn-outline-secondary ms-2" (click)="retryLoadCategories()">
-      Retry
-    </button>
+    <button class="btn btn-sm btn-outline-secondary ms-2" (click)="retryLoad()">Retry</button>
   </div>
 
-  <!-- Search -->
-  <div class="search-bar">
+  <!-- Search (Only for Categories tab) -->
+  <div *ngIf="activeTab === 'categories'" class="search-bar">
     <i class="bi bi-search"></i>
     <input
       type="text"
@@ -40,8 +59,8 @@
     />
   </div>
 
-  <!-- Table -->
-  <div class="table-container" [class.loading]="loading">
+  <!-- Categories Table -->
+  <div *ngIf="activeTab === 'categories'" class="table-container" [class.loading]="loading">
     <table class="table categories-table">
       <thead>
         <tr>
@@ -58,7 +77,7 @@
             </button>
             <button
               class="btn-action delete"
-              (click)="openDeleteModal(category)"
+              (click)="openDeleteCategoryModal(category)"
               [disabled]="loading"
             >
               <i class="bi bi-trash"></i>
@@ -72,17 +91,50 @@
     </table>
   </div>
 
+  <!-- Suggested Categories Table -->
+  <div *ngIf="activeTab === 'suggested'" class="table-container" [class.loading]="loading">
+    <table class="table categories-table suggested-table">
+      <thead>
+        <tr>
+          <th class="name-column">Category Name</th>
+          <th class="suggested-by-column">Suggested By</th>
+          <th class="date-column">Suggested At</th>
+          <th class="actions-column">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let category of displayedSuggestedCategories">
+          <td class="name-column">{{ category.name }}</td>
+          <td class="suggested-by-column">{{ category.suggestedBy?.fullName }}</td>
+          <td class="date-column">{{ category.createdAt | date : 'medium' }}</td>
+          <td class="actions-column">
+            <button
+              class="btn-action delete"
+              (click)="openDeleteSuggestedModal(category)"
+              [disabled]="loading"
+            >
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && displayedSuggestedCategories.length === 0">
+          <td colspan="4" style="text-align: center">No suggested categories found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <!-- Pagination -->
   <div class="pagination-section">
     <div class="pagination-controls">
       <button
         class="btn btn-light"
-        [disabled]="currentPage === 1 || loading"
+        [disabled]="getCurrentPage() === 1 || loading"
         (click)="previousPage()"
       >
         Previous
       </button>
-      <span class="pagination-info">Page {{ currentPage }} of {{ getTotalPages() }}</span>
+      <span class="pagination-info">Page {{ getCurrentPage() }} of {{ getTotalPages() }}</span>
       <button class="btn btn-light" [disabled]="isLastPage() || loading" (click)="nextPage()">
         Next
       </button>
@@ -193,7 +245,7 @@
   >
     <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
       <div class="modal-header">
-        <h5>Delete Category</h5>
+        <h5>Delete {{ categoryToDelete ? 'Category' : 'Suggested Category' }}</h5>
         <button
           class="btn-close"
           (click)="showDeleteModal = false"
@@ -201,10 +253,24 @@
         ></button>
       </div>
       <div class="modal-body">
-        <p>
+        <p *ngIf="categoryToDelete">
           Are you sure you want to delete category <strong>{{ categoryToDelete?.name }}</strong
           >?
         </p>
+        <div *ngIf="suggestedCategoryToDelete">
+          <p>
+            Are you sure you want to delete the suggested category
+            <strong>{{ suggestedCategoryToDelete?.name }}</strong
+            >?
+          </p>
+          <p>
+            <strong>Suggested by:</strong> {{ suggestedCategoryToDelete?.suggestedBy?.fullName }}
+          </p>
+          <p>
+            <strong>Suggested at:</strong>
+            {{ suggestedCategoryToDelete?.createdAt | date : 'medium' }}
+          </p>
+        </div>
       </div>
       <div class="modal-footer">
         <button
@@ -214,7 +280,7 @@
         >
           Cancel
         </button>
-        <button class="btn btn-danger" (click)="confirmDeleteCategory()" [disabled]="modalLoading">
+        <button class="btn btn-danger" (click)="confirmDelete()" [disabled]="modalLoading">
           <span *ngIf="modalLoading" class="loading-spinner">
             <span class="spinner-border spinner-border-sm"></span>
             Deleting...

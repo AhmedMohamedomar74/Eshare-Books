@@ -3,12 +3,29 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../shared/services/auth';
 import { CategoriesService } from '../../shared/services/categories';
+import { SuggestCategoryService } from '../../shared/services/suggest-category';
 
 interface Category {
   _id?: string;
   name: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+interface SuggestedCategory {
+  _id?: string;
+  name: string;
+  suggestedBy: {
+    _id: string;
+    firstName: string;
+    secondName: string;
+    email: string;
+    fullName: string;
+  };
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
 }
 
 @Component({
@@ -19,13 +36,23 @@ interface Category {
   styleUrls: ['./categories.css'],
 })
 export class Categories implements OnInit {
+  // Tab Management
+  activeTab: 'categories' | 'suggested' = 'categories';
+
+  // Categories
   categories: Category[] = [];
   displayedCategories: Category[] = [];
-
   searchQuery: string = '';
-  currentPage: number = 1;
-  itemsPerPage: number = 5;
-  totalResults: number = 0;
+  currentPageCategories: number = 1;
+  itemsPerPageCategories: number = 5;
+  totalResultsCategories: number = 0;
+
+  // Suggested Categories
+  suggestedCategories: SuggestedCategory[] = [];
+  displayedSuggestedCategories: SuggestedCategory[] = [];
+  currentPageSuggested: number = 1;
+  itemsPerPageSuggested: number = 10;
+  totalResultsSuggested: number = 0;
 
   loading = false;
   modalLoading = false;
@@ -50,13 +77,26 @@ export class Categories implements OnInit {
   // Delete Modal
   showDeleteModal: boolean = false;
   categoryToDelete: Category | null = null;
+  suggestedCategoryToDelete: SuggestedCategory | null = null;
 
-  constructor(private categoriesService: CategoriesService, private authService: AuthService) {}
+  constructor(
+    private categoriesService: CategoriesService,
+    private suggestCategoryService: SuggestCategoryService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.loadCategories();
+    this.loadSuggestedCategories();
   }
 
+  // ---------- Tab Management ----------
+  switchTab(tab: 'categories' | 'suggested'): void {
+    this.activeTab = tab;
+    this.error = '';
+  }
+
+  // ---------- Load Data ----------
   loadCategories(): void {
     this.loading = true;
     this.error = '';
@@ -77,24 +117,60 @@ export class Categories implements OnInit {
     });
   }
 
+  loadSuggestedCategories(): void {
+    this.loading = true;
+    this.error = '';
+
+    this.suggestCategoryService.getAllSuggestedCategories().subscribe({
+      next: (res) => {
+        this.suggestedCategories = res?.data || [];
+        this.applySuggestedPagination();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error details:', err);
+        this.loading = false;
+        this.error = err.error?.message || 'Failed to load suggested categories';
+        this.showToast(this.error, 'error');
+      },
+    });
+  }
+
+  // ---------- Pagination & Filtering ----------
   applyFilterAndPagination(): void {
     const query = this.searchQuery.trim().toLowerCase();
     const filtered = query
       ? this.categories.filter((c) => (c.name ?? '').toLowerCase().includes(query))
       : [...this.categories];
 
-    this.totalResults = filtered.length;
-    const totalPages = Math.max(1, Math.ceil(this.totalResults / this.itemsPerPage));
-    if (this.currentPage > totalPages) this.currentPage = totalPages;
+    this.totalResultsCategories = filtered.length;
+    const totalPages = Math.max(
+      1,
+      Math.ceil(this.totalResultsCategories / this.itemsPerPageCategories)
+    );
+    if (this.currentPageCategories > totalPages) this.currentPageCategories = totalPages;
 
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
+    const start = (this.currentPageCategories - 1) * this.itemsPerPageCategories;
+    const end = start + this.itemsPerPageCategories;
     this.displayedCategories = filtered.slice(start, end);
+  }
+
+  applySuggestedPagination(): void {
+    this.totalResultsSuggested = this.suggestedCategories.length;
+    const totalPages = Math.max(
+      1,
+      Math.ceil(this.totalResultsSuggested / this.itemsPerPageSuggested)
+    );
+    if (this.currentPageSuggested > totalPages) this.currentPageSuggested = totalPages;
+
+    const start = (this.currentPageSuggested - 1) * this.itemsPerPageSuggested;
+    const end = start + this.itemsPerPageSuggested;
+    this.displayedSuggestedCategories = this.suggestedCategories.slice(start, end);
   }
 
   onSearch(event: any): void {
     this.searchQuery = event.target.value;
-    this.currentPage = 1;
+    this.currentPageCategories = 1;
     this.applyFilterAndPagination();
   }
 
@@ -102,12 +178,10 @@ export class Categories implements OnInit {
   private isValidCategoryName(name: string): boolean {
     const trimmedName = name.trim();
 
-    // Check minimum length
     if (trimmedName.length < 3) {
       return false;
     }
 
-    // Check if contains numbers (disallow numbers)
     const hasNumbers = /\d/.test(trimmedName);
     if (hasNumbers) {
       return false;
@@ -139,11 +213,15 @@ export class Categories implements OnInit {
   }
 
   // ---------- Retry ----------
-  retryLoadCategories(): void {
-    this.loadCategories();
+  retryLoad(): void {
+    if (this.activeTab === 'categories') {
+      this.loadCategories();
+    } else {
+      this.loadSuggestedCategories();
+    }
   }
 
-  // ---------- Add ----------
+  // ---------- Add Category ----------
   openAddCategoryModal(): void {
     if (!this.authService.isAdmin()) {
       this.showToast('Unauthorized — Admin role required', 'error');
@@ -158,10 +236,8 @@ export class Categories implements OnInit {
     const name = this.newCategoryName.trim();
     if (!name) return;
 
-    // Reset error
     this.addCategoryError = '';
 
-    // Validate category name
     if (!this.isValidCategoryName(name)) {
       this.addCategoryError = this.getValidationErrorMessage(name);
       return;
@@ -187,7 +263,7 @@ export class Categories implements OnInit {
     });
   }
 
-  // ---------- Edit ----------
+  // ---------- Edit Category ----------
   openEditModal(category: Category): void {
     if (!this.authService.isAdmin()) {
       this.showToast('Unauthorized — Admin role required', 'error');
@@ -204,10 +280,8 @@ export class Categories implements OnInit {
     const name = this.editCategoryName.trim();
     if (!name) return;
 
-    // Reset error
     this.editCategoryError = '';
 
-    // Validate category name
     if (!this.isValidCategoryName(name)) {
       this.editCategoryError = this.getValidationErrorMessage(name);
       return;
@@ -231,14 +305,33 @@ export class Categories implements OnInit {
     });
   }
 
-  // ---------- Delete ----------
-  openDeleteModal(category: Category): void {
+  // ---------- Delete Category ----------
+  openDeleteCategoryModal(category: Category): void {
     if (!this.authService.isAdmin()) {
       this.showToast('Unauthorized — Admin role required', 'error');
       return;
     }
     this.categoryToDelete = category;
+    this.suggestedCategoryToDelete = null;
     this.showDeleteModal = true;
+  }
+
+  openDeleteSuggestedModal(category: SuggestedCategory): void {
+    if (!this.authService.isAdmin()) {
+      this.showToast('Unauthorized — Admin role required', 'error');
+      return;
+    }
+    this.suggestedCategoryToDelete = category;
+    this.categoryToDelete = null;
+    this.showDeleteModal = true;
+  }
+
+  confirmDelete(): void {
+    if (this.categoryToDelete) {
+      this.confirmDeleteCategory();
+    } else if (this.suggestedCategoryToDelete) {
+      this.confirmDeleteSuggestedCategory();
+    }
   }
 
   confirmDeleteCategory(): void {
@@ -261,23 +354,81 @@ export class Categories implements OnInit {
     });
   }
 
+  confirmDeleteSuggestedCategory(): void {
+    if (!this.suggestedCategoryToDelete) return;
+
+    this.modalLoading = true;
+
+    this.suggestCategoryService
+      .deleteSuggestCategory(this.suggestedCategoryToDelete._id!)
+      .subscribe({
+        next: (res) => {
+          const deletedCategory = res?.data;
+
+          if (deletedCategory && deletedCategory.isDeleted) {
+            this.suggestedCategories = this.suggestedCategories.filter(
+              (c) => c._id !== this.suggestedCategoryToDelete!._id
+            );
+            this.applySuggestedPagination();
+            this.showDeleteModal = false;
+            this.modalLoading = false;
+            this.showToast('Suggested category deleted successfully!', 'success');
+          } else {
+            this.modalLoading = false;
+            this.showToast('Failed to delete suggested category', 'error');
+          }
+        },
+        error: (err) => {
+          console.error('Delete error:', err);
+          this.modalLoading = false;
+          this.showToast(err.error?.message || 'Failed to delete suggested category', 'error');
+        },
+      });
+  }
+
   // ---------- Pagination ----------
   previousPage(): void {
-    if (this.currentPage > 1) this.currentPage--;
-    this.applyFilterAndPagination();
+    if (this.activeTab === 'categories') {
+      if (this.currentPageCategories > 1) this.currentPageCategories--;
+      this.applyFilterAndPagination();
+    } else {
+      if (this.currentPageSuggested > 1) this.currentPageSuggested--;
+      this.applySuggestedPagination();
+    }
   }
 
   nextPage(): void {
-    if (this.currentPage < Math.ceil(this.totalResults / this.itemsPerPage)) this.currentPage++;
-    this.applyFilterAndPagination();
+    if (this.activeTab === 'categories') {
+      if (
+        this.currentPageCategories <
+        Math.ceil(this.totalResultsCategories / this.itemsPerPageCategories)
+      )
+        this.currentPageCategories++;
+      this.applyFilterAndPagination();
+    } else {
+      if (
+        this.currentPageSuggested <
+        Math.ceil(this.totalResultsSuggested / this.itemsPerPageSuggested)
+      )
+        this.currentPageSuggested++;
+      this.applySuggestedPagination();
+    }
   }
 
-  // ---------- Helper Methods for Template ----------
+  // ---------- Helper Methods ----------
+  getCurrentPage(): number {
+    return this.activeTab === 'categories' ? this.currentPageCategories : this.currentPageSuggested;
+  }
+
   getTotalPages(): number {
-    return Math.ceil(this.totalResults / this.itemsPerPage);
+    if (this.activeTab === 'categories') {
+      return Math.ceil(this.totalResultsCategories / this.itemsPerPageCategories);
+    } else {
+      return Math.ceil(this.totalResultsSuggested / this.itemsPerPageSuggested);
+    }
   }
 
   isLastPage(): boolean {
-    return this.currentPage === this.getTotalPages();
+    return this.getCurrentPage() === this.getTotalPages();
   }
 }
