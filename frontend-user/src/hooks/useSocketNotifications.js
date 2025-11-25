@@ -1,6 +1,6 @@
 // useSocketNotifications.js
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { socketService } from '../services/Soket_Io/socketService.js';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { socketService } from "../services/Soket_Io/socketService.js";
 
 export const useSocketNotifications = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -9,125 +9,164 @@ export const useSocketNotifications = () => {
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [sentInvitations, setSentInvitations] = useState([]);
   const [logs, setLogs] = useState([]);
-  
+  const [paymentQueue, setPaymentQueue] = useState([]); // ⬅️ state للـ payments
+
   const logsEndRef = useRef(null);
 
   // Logging function
-  const addLog = useCallback((message, type = 'info') => {
+  const addLog = useCallback((message, type = "info") => {
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(prev => [...prev, { message, type, timestamp }]);
+    setLogs((prev) => [...prev, { message, type, timestamp }]);
   }, []);
 
   // Initialize socket connection
   useEffect(() => {
-    // Connect to socket
     socketService.connect();
 
-    // Set up event listeners
+    // Connection events
     const handleConnectionChange = ({ isConnected, reason }) => {
       setIsConnected(isConnected);
       if (!isConnected) {
-        addLog(`🔴 Disconnected: ${reason}`, 'error');
+        addLog(`🔴 Disconnected: ${reason}`, "error");
       } else {
-        addLog('🟢 Connected to server', 'success');
+        addLog("🟢 Connected to server", "success");
       }
     };
 
     const handleConnectionError = ({ error }) => {
-      addLog(`❌ Connection error: ${error.message}`, 'error');
+      addLog(`❌ Connection error: ${error.message}`, "error");
     };
 
     const handleUserConnected = (data) => {
       setCurrentUser(data.user);
-      addLog(`✅ ${data.message}`, 'success');
-      addLog(`👤 Logged in as: ${data.user.firstName || data.user._id}`, 'info');
+      addLog(`✅ ${data.message}`, "success");
+      addLog(
+        `👤 Logged in as: ${data.user.firstName || data.user._id}`,
+        "info"
+      );
       socketService.getPendingInvitations();
     };
 
+    // Invitation events
     const handleNewInvitation = (invitation) => {
-      addLog(`📨 New invitation from user ${invitation.fromUserId}`, 'info');
-      setNotifications(prev => [...prev, {
-        ...invitation,
-        timestamp: new Date().toISOString()
-      }]);
-      setPendingInvitations(prev => [...prev, invitation]);
-      
-      // Show browser notification
-      if (Notification.permission === 'granted') {
-        new Notification('New Invitation', {
+      addLog(`📨 New invitation from user ${invitation.fromUserId}`, "info");
+      setNotifications((prev) => [
+        ...prev,
+        { ...invitation, type: "invitation", timestamp: new Date().toISOString() },
+      ]);
+      setPendingInvitations((prev) => [...prev, invitation]);
+
+      if (Notification.permission === "granted") {
+        new Notification("New Invitation", {
           body: invitation.message,
-          icon: '/notification-icon.png'
+          icon: "/notification-icon.png",
         });
       }
     };
 
     const handleInvitationSent = (result) => {
-      addLog(`✉️ Invitation sent to user ${result.toUserId}`, 'success');
-      setSentInvitations(prev => [...prev, result.invitation]);
+      addLog(`✉️ Invitation sent to user ${result.toUserId}`, "success");
+      setSentInvitations((prev) => [...prev, result.invitation]);
     };
 
     const handleInvitationAccepted = (data) => {
-      addLog(`✅ User ${data.acceptedBy} accepted your invitation`, 'success');
-      setNotifications(prev => [...prev, {
-        type: 'acceptance',
-        message: `Your invitation was accepted`,
-        timestamp: new Date().toISOString(),
-        ...data
-      }]);
-      setSentInvitations(prev => prev.filter(inv => inv.id !== data.invitationId));
+      addLog(`✅ User ${data.acceptedBy} accepted your invitation`, "success");
+      setNotifications((prev) => [
+        ...prev,
+        {
+          type: "acceptance",
+          message: `Your invitation was accepted`,
+          timestamp: new Date().toISOString(),
+          ...data,
+        },
+      ]);
+      setSentInvitations((prev) =>
+        prev.filter((inv) => inv.id !== data.invitationId)
+      );
     };
 
     const handleInvitationRefused = (data) => {
-      addLog(`❌ User ${data.refusedBy} refused your invitation`, 'error');
-      setNotifications(prev => [...prev, {
-        type: 'refusal',
-        message: `Your invitation was refused${data.reason ? `: ${data.reason}` : ''}`,
-        timestamp: new Date().toISOString(),
-        ...data
-      }]);
-      setSentInvitations(prev => prev.filter(inv => inv.id !== data.invitationId));
+      addLog(`❌ User ${data.refusedBy} refused your invitation`, "error");
+      setNotifications((prev) => [
+        ...prev,
+        {
+          type: "refusal",
+          message: `Your invitation was refused${data.reason ? `: ${data.reason}` : ""}`,
+          timestamp: new Date().toISOString(),
+          ...data,
+        },
+      ]);
+      setSentInvitations((prev) =>
+        prev.filter((inv) => inv.id !== data.invitationId)
+      );
     };
 
     const handleInvitationCanceled = (data) => {
-      addLog(`🚫 Invitation ${data.invitationId} was canceled`, 'info');
-      setPendingInvitations(prev => prev.filter(inv => inv.id !== data.invitationId));
+      addLog(`🚫 Invitation ${data.invitationId} was canceled`, "info");
+      setPendingInvitations((prev) =>
+        prev.filter((inv) => inv.id !== data.invitationId)
+      );
     };
 
     const handlePendingInvitations = (data) => {
-      addLog(`📋 Received ${data.invitations.length} pending invitations`, 'info');
+      addLog(
+        `📋 Received ${data.invitations.length} pending invitations`,
+        "info"
+      );
       setPendingInvitations(data.invitations);
     };
 
     const handleInvitationError = (error) => {
-      addLog(`⚠️ Error: ${error.error}`, 'error');
+      addLog(`⚠️ Error: ${error.error}`, "error");
       alert(`Error: ${error.error}`);
     };
 
+    // Payment & general notifications
+    const handleNewNotification = (data) => {
+      addLog(`💰 New notification: ${data.message}`, "info");
+      setNotifications((prev) => [
+        ...prev,
+        { ...data, type: "notification", timestamp: new Date().toISOString() },
+      ]);
+    };
+
+    const handlePaymentRequired = (data) => {
+      addLog(`💳 Payment required for operation ${data.operationId}`, "info");
+      setPaymentQueue((prev) => [...prev, data]);
+      setNotifications((prev) => [
+        ...prev,
+        { ...data, type: "payment", timestamp: new Date().toISOString() },
+      ]);
+    };
+
     // Subscribe to events
-    socketService.on('connection-change', handleConnectionChange);
-    socketService.on('connection-error', handleConnectionError);
-    socketService.on('user-connected', handleUserConnected);
-    socketService.on('new-invitation', handleNewInvitation);
-    socketService.on('invitation-sent', handleInvitationSent);
-    socketService.on('invitation-accepted', handleInvitationAccepted);
-    socketService.on('invitation-refused', handleInvitationRefused);
-    socketService.on('invitation-canceled', handleInvitationCanceled);
-    socketService.on('pending-invitations', handlePendingInvitations);
-    socketService.on('invitation-error', handleInvitationError);
+    socketService.on("connection-change", handleConnectionChange);
+    socketService.on("connection-error", handleConnectionError);
+    socketService.on("user-connected", handleUserConnected);
+    socketService.on("new-invitation", handleNewInvitation);
+    socketService.on("invitation-sent", handleInvitationSent);
+    socketService.on("invitation-accepted", handleInvitationAccepted);
+    socketService.on("invitation-refused", handleInvitationRefused);
+    socketService.on("invitation-canceled", handleInvitationCanceled);
+    socketService.on("pending-invitations", handlePendingInvitations);
+    socketService.on("invitation-error", handleInvitationError);
+    socketService.on("new-notification", handleNewNotification);
+    socketService.on("payment-required", handlePaymentRequired); // ⬅️ مهم للـ payment
 
     // Cleanup on unmount
     return () => {
-      socketService.off('connection-change', handleConnectionChange);
-      socketService.off('connection-error', handleConnectionError);
-      socketService.off('user-connected', handleUserConnected);
-      socketService.off('new-invitation', handleNewInvitation);
-      socketService.off('invitation-sent', handleInvitationSent);
-      socketService.off('invitation-accepted', handleInvitationAccepted);
-      socketService.off('invitation-refused', handleInvitationRefused);
-      socketService.off('invitation-canceled', handleInvitationCanceled);
-      socketService.off('pending-invitations', handlePendingInvitations);
-      socketService.off('invitation-error', handleInvitationError);
-      
+      socketService.off("connection-change", handleConnectionChange);
+      socketService.off("connection-error", handleConnectionError);
+      socketService.off("user-connected", handleUserConnected);
+      socketService.off("new-invitation", handleNewInvitation);
+      socketService.off("invitation-sent", handleInvitationSent);
+      socketService.off("invitation-accepted", handleInvitationAccepted);
+      socketService.off("invitation-refused", handleInvitationRefused);
+      socketService.off("invitation-canceled", handleInvitationCanceled);
+      socketService.off("pending-invitations", handlePendingInvitations);
+      socketService.off("invitation-error", handleInvitationError);
+      socketService.off("new-notification", handleNewNotification);
+      socketService.off("payment-required", handlePaymentRequired);
       socketService.disconnect();
     };
   }, [addLog]);
@@ -137,27 +176,42 @@ export const useSocketNotifications = () => {
     socketService.sendInvitation(invitationData);
   }, []);
 
-  const acceptInvitation = useCallback((invitationId) => {
-    addLog(`✅ Accepting invitation ${invitationId}`, 'info');
-    socketService.acceptInvitation(invitationId);
-    setPendingInvitations(prev => prev.filter(inv => inv.id !== invitationId));
-  }, [addLog]);
+  const acceptInvitation = useCallback(
+    (invitationId, operationId = null) => {
+      addLog(`✅ Accepting invitation ${invitationId}`, "info");
+      socketService.acceptInvitation(invitationId, operationId);
+      setPendingInvitations((prev) =>
+        prev.filter((inv) => inv.id !== invitationId)
+      );
+    },
+    [addLog]
+  );
 
-  const refuseInvitation = useCallback((invitationId, reason) => {
-    addLog(`❌ Refusing invitation ${invitationId}`, 'info');
-    socketService.refuseInvitation(invitationId, reason);
-    setPendingInvitations(prev => prev.filter(inv => inv.id !== invitationId));
-  }, [addLog]);
+  const refuseInvitation = useCallback(
+    (invitationId, reason) => {
+      addLog(`❌ Refusing invitation ${invitationId}`, "info");
+      socketService.refuseInvitation(invitationId, reason);
+      setPendingInvitations((prev) =>
+        prev.filter((inv) => inv.id !== invitationId)
+      );
+    },
+    [addLog]
+  );
 
-  const cancelInvitation = useCallback((invitationId) => {
-    addLog(`🚫 Canceling invitation ${invitationId}`, 'info');
-    socketService.cancelInvitation(invitationId);
-    setSentInvitations(prev => prev.filter(inv => inv.id !== invitationId));
-  }, [addLog]);
+  const cancelInvitation = useCallback(
+    (invitationId) => {
+      addLog(`🚫 Canceling invitation ${invitationId}`, "info");
+      socketService.cancelInvitation(invitationId);
+      setSentInvitations((prev) =>
+        prev.filter((inv) => inv.id !== invitationId)
+      );
+    },
+    [addLog]
+  );
 
   // Auto-scroll logs
   useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
   return {
@@ -166,6 +220,7 @@ export const useSocketNotifications = () => {
     notifications,
     pendingInvitations,
     sentInvitations,
+    paymentQueue, // ⬅️ للمكون اللي هيعرض زر Pay Now
     logs,
     logsEndRef,
     addLog,
@@ -174,6 +229,8 @@ export const useSocketNotifications = () => {
     refuseInvitation,
     cancelInvitation,
     setPendingInvitations,
-    setSentInvitations
+    setSentInvitations,
+    setNotifications,
+    setPaymentQueue,
   };
 };

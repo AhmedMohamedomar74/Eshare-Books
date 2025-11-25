@@ -1,4 +1,4 @@
-import { Menu, Box, Typography, Divider, Button } from "@mui/material";
+import { Menu, Box, Typography, Divider } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import PendingInvitationItem from "./PendingInvitationItem";
 import NotificationItem from "./NotificationItem";
@@ -40,12 +40,14 @@ const NotificationMenu = ({
       transformOrigin={{ horizontal: "right", vertical: "top" }}
       anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
     >
+      {/* Header */}
       <Box sx={{ px: 2, py: 1.5, borderBottom: 1, borderColor: "divider" }}>
         <Typography variant="h6" fontWeight="bold">
           Notifications
         </Typography>
       </Box>
 
+      {/* No notifications */}
       {pendingInvitations.length === 0 && notifications.length === 0 && (
         <Box sx={{ p: 3, textAlign: "center" }}>
           <NotificationsIcon
@@ -57,6 +59,7 @@ const NotificationMenu = ({
         </Box>
       )}
 
+      {/* Pending Invitations */}
       {pendingInvitations.length > 0 && [
         <Box
           key="pending-header"
@@ -71,7 +74,6 @@ const NotificationMenu = ({
             ACTION REQUIRED ({pendingInvitations.length})
           </Typography>
         </Box>,
-
         ...pendingInvitations.map((inv) => (
           <PendingInvitationItem
             key={inv.id}
@@ -81,10 +83,10 @@ const NotificationMenu = ({
             formatTime={formatTime}
           />
         )),
-
         <Divider key="pending-divider" />,
       ]}
 
+      {/* Recent Notifications */}
       {notifications.length > 0 && [
         <Box
           key="recent-header"
@@ -99,7 +101,6 @@ const NotificationMenu = ({
             Recent Activity
           </Typography>
         </Box>,
-
         ...notifications
           .slice(0, 5)
           .map((note, i) => (
@@ -110,17 +111,6 @@ const NotificationMenu = ({
             />
           )),
       ]}
-
-      {(pendingInvitations.length > 0 || notifications.length > 0) && (
-        <Box
-          sx={{
-            p: 1.5,
-            borderTop: 1,
-            borderColor: "divider",
-            textAlign: "center",
-          }}
-        ></Box>
-      )}
     </Menu>
   );
 };

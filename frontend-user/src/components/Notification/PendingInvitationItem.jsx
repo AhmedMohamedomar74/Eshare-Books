@@ -143,7 +143,6 @@ const PendingInvitationItem = ({
         </Stack>
       </Box>
 
-      {/*Dialog for Reject Reason */}
       <Dialog
         open={openRefuseDialog}
         onClose={() => setOpenRefuseDialog(false)}
