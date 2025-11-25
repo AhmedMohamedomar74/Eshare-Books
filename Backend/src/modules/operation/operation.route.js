@@ -3,6 +3,7 @@ import {
   createOperation,
   deleteOperation,
   getAllOperation,
+  getUserOperations,
   updateOperation,
 } from "./operation.controller.js";
 import { auth } from "../../middelwares/auth.middleware.js";
@@ -39,5 +40,8 @@ operationRouter.put(
 // @route   DELETE /api/operations/:id
 // @access  Authenticated users (only involved users or admin)
 operationRouter.delete("/:id", authorizeOperation, deleteOperation);
+
+// Add this route
+operationRouter.get("/user", getUserOperations);
 
 export default operationRouter;

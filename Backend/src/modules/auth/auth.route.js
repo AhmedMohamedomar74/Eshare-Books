@@ -9,4 +9,8 @@ router.get("/verify/:email",validateVerifyEmail,authServices.verfiyEmail)
 router.post("/login",validateLogin,validateLoginCredentials, validatePassword,authServices.login)
 router.post("/refresh-token", refreshAuth, authServices.refreshToken)
 
+router.post("/forgot-password",  authServices.forgotPassword);
+router.post("/verify-reset-code",  authServices.verifyResetCode);
+router.post("/reset-password", authServices.resetPassword);
+
 export default router

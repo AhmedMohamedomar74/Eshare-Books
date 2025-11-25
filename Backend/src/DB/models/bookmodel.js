@@ -53,7 +53,11 @@ const bookSchema = new mongoose.Schema(
     Price: {
       type: Number,
       // required: true,
-      min: 0,
+      min: 1,
+    },
+    PricePerDay: {
+      type: Number,
+      min: 1,
     },
     // ✅ Soft Delete flag
     isDeleted: {

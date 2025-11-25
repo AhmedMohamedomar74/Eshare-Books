@@ -39,15 +39,20 @@ const operationSchema = new mongoose.Schema({
   endDate: { type: Date },
   durationDays: { type: Number },
   isDeleted: { type: Boolean, default: false },
+  totalPrice: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
 });
 
-operationSchema.pre("save", function (next) {
-  if (this.startDate && this.endDate) {
-    const diff = (this.endDate - this.startDate) / (1000 * 60 * 60 * 24);
-    this.durationDays = Math.ceil(diff);
-  }
-  next();
-});
+// operationSchema.pre("save", function (next) {
+//   if (this.startDate && this.endDate) {
+//     const diff = (this.endDate - this.startDate) / (1000 * 60 * 60 * 24);
+//     this.durationDays = Math.ceil(diff);
+//   }
+//   next();
+// });
 
 const operationModel = mongoose.model("operation", operationSchema);
 export default operationModel;

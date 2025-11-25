@@ -4,6 +4,7 @@ import { findOne } from "../../DB/db.services.js"
 import userModel   from "../../DB/models/User.model.js"
 import { successResponce } from "../Response.js"
 import { roleEnum, signatureKeySelectEnum, signatureLevelEnum } from "../../enum.js"
+import { AppError } from "../AppError.js"
 
 export const genrateToken = ({ data = {}, key = {}, options = {} }) => {
     console.log({data,key,options})
@@ -11,8 +12,21 @@ export const genrateToken = ({ data = {}, key = {}, options = {} }) => {
 }
 
 export const verify = ({ token = {}, key = {} }) => {
-    return jwt.verify(token, key)
-}
+    try {
+        return jwt.verify(token, key);
+    } catch (error) {
+        // Handle different JWT error types
+        if (error.name === 'TokenExpiredError') {
+            throw new AppError('Token has expired', 401);
+        } else if (error.name === 'JsonWebTokenError') {
+            throw new AppError('Invalid token', 401);
+        } else if (error.name === 'NotBeforeError') {
+            throw new AppError('Token not yet active', 401);
+        } else {
+            throw new AppError('Token verification failed', 401);
+        }
+    }
+};
 
 export const selectSignatureLevel = (signatureLevel) => {
     let signatures = { access: undefined, refresh: undefined }
@@ -37,21 +51,21 @@ export const selectSignatureLevel = (signatureLevel) => {
 export const decodeToken = ({ selectKey = signatureKeySelectEnum.acess }) => {
     return asyncHandler(async (req, res, next) => {
         let decode = undefined
-        console.log({ selectKey })
+        // console.log({ selectKey })
         const { authorization } = req.headers
         const [Bearer, token] = authorization.split(" ")
         if (!Bearer || !token) {
             return next(new Error("Authorization token is required", { cause: 401 }))
         }
         const signatureLevel = selectSignatureLevel(Bearer)
-        console.log({ signatureLevel, selectKey })
+        // console.log({ signatureLevel, selectKey })
         switch (selectKey) {
             case signatureKeySelectEnum.acess:
                 decode = verify({ token: token, key: signatureLevel.access })
                 break;
             case signatureKeySelectEnum.refresh:
                 decode = verify({ token: token, key: signatureLevel.refresh })
-                console.log({ decode })
+                // console.log({ decode })
                 break;
             default:
                 console.log(selectKey)

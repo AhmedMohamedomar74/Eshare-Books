@@ -12,6 +12,7 @@ import {
 } from "./operationValidation.service.js";
 import { successResponce } from "../../utils/Response.js";
 import { AppError } from "../../utils/AppError.js";
+import { NotificationInstance } from "../../Gateways/notification.instance.js";
 
 // Helper Functions
 
@@ -21,40 +22,10 @@ const findBookById = async (bookId) => await bookmodel.findById(bookId);
 // Find user by ID
 const findUserById = async (userId) => await userModel.findById(userId);
 
-// Check if user owns a specific book
-// const checkBookOwnership = async (bookId, userId) =>
-//   await bookmodel.findOne({ _id: bookId, UserID: userId });
-
-// // Check if book is already in another pending operation
-// const checkActiveBookOperation = async (bookId) =>
-//   await operationModel.findOne({
-//     $or: [{ book_src_id: bookId }, { book_dest_id: bookId }],
-//     status: operationStatusEnum.PENDING,
-//     isDeleted: false,
-//   });
-
-// Check if same operation already exists
-// const checkExistingOperation = async ({
-//   user_src,
-//   user_dest,
-//   book_src_id,
-//   book_dest_id,
-//   operationType,
-// }) =>
-//   await operationModel.findOne({
-//     user_src,
-//     user_dest,
-//     book_src_id,
-//     book_dest_id,
-//     operationType,
-//     status: operationStatusEnum.PENDING,
-//     isDeleted: false,
-//   });
-
 // Controllers
 
-// @desc    Get all operations
-// @route   GET /api/operations
+// @desc    Get all operations
+// @route   GET /api/operations
 export const getAllOperation = asyncHandler(async (req, res) => {
   const operations = await operationModel
     .find({ isDeleted: false })
@@ -71,7 +42,8 @@ export const getAllOperation = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Create new operation (exchange / borrow)
+// ----------------------------------------------------------------------
+// @desc    Create new operation (buy / exchange / borrow / donate)
 // @route   POST /api/operations
 export const createOperation = asyncHandler(async (req, res) => {
   const {
@@ -80,54 +52,52 @@ export const createOperation = asyncHandler(async (req, res) => {
     book_dest_id,
     startDate,
     endDate,
+    numberOfDays,
     operationType,
   } = req.validatedBody;
 
   const user_src = req.user._id;
+  const srcUser = await findUserById(user_src);
 
-  // Prevent user from performing an operation with themselves
   if (user_src.toString() === user_dest.toString()) {
     throw new AppError("You cannot perform an operation with yourself.", 400);
   }
 
-  // Verify destination user
   const destUser = await findUserById(user_dest);
   if (!destUser) {
     throw new AppError("Destination user does not exist.", 404);
   }
 
-  // Verify source book
-  const srcBook = await findBookById(book_dest_id);
-  if (!srcBook) {
-    throw new AppError("Source book does not exist.", 404);
+  const mainBook = await findBookById(book_dest_id);
+  if (!mainBook) {
+    throw new AppError("Requested book does not exist.", 404);
   }
 
-  // Verify destination book (only for exchange)
-  const destBook =
-    operationType === "exchange" && book_dest_id
-      ? await findBookById(book_dest_id)
+  const exchangeBook =
+    operationType === "exchange" && book_src_id
+      ? await findBookById(book_src_id)
       : null;
 
-  // validate transaction type
   await validateBookTransactionType({
     operationType,
-    srcBook,
-    destBook,
+    srcBook: mainBook,
+    destBook: exchangeBook,
   });
 
-  // Validate ownership logic
   await validateOperationOwnership({
     operationType,
     user_src,
     user_dest,
-    srcBook,
-    destBook,
+    srcBook: mainBook,
+    destBook: exchangeBook,
   });
 
-  // Validate that involved books are not already in another active operation
-  await validateActiveStatus({ operationType, book_src_id, book_dest_id });
+  await validateActiveStatus({
+    operationType,
+    book_src_id,
+    book_dest_id,
+  });
 
-  // Validate that the same operation is not already pending
   await validateDuplicateOperation({
     user_src,
     user_dest,
@@ -136,19 +106,65 @@ export const createOperation = asyncHandler(async (req, res) => {
     operationType,
   });
 
-  // Create the operation
   const newOperationData = {
     user_src,
     user_dest,
-    book_src_id,
+    book_dest_id,
     operationType,
-    startDate,
-    endDate,
   };
 
-  if (book_dest_id) newOperationData.book_dest_id = book_dest_id;
+  if (book_src_id && operationType === "exchange") {
+    newOperationData.book_src_id = book_src_id;
+  }
+
+  if (operationType === "borrow") {
+    let days = 0;
+    const pricePerDay = Number(mainBook.PricePerDay) || 0;
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      if (end <= start)
+        throw new AppError("End date must be after start date.", 400);
+
+      const diffTime = Math.abs(end - start);
+      days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      newOperationData.startDate = startDate;
+      newOperationData.endDate = endDate;
+      newOperationData.numberOfDays = days;
+    } else if (numberOfDays) {
+      days = Number(numberOfDays);
+      if (days <= 0) throw new AppError("Invalid number of days.", 400);
+      newOperationData.numberOfDays = days;
+    } else {
+      throw new AppError(
+        "Borrow duration (dates or number of days) is required.",
+        400
+      );
+    }
+
+    newOperationData.totalPrice = pricePerDay * days;
+  }
+  if (operationType === "buy") {
+    const bookPrice = Number(mainBook.Price) || 0;
+    newOperationData.totalPrice = bookPrice;
+  }
+  // --- نهاية منطق الاستعارة ---
 
   const newOperation = await operationModel.create(newOperationData);
+  await NotificationInstance.send({
+    fromUserId: user_src,
+    toUserId: user_dest,
+    invitationType: "operation_request",
+    message: `You have a new ${operationType} request from ${srcUser.firstName} ${srcUser.secondName}`,
+    metadata: {
+      operationId: newOperation._id.toString(),
+      bookId: book_dest_id.toString(),
+      type: operationType,
+    },
+  });
 
   return successResponce({
     res,
@@ -158,8 +174,8 @@ export const createOperation = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Update operation status
-// @route   PUT /api/operations/:id
+// @desc    Update operation status
+// @route   PUT /api/operations/:id
 export const updateOperation = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const value = req.validatedBody;
@@ -175,6 +191,16 @@ export const updateOperation = asyncHandler(async (req, res) => {
     throw new AppError("Operation not found.", 404);
   }
 
+  if (value.status === "completed") {
+    await NotificationInstance.send({
+      fromUserId: req.user._id,
+      toUserId: updated.user_src.toString(),
+      invitationType: "operation_completed",
+      message: `Your ${updated.operationType} operation is completed.`,
+      metadata: { operationId: updated._id.toString() },
+    });
+  }
+
   return successResponce({
     res,
     status: 200,
@@ -183,8 +209,8 @@ export const updateOperation = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Soft delete an operation
-// @route   DELETE /api/operations/:id
+// @desc    Soft delete an operation
+// @route   DELETE /api/operations/:id
 export const deleteOperation = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -203,5 +229,27 @@ export const deleteOperation = asyncHandler(async (req, res) => {
     status: 200,
     message: "Operation deleted successfully",
     data: deleted,
+  });
+});
+
+// @desc    Get user operations (as source or destination)
+// @route   GET /api/operations/user
+// @access  Authenticated users
+export const getUserOperations = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const operations = await operationModel
+    .find({
+      $or: [{ user_src: userId }, { user_dest: userId }],
+      isDeleted: false,
+    })
+    .populate("book_dest_id", "_id Title")
+    .select("book_dest_id status operationType");
+
+  return successResponce({
+    res,
+    status: 200,
+    message: "User operations retrieved successfully",
+    data: operations,
   });
 });

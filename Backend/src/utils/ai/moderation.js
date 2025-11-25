@@ -1,235 +1,365 @@
 import axios from 'axios';
 
-const MODERATION_MODE = process.env.MODERATION_MODE || 'strict';
-const sensitivityThreshold = {
-  strict: 0.4,
-  normal: 0.7,
-  lenient: 0.9,
-}[MODERATION_MODE];
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = 'gemini-2.5-flash-lite';
+const MODERATION_FAIL_CLOSED = process.env.MODERATION_FAIL_CLOSED === 'true';
 
-const FAIL_CLOSED = process.env.MODERATION_FAIL_CLOSED === 'true';
-
-const DANGER_LABEL_KEYWORDS = [
-  'toxic',
-  'threat',
-  'insult',
-  'sexual',
-  'obscene',
-  'violence',
-  'hate',
-  'porn',
-  'explicit',
-];
-
-const arabicBannedWords = [
-  'قتل',
-  'أقتل',
-  'سأقتل',
-  'اغتصاب',
-  'تحرش',
-  'انتحار',
-  'انفجار',
-  'تفجير',
-  'مخدرات',
-  'حشيش',
-  'تهديد',
-  'إرهاب',
-  'قنبلة',
-  'قنابل',
-  'سلاح',
-  'رصاص',
-  'عنف',
-  'كراهية',
-  'سب',
-  'شتيمة',
-  'لعنة',
-  'اباحي',
-  'فاحشة',
-  'اغتصب',
-  'قاتل',
-  'اذبح',
-  'اذبحك',
-  'انتقم',
-  'انتحاري',
-  'مسيء',
-  'حقير',
-  'وسخ',
-];
-
-const normalizeArabic = (str = '') =>
-  str
-    .normalize('NFKC')
-    .replace(/[\u064B-\u0652]/g, '')
-    .replace(/[إأآا]/g, 'ا')
-    .replace(/ى/g, 'ي')
-    .replace(/ؤ/g, 'و')
-    .replace(/ئ/g, 'ي')
-    .replace(/ة/g, 'ه')
-    .toLowerCase()
-    .trim();
-
-/* ──────────────────────────────
-   Moderate Text (Hugging Face) — robust normalization + logging
-────────────────────────────── */
-export const moderateText = async (title = '', description = '') => {
-  const text = `${title}\n${description}`.trim();
-  if (!text) return { flagged: false, details: [], source: 'empty-text' };
-
-  const normalizedText = normalizeArabic(text);
-  const foundArabic = arabicBannedWords.find((word) =>
-    normalizedText.includes(normalizeArabic(word))
-  );
-
-  if (foundArabic) {
-    return {
-      flagged: true,
-      reason: `تم اكتشاف كلمة محظورة بالعربية: "${foundArabic}"`,
-      source: 'local-arabic-filter',
-    };
+/**
+ * Moderate text using Gemini 2.5 Flash
+ * Supports Arabic and English content
+ * @param {string} text - Text to moderate
+ * @returns {Promise<{flagged: boolean, reason: string, source: string}>}
+ */
+export const moderateText = async (text) => {
+  if (!text || text.trim() === '') {
+    return { flagged: false, reason: '', source: 'gemini' };
   }
 
   try {
-    const resp = await axios.post(
-      'https://router.huggingface.co/hf-inference/models/unitary/toxic-bert',
-      { inputs: text },
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
       {
-        headers: { Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}` },
-        timeout: 15000,
+        contents: [
+          {
+            parts: [
+              {
+                text: `You are a STRICT content moderator for a family-friendly book platform.
+
+Your job: Analyze text and return ONLY JSON.
+
+REJECT if text contains:
+1. Sexual/pornographic content (explicit, porn, xxx, sexual acts)
+2. Violence/threats (violent, kill, harm, threats, weapons)
+3. Hate speech (racist, discrimination, slurs)
+4. Profanity (fuck, shit, damn, bastard, offensive words)
+5. Illegal content (drugs, illegal activities)
+
+BE STRICT: If you see ANY inappropriate word → flag it immediately.
+
+Text to check:
+"""
+${text}
+"""
+
+Respond with ONLY this JSON (nothing else):
+{"flagged": true, "reason": "brief explanation"}
+OR
+{"flagged": false, "reason": ""}`,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0,
+          maxOutputTokens: 500, 
+        },
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_NONE',
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_NONE',
+          },
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_NONE',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_NONE',
+          },
+        ],
       }
     );
 
-    console.log('Hugging Face text moderation raw response:', JSON.stringify(resp.data, null, 2));
+    const candidate = response.data.candidates?.[0];
 
-    let raw = resp.data;
-    let labels = [];
+    console.log('🔍 Gemini Full Response:', JSON.stringify(response.data, null, 2));
 
-    if (Array.isArray(raw)) {
-      if (raw.length === 1 && Array.isArray(raw[0])) raw = raw[0];
-      if (Array.isArray(raw)) {
-        labels = raw
-          .map((item) => {
-            if (!item) return null;
-            if (Array.isArray(item))
-              return { label: String(item[0] ?? ''), score: Number(item[1] ?? 0) };
-            if (typeof item === 'object')
-              return {
-                label: String(item.label ?? item[0] ?? ''),
-                score: Number(item.score ?? item[1] ?? 0),
-              };
-            return null;
-          })
-          .filter(Boolean);
+    // Check if blocked by Gemini's safety filters
+    if (candidate?.finishReason === 'SAFETY') {
+      const safetyRatings = candidate.safetyRatings || [];
+      const highRiskReasons = safetyRatings
+        .filter((r) => r.probability === 'HIGH' || r.probability === 'MEDIUM')
+        .map((r) => r.category.replace('HARM_CATEGORY_', ''))
+        .join(', ');
+
+      console.log('🚫 BLOCKED BY SAFETY FILTERS:', highRiskReasons);
+
+      return {
+        flagged: true,
+        reason: `Contains inappropriate content: ${highRiskReasons}`,
+        source: 'gemini-safety-filter',
+      };
+    }
+
+    // Check if response exists
+    if (!candidate?.content?.parts?.[0]?.text) {
+      console.error('❌ No response from Gemini');
+      return {
+        flagged: MODERATION_FAIL_CLOSED,
+        reason: 'Moderation service returned no response',
+        source: 'gemini',
+      };
+    }
+
+    const resultText = candidate.content.parts[0].text;
+
+    console.log('📝 Raw Gemini Response Text:', resultText);
+
+    // Clean and extract JSON
+    let jsonText = resultText.trim();
+    jsonText = jsonText.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+
+    const jsonMatch = jsonText.match(/\{[\s\S]*?\}/);
+    if (jsonMatch) {
+      jsonText = jsonMatch[0];
+    }
+
+    let moderationResult;
+    try {
+      moderationResult = JSON.parse(jsonText);
+      console.log('✅ Parsed Result:', moderationResult);
+    } catch (parseError) {
+      console.error('❌ JSON Parse Error:', parseError.message);
+      console.error('Attempted to parse:', jsonText);
+
+      // Fallback: if can't parse, check for danger words in response
+      const dangerWords = [
+        'inappropriate',
+        'offensive',
+        'explicit',
+        'sexual',
+        'violence',
+        'hate',
+        'profanity',
+      ];
+      const foundDanger = dangerWords.some((word) => resultText.toLowerCase().includes(word));
+
+      if (foundDanger) {
+        console.log('⚠️ Found danger words in response, flagging as inappropriate');
+        return {
+          flagged: true,
+          reason: 'Content flagged by AI moderator',
+          source: 'gemini-fallback',
+        };
       }
-    } else if (raw && typeof raw === 'object') {
-      labels = Object.entries(raw).map(([label, score]) => ({ label, score: Number(score) }));
+
+      return {
+        flagged: MODERATION_FAIL_CLOSED,
+        reason: 'Unable to parse moderation response',
+        source: 'gemini',
+      };
     }
 
-    if (!labels.length) {
-      return { flagged: false, details: labels, source: 'huggingface-no-labels' };
+    // Validate response structure
+    if (typeof moderationResult.flagged !== 'boolean') {
+      console.error('❌ Invalid response structure:', moderationResult);
+      return {
+        flagged: MODERATION_FAIL_CLOSED,
+        reason: 'Invalid moderation response format',
+        source: 'gemini',
+      };
     }
 
-    const flaggedLabels = labels.filter((l) => {
-      const name = (l.label || '').toLowerCase();
-      const score = Number(l.score || 0);
-      const hasDangerKeyword = DANGER_LABEL_KEYWORDS.some((kw) => name.includes(kw));
-      return hasDangerKeyword && score >= sensitivityThreshold;
-    });
+    console.log(moderationResult.flagged ? '🚫 CONTENT REJECTED' : '✅ CONTENT APPROVED');
 
-    const flagged = flaggedLabels.length > 0;
+    return {
+      flagged: moderationResult.flagged,
+      reason: moderationResult.reason || '',
+      source: 'gemini',
+    };
+  } catch (error) {
+    console.error('❌ Text Moderation Error:', error.response?.data || error.message);
 
-    return { flagged, details: labels, flaggedLabels, source: 'huggingface' };
-  } catch (err) {
-    console.error('Text moderation error:', err?.message || err);
-    if (err?.response) {
-      console.error('HuggingFace status:', err.response.status, err.response.data);
-    }
-    if (FAIL_CLOSED) {
-      return { flagged: true, error: true, source: 'huggingface-fallback-closed' };
-    }
-    return { flagged: false, error: true, source: 'huggingface-fallback-open' };
+    return {
+      flagged: MODERATION_FAIL_CLOSED,
+      reason: 'Moderation service temporarily unavailable',
+      source: 'gemini-error',
+    };
   }
 };
 
-/* ──────────────────────────────
-   Moderate Image (Hugging Face NSFW model)
-────────────────────────────── */
+/**
+ * Moderate image using Gemini Vision
+ * @param {string} imageUrl - URL of image to moderate
+ * @returns {Promise<{safe: boolean, reason: string, source: string}>}
+ */
 export const moderateImage = async (imageUrl) => {
-  if (!imageUrl) return { safe: true, predictions: [], source: 'no-image' };
+  if (!imageUrl) {
+    return { safe: true, reason: '', source: 'gemini' };
+  }
 
   try {
-    const resp = await axios.post(
-      'https://router.huggingface.co/hf-inference/models/Falconsai/nsfw_image_detection',
-      { inputs: imageUrl },
+    console.log('🖼️ Starting image moderation for:', imageUrl);
+
+    // Download and convert image
+    const imageResponse = await axios.get(imageUrl, {
+      responseType: 'arraybuffer',
+      timeout: 15000,
+      maxContentLength: 10 * 1024 * 1024,
+    });
+
+    const base64Image = Buffer.from(imageResponse.data, 'binary').toString('base64');
+    const mimeType = imageResponse.headers['content-type'] || 'image/jpeg';
+
+    const validMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!validMimeTypes.includes(mimeType)) {
+      console.log('❌ Invalid image type:', mimeType);
+      return {
+        safe: false,
+        reason: 'Unsupported image format',
+        source: 'validation',
+      };
+    }
+
+    console.log('🔍 Analyzing image with Gemini Vision...');
+
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
       {
-        headers: { Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}` },
-        timeout: 15000,
+        contents: [
+          {
+            parts: [
+              {
+                text: `You are a STRICT image content moderator.
+
+REJECT if image contains:
+1. Sexual/nude content
+2. Violence/gore
+3. Hate symbols
+4. Inappropriate content
+
+Respond ONLY with JSON:
+{"safe": false, "reason": "what you found"}
+OR
+{"safe": true, "reason": ""}`,
+              },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Image,
+                },
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0,
+          maxOutputTokens: 300, 
+        },
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_LOW_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_LOW_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+        ],
       }
     );
 
-    console.log('Hugging Face image moderation raw response:', JSON.stringify(resp.data, null, 2));
+    const candidate = response.data.candidates?.[0];
 
-    const raw = resp.data;
-    let predictions = [];
+    console.log('🔍 Image Analysis Response:', JSON.stringify(candidate, null, 2));
 
-    if (Array.isArray(raw)) {
-      predictions = raw.map((r) => ({ label: String(r.label ?? ''), score: Number(r.score ?? 0) }));
-    } else if (raw && typeof raw === 'object') {
-      predictions = Object.entries(raw).map(([label, score]) => ({ label, score: Number(score) }));
+    // Blocked by safety filters
+    if (candidate?.finishReason === 'SAFETY') {
+      const safetyRatings = candidate.safetyRatings || [];
+      const blockedReasons = safetyRatings
+        .filter((r) => r.probability === 'HIGH' || r.probability === 'MEDIUM')
+        .map((r) => r.category.replace('HARM_CATEGORY_', ''))
+        .join(', ');
+
+      console.log('🚫 IMAGE BLOCKED BY SAFETY FILTERS:', blockedReasons);
+
+      return {
+        safe: false,
+        reason: `Image contains inappropriate content: ${blockedReasons}`,
+        source: 'gemini-safety-filter',
+      };
     }
 
-    const unsafe = predictions.some((p) => {
-      const name = (p.label || '').toLowerCase();
-      const score = Number(p.score || 0);
-      return (
-        (name.includes('nsfw') || name.includes('porn') || name.includes('explicit')) &&
-        score >= sensitivityThreshold
-      );
-    });
-
-    return { safe: !unsafe, predictions, source: 'huggingface' };
-  } catch (err) {
-    console.error('Image moderation error:', err?.message || err);
-    if (err?.response) {
-      console.error('HuggingFace status:', err.response.status, err.response.data);
+    if (!candidate?.content?.parts?.[0]?.text) {
+      console.error('❌ No image analysis response');
+      return {
+        safe: !MODERATION_FAIL_CLOSED,
+        reason: 'Unable to analyze image',
+        source: 'gemini',
+      };
     }
-    if (FAIL_CLOSED) {
-      return { safe: false, error: true, source: 'huggingface-fallback-closed' };
+
+    const resultText = candidate.content.parts[0].text;
+    console.log('📝 Image Analysis Text:', resultText);
+
+    let jsonText = resultText.trim();
+    jsonText = jsonText.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+
+    const jsonMatch = jsonText.match(/\{[\s\S]*?\}/);
+    if (jsonMatch) {
+      jsonText = jsonMatch[0];
     }
-    return { safe: true, error: true, source: 'huggingface-fallback-open' };
-  }
-};
 
-/* ──────────────────────────────
-   Moderate whole book (text + image)
-────────────────────────────── */
-export const moderateBookContent = async (bookData) => {
-  const { Title, Description, image } = bookData || {};
+    let moderationResult;
+    try {
+      moderationResult = JSON.parse(jsonText);
+      console.log('✅ Image Result:', moderationResult);
+    } catch (parseError) {
+      console.error('❌ Image JSON Parse Error:', parseError.message);
 
-  const [textCheck, imageCheck] = await Promise.all([
-    moderateText(Title || '', Description || ''),
-    image?.secure_url
-      ? moderateImage(image.secure_url)
-      : Promise.resolve({ safe: true, predictions: [], source: 'no-image' }),
-  ]);
+      const dangerWords = ['unsafe', 'inappropriate', 'explicit', 'sexual', 'violence'];
+      const foundDanger = dangerWords.some((word) => resultText.toLowerCase().includes(word));
 
-  if (textCheck.flagged) {
-    const reason =
-      textCheck.reason ||
-      (textCheck.flaggedLabels && textCheck.flaggedLabels.length
-        ? `Text flagged by labels: ${textCheck.flaggedLabels
-            .map((l) => `${l.label}(${l.score})`)
-            .join(', ')}`
-        : 'Text content contains harmful or disallowed language.');
-    return { allowed: false, reason, source: textCheck.source || 'text' };
-  }
+      return {
+        safe: !foundDanger,
+        reason: foundDanger ? 'Image flagged by moderator' : 'Unable to parse response',
+        source: 'gemini-fallback',
+      };
+    }
 
-  if (!imageCheck.safe) {
+    if (typeof moderationResult.safe !== 'boolean') {
+      console.error('❌ Invalid image response structure');
+      return {
+        safe: !MODERATION_FAIL_CLOSED,
+        reason: 'Invalid response format',
+        source: 'gemini',
+      };
+    }
+
+    console.log(moderationResult.safe ? '✅ IMAGE APPROVED' : '🚫 IMAGE REJECTED');
+
     return {
-      allowed: false,
-      reason: 'Image contains inappropriate/NSFW content.',
-      source: imageCheck.source || 'image',
+      safe: moderationResult.safe,
+      reason: moderationResult.reason || '',
+      source: 'gemini',
+    };
+  } catch (error) {
+    console.error('❌ Image Moderation Error:', error.response?.data || error.message);
+
+    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+      return { safe: !MODERATION_FAIL_CLOSED, reason: 'Image download timeout', source: 'timeout' };
+    }
+
+    if (error.response?.status === 404) {
+      return { safe: false, reason: 'Image not accessible', source: 'not-found' };
+    }
+
+    return {
+      safe: !MODERATION_FAIL_CLOSED,
+      reason: 'Image moderation service error',
+      source: 'gemini-error',
     };
   }
-
-  return { allowed: true };
 };
