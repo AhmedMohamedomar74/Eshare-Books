@@ -1,12 +1,11 @@
-// moderation.js
 import axios from 'axios';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = 'gemini-2.5-flash'; // ✅ Stable and available
+const GEMINI_MODEL = 'gemini-2.5-flash-lite';
 const MODERATION_FAIL_CLOSED = process.env.MODERATION_FAIL_CLOSED === 'true';
 
 /**
- * Moderate text using Gemini 1.5 Flash
+ * Moderate text using Gemini 2.5 Flash
  * Supports Arabic and English content
  * @param {string} text - Text to moderate
  * @returns {Promise<{flagged: boolean, reason: string, source: string}>}
@@ -24,59 +23,27 @@ export const moderateText = async (text) => {
           {
             parts: [
               {
-                text: `You are an EXTREMELY STRICT content moderator for a family-friendly book-sharing platform serving users of all ages including children.
+                text: `You are a STRICT content moderator for a family-friendly book platform.
 
-Your ONLY job is to detect and REJECT inappropriate content in ANY language (English, Arabic, or any other language).
+Your job: Analyze text and return ONLY JSON.
 
-REJECT IMMEDIATELY if the text contains:
+REJECT if text contains:
+1. Sexual/pornographic content (explicit, porn, xxx, sexual acts)
+2. Violence/threats (violent, kill, harm, threats, weapons)
+3. Hate speech (racist, discrimination, slurs)
+4. Profanity (fuck, shit, damn, bastard, offensive words)
+5. Illegal content (drugs, illegal activities)
 
-1. SEXUAL CONTENT:
-   - Any sexual, pornographic, or erotic content
-   - Sexual acts, body parts, or intimate situations
-   - Dating or romantic content intended for adults
-   - Words related to sex, porn, adult content
-   - In Arabic: محتوى جنسي، إباحي، علاقات حميمية
+BE STRICT: If you see ANY inappropriate word → flag it immediately.
 
-2. VIOLENCE & THREATS:
-   - Threats, violence, harm, weapons, killing
-   - Graphic descriptions of violence or gore
-   - Encouraging dangerous behavior
-   - In Arabic: عنف، تهديدات، قتل، أسلحة
-
-3. HATE SPEECH & DISCRIMINATION:
-   - Hate speech, racism, discrimination
-   - Slurs, insults based on identity, religion, race, gender
-   - Content attacking specific groups
-   - In Arabic: خطاب كراهية، تمييز عنصري، إهانات
-
-4. PROFANITY & OFFENSIVE LANGUAGE:
-   - Swear words, curses, vulgar language
-   - Insults, offensive terms, derogatory language
-   - Examples: fuck, shit, damn, bastard, ass, bitch, hell
-   - In Arabic: شتائم، ألفاظ نابية، كلام بذيء
-
-5. ILLEGAL ACTIVITIES:
-   - Drugs, weapons, illegal substances
-   - Criminal activities, fraud, hacking
-   - In Arabic: مخدرات، أنشطة غير قانونية
-
-CRITICAL INSTRUCTIONS:
-- You MUST be EXTREMELY strict and cautious
-- When you see ANY inappropriate word or concept → IMMEDIATELY flag it as true
-- Even ONE inappropriate word means you MUST reject the entire text
-- If you're unsure → REJECT IT (better safe than sorry)
-- Check BOTH the title AND description carefully
-- Respond ONLY in valid JSON format
-
-Text to analyze:
+Text to check:
 """
 ${text}
 """
 
-Respond with ONLY this exact JSON format (nothing else):
-{"flagged": true, "reason": "brief explanation of what inappropriate content was found"}
-
-OR if completely safe:
+Respond with ONLY this JSON (nothing else):
+{"flagged": true, "reason": "brief explanation"}
+OR
 {"flagged": false, "reason": ""}`,
               },
             ],
@@ -84,7 +51,7 @@ OR if completely safe:
         ],
         generationConfig: {
           temperature: 0,
-          maxOutputTokens: 300,
+          maxOutputTokens: 500, // ✅ Increased for safety
         },
         safetySettings: [
           {
@@ -257,31 +224,15 @@ export const moderateImage = async (imageUrl) => {
           {
             parts: [
               {
-                text: `You are an EXTREMELY STRICT image content moderator for a family-friendly platform with users of all ages.
+                text: `You are a STRICT image content moderator.
 
-REJECT this image if it contains ANY of:
+REJECT if image contains:
+1. Sexual/nude content
+2. Violence/gore
+3. Hate symbols
+4. Inappropriate content
 
-1. Sexual/Adult Content:
-   - Nudity, sexual acts, or sexually suggestive content
-   - Inappropriate body exposure or intimate situations
-   - Adult or erotic imagery
-
-2. Violence:
-   - Graphic violence, gore, blood, injuries
-   - Weapons being used to harm
-   - Disturbing or frightening imagery
-
-3. Hate Symbols:
-   - Hate symbols, offensive gestures
-   - Discriminatory or racist imagery
-
-4. Inappropriate Content:
-   - Drug use, illegal activities
-   - Any content unsuitable for children
-
-BE EXTREMELY STRICT. When in doubt, REJECT the image.
-
-Respond with ONLY this JSON:
+Respond ONLY with JSON:
 {"safe": false, "reason": "what you found"}
 OR
 {"safe": true, "reason": ""}`,
@@ -297,7 +248,7 @@ OR
         ],
         generationConfig: {
           temperature: 0,
-          maxOutputTokens: 200,
+          maxOutputTokens: 300, // ✅ Increased for image analysis
         },
         safetySettings: [
           {
