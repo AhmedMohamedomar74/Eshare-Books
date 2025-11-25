@@ -46,13 +46,6 @@ export const addBook = asyncHandler(async (req, res, next) => {
   const customId = nanoid(6);
   let uploadedImage = null;
 
-  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('📚 NEW BOOK REQUEST');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('Title:', data.Title);
-  console.log('Description:', data.Description);
-  console.log('User:', req.user.fullName || req.user.email);
-
   try {
     // ─────────────────────────────────
     // 1️⃣ Validate Required Fields First
