@@ -1,4 +1,5 @@
 import reportSchema from '../modules/report/report.validation.js';
+import suggestCategorySchema from '../modules/suggest-category/suggest-category.validation.js';
 import { wishlistSchema } from '../modules/wishlist/wishlist.validation.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { loginSchema, signupSchema, verifyEmailSchema } from '../validations/auth.validation.js';
@@ -92,7 +93,7 @@ export const validateSignup = validateRequest(signupSchema, 'body');
 export const validateLogin = validateRequest(loginSchema, 'body');
 export const validateVerifyEmail = validateRequest(verifyEmailSchema, 'params');
 export const validateReport = validateRequest(reportSchema, 'body');
-export const validateUserPublicProfile =  validateRequest(userPublicProfileSchema , 'params');
+export const validateUserPublicProfile = validateRequest(userPublicProfileSchema, 'params');
 export const validateGetUsers = validateRequest(getUsersSchema, 'query');
 export const validateUserId = validateRequest(userIdSchema, 'params');
 export const validateUpdateUser = validateRequest(updateUserSchema, 'body');
@@ -106,3 +107,4 @@ export const validateRequestId = validateRequest(requestIdSchema, 'params');
 export const validateFriendId = validateRequest(friendIdSchema, 'params');
 
 export const validateWishlist = validateRequest(wishlistSchema, 'body');
+export const validateSuggestCategory = validateRequest(suggestCategorySchema, 'body');
