@@ -51,7 +51,7 @@ OR
         ],
         generationConfig: {
           temperature: 0,
-          maxOutputTokens: 500, // ✅ Increased for safety
+          maxOutputTokens: 500, 
         },
         safetySettings: [
           {
@@ -248,7 +248,7 @@ OR
         ],
         generationConfig: {
           temperature: 0,
-          maxOutputTokens: 300, // ✅ Increased for image analysis
+          maxOutputTokens: 300, 
         },
         safetySettings: [
           {

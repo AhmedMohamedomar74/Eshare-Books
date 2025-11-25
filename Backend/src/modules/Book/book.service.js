@@ -172,7 +172,7 @@ export const addBook = asyncHandler(async (req, res, next) => {
       categoryId: data.categoryId,
       UserID: userId,
       TransactionType: data.TransactionType,
-      IsModerated: true, // ✅ Passed AI moderation
+      IsModerated: true, 
       isDeleted: false,
     };
 
