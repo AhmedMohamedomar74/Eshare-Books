@@ -19,6 +19,7 @@ import NotificationPage from "./pages/notification/NotificationPage.jsx";
 import ForgotPassword from "./pages/forgetPassword/ForgotPassword.jsx";
 import NotFound from "./pages/NotFound/NotFound.jsx";
 import EditBook from "./pages/Edit Book/EditBook.jsx";
+import PaymentSuccess from "./pages/payment-success/payment-success.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -58,7 +59,9 @@ function App() {
           <Route path="/login" element={<BookCycleLogin />} />
           <Route path="/forget-password" element={<ForgotPassword />} />
           <Route path="/register" element={<BookShareRegister />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="*" element={<NotFound />} />
+
         </Routes>
       </NavigationProvider>
     </BrowserRouter>
