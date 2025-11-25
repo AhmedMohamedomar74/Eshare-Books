@@ -115,18 +115,15 @@ export class SuggestedCategories implements OnInit {
 
     this.suggestCategoryService.deleteSuggestCategory(this.categoryToDelete._id!).subscribe({
       next: (res) => {
-        // ✅ استخدم الـ response من الـ API علشان تتأكد إن الحذف تم
         const deletedCategory = res?.data;
 
         if (deletedCategory && deletedCategory.isDeleted) {
-          // إحذف الـ category من الـ array
           this.categories = this.categories.filter((c) => c._id !== this.categoryToDelete!._id);
           this.applyPagination();
           this.showDeleteModal = false;
           this.modalLoading = false;
           this.showToast('Suggested category deleted successfully!', 'success');
         } else {
-          // إذا مفيش isDeleted: true، يبقى فيه مشكلة
           this.modalLoading = false;
           this.showToast('Failed to delete suggested category', 'error');
         }
