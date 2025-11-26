@@ -11,7 +11,7 @@ export interface Book {
   PricePerDay?: number;
   image: { secure_url: string; public_id: string };
   categoryId: { _id: string; name: string };
-  UserID: { _id: string; firstName: string; secondName: string; email: string };
+  UserID: { _id: string; firstName: string; secondName: string; email: string; fullName: string };
   IsModerated: boolean;
   isDeleted: boolean;
   isSold: boolean;
@@ -20,6 +20,8 @@ export interface Book {
   status: 'available' | 'sold' | 'donated' | 'borrowed';
   createdAt: string;
   updatedAt: string;
+  __v: number;
+  currentBorrow?: any;
 }
 
 export interface BooksResponse {
@@ -32,6 +34,12 @@ export interface BooksResponse {
   books: Book[];
 }
 
+// Interface for category update response
+export interface CategoryUpdateResponse {
+  message: string;
+  book: Book;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -40,7 +48,7 @@ export class BooksService {
 
   constructor(private http: HttpClient) {}
 
-  // Helper: Build headers with Bearer token
+  // Helper: Build headers with admin token
   private buildHeaders(token: string): HttpHeaders {
     return new HttpHeaders({
       Authorization: `admin ${token}`,
@@ -84,6 +92,21 @@ export class BooksService {
     return this.http.patch(
       `${this.baseUrl}/admin/books/${bookId}/moderate`,
       { IsModerated },
+      { headers }
+    );
+  }
+
+  adminUpdateBookCategory(
+    bookId: string,
+    categoryId: string,
+    token: string
+  ): Observable<CategoryUpdateResponse> {
+    const headers = this.buildHeaders(token);
+    const body = { categoryId };
+
+    return this.http.patch<CategoryUpdateResponse>(
+      `${this.baseUrl}/admin/books/${bookId}/category`,
+      body,
       { headers }
     );
   }
