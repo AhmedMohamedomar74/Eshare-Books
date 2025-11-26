@@ -72,7 +72,7 @@ const BookCycleLogin = () => {
 
       if (error.response) {
         // Backend responded with error status
-        errorMessage = error.response.data?.info || errorMessage;
+        errorMessage = error.response.data?.message || errorMessage;
       } else if (error.request) {
         // Request was made but no response received
         errorMessage = 'Network error. Please check your connection.';
