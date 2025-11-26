@@ -17,12 +17,17 @@ import { createBook, clearMessages } from '../../redux/slices/bookSlice.js';
 import bookService from '../../services/book.service.js';
 import SuggestCategoryButton from '../../components/SuggestCategoryComponents/SuggestCategoryButton.jsx';
 
+// ✅ Max limits
+const MAX_SALE_PRICE = 100000;
+const MAX_BORROW_PRICE_PER_DAY = 500;
+
 export default function AddBook() {
   const dispatch = useDispatch();
   const { loading, error, successMessage } = useSelector((state) => state.books);
 
   const [type, setType] = useState('toSale');
   const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null); // ✅ preview state
   const [categories, setCategories] = useState([]);
 
   const [form, setForm] = useState({
@@ -58,6 +63,14 @@ export default function AddBook() {
     };
   }, [dispatch]);
 
+  // ✅ cleanup preview URL on image change/unmount
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+    };
+  }, [imagePreview]);
+
+  // ✅ reset after success
   useEffect(() => {
     if (successMessage) {
       setForm({
@@ -67,7 +80,12 @@ export default function AddBook() {
         PricePerDay: '',
         Description: '',
       });
+
       setImage(null);
+
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+
       setFieldErrors({
         image: '',
         Title: '',
@@ -76,9 +94,8 @@ export default function AddBook() {
         PricePerDay: '',
         Description: '',
       });
-      // setType("toSale"); // اختياري
     }
-  }, [successMessage]);
+  }, [successMessage]); // eslint-disable-line
 
   const handleTypeChange = (_, newType) => {
     if (!newType) return;
@@ -119,6 +136,11 @@ export default function AddBook() {
 
     setImage(file);
     setFieldErrors((prev) => ({ ...prev, image: '' }));
+
+    // ✅ set preview inside the upload area
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
   };
 
   const handleChange = (e) => {
@@ -146,7 +168,8 @@ export default function AddBook() {
 
     if (name === 'Title') {
       if (!value.trim()) errorMsg = 'Title is required';
-      else if (value.trim().length < 2) errorMsg = 'Title must be at least 2 characters';
+      else if (value.trim().length < 2)
+        errorMsg = 'Title must be at least 2 characters';
     }
 
     if (name === 'categoryId') {
@@ -155,17 +178,24 @@ export default function AddBook() {
 
     if (name === 'Description') {
       if (!value.trim()) errorMsg = 'Description is required';
-      else if (value.trim().length < 10) errorMsg = 'Description must be at least 10 characters';
+      else if (value.trim().length < 10)
+        errorMsg = 'Description must be at least 10 characters';
     }
 
     if (name === 'Price' && type === 'toSale') {
       if (value === '' || value === null) errorMsg = 'Price is required for sale';
       else if (Number(value) <= 0) errorMsg = 'Price must be greater than zero';
+      else if (Number(value) > MAX_SALE_PRICE)
+        errorMsg = `Price must be less than or equal to ${MAX_SALE_PRICE}`;
     }
 
     if (name === 'PricePerDay' && type === 'toBorrow') {
-      if (value === '' || value === null) errorMsg = 'Price per day is required for borrowing';
-      else if (Number(value) <= 0) errorMsg = 'Price per day must be greater than zero';
+      if (value === '' || value === null)
+        errorMsg = 'Price per day is required for borrowing';
+      else if (Number(value) <= 0)
+        errorMsg = 'Price per day must be greater than zero';
+      else if (Number(value) > MAX_BORROW_PRICE_PER_DAY)
+        errorMsg = `Price per day must be less than or equal to ${MAX_BORROW_PRICE_PER_DAY}`;
     }
 
     setFieldErrors((prev) => ({ ...prev, [name]: errorMsg }));
@@ -178,7 +208,8 @@ export default function AddBook() {
     if (!image) errors.image = 'Book cover image is required';
 
     if (!form.Title.trim()) errors.Title = 'Title is required';
-    else if (form.Title.trim().length < 2) errors.Title = 'Title must be at least 2 characters';
+    else if (form.Title.trim().length < 2)
+      errors.Title = 'Title must be at least 2 characters';
 
     if (!form.categoryId) errors.categoryId = 'Category is required';
 
@@ -187,8 +218,12 @@ export default function AddBook() {
       errors.Description = 'Description must be at least 10 characters';
 
     if (type === 'toSale') {
-      if (form.Price === '' || form.Price === null) errors.Price = 'Price is required for sale';
-      else if (Number(form.Price) <= 0) errors.Price = 'Price must be greater than zero';
+      if (form.Price === '' || form.Price === null)
+        errors.Price = 'Price is required for sale';
+      else if (Number(form.Price) <= 0)
+        errors.Price = 'Price must be greater than zero';
+      else if (Number(form.Price) > MAX_SALE_PRICE)
+        errors.Price = `Price must be less than or equal to ${MAX_SALE_PRICE}`;
     }
 
     if (type === 'toBorrow') {
@@ -196,6 +231,8 @@ export default function AddBook() {
         errors.PricePerDay = 'Price per day is required for borrowing';
       else if (Number(form.PricePerDay) <= 0)
         errors.PricePerDay = 'Price per day must be greater than zero';
+      else if (Number(form.PricePerDay) > MAX_BORROW_PRICE_PER_DAY)
+        errors.PricePerDay = `Price per day must be less than or equal to ${MAX_BORROW_PRICE_PER_DAY}`;
     }
 
     setFieldErrors((prev) => ({ ...prev, ...errors }));
@@ -241,26 +278,57 @@ export default function AddBook() {
             Add Your Book
           </Typography>
 
-          {/* 📸 Upload Image */}
-          <input type="file" accept="image/*" id="book-cover" hidden onChange={handleImageUpload} />
+          {/* ✅ Upload Image (preview replaces input area) */}
+          <input
+            type="file"
+            accept="image/*"
+            id="book-cover"
+            hidden
+            onChange={handleImageUpload}
+          />
           <label htmlFor="book-cover">
             <Button
               component="span"
               variant={fieldErrors.image ? 'contained' : 'outlined'}
               color={fieldErrors.image ? 'error' : 'primary'}
-              startIcon={<CloudUploadIcon />}
+              startIcon={!imagePreview ? <CloudUploadIcon /> : null}
               fullWidth
               sx={{
                 mb: 1,
-                py: 5,
+                py: imagePreview ? 1 : 5,
+                minHeight: 220,
                 fontSize: '1rem',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
+                gap: 1,
+                overflow: "hidden",
               }}
             >
-              {image ? `Selected: ${image.name}` : 'Upload Book Cover'}
+              {imagePreview ? (
+                <Box
+                  component="img"
+                  src={imagePreview}
+                  alt="Book Cover Preview"
+                  sx={{
+                    width: "100%",
+                    maxWidth: 320,
+                    height: 200,
+                    objectFit: "contain",
+                    borderRadius: 2,
+                  }}
+                />
+              ) : (
+                "Upload Book Cover"
+              )}
+
+              {/* ✅ small hint under preview */}
+              {imagePreview && (
+                <Typography variant="caption" color="text.secondary">
+                  Click to change image
+                </Typography>
+              )}
             </Button>
           </label>
 
@@ -270,7 +338,7 @@ export default function AddBook() {
             </Typography>
           )}
 
-          {/* 🏷️ Title */}
+          {/* Title */}
           <TextField
             fullWidth
             label="Title"
@@ -284,7 +352,7 @@ export default function AddBook() {
           />
 
           <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-            {/* 📂 Category Dropdown */}
+            {/* Category */}
             <TextField
               select
               fullWidth
@@ -293,7 +361,6 @@ export default function AddBook() {
               onChange={handleChange}
               onBlur={(e) => validateField('categoryId', e.target.value)}
               SelectProps={{ native: true }}
-              sx={{ mb: 2 }}
               error={Boolean(fieldErrors.categoryId)}
               helperText={fieldErrors.categoryId}
             >
@@ -307,47 +374,46 @@ export default function AddBook() {
               ))}
             </TextField>
 
-            {/* Suggest Button */}
             <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
               <SuggestCategoryButton />
             </Box>
           </Box>
 
-          {/* 💰 Price (only if toSale) */}
+          {/* Price */}
           {type === 'toSale' && (
             <TextField
               fullWidth
-              label="Price"
+              label={`Price (max ${MAX_SALE_PRICE})`}
               name="Price"
               type="number"
               value={form.Price}
               onChange={handleChange}
               onBlur={(e) => validateField('Price', e.target.value)}
               sx={{ mb: 2 }}
-              inputProps={{ min: 1 }}
+              inputProps={{ min: 1, max: MAX_SALE_PRICE }}
               error={Boolean(fieldErrors.Price)}
               helperText={fieldErrors.Price}
             />
           )}
 
-          {/* 📅 Price Per Day (only if toBorrow) */}
+          {/* Price Per Day */}
           {type === 'toBorrow' && (
             <TextField
               fullWidth
-              label="Price Per Day"
+              label={`Price Per Day (max ${MAX_BORROW_PRICE_PER_DAY})`}
               name="PricePerDay"
               type="number"
               value={form.PricePerDay}
               onChange={handleChange}
               onBlur={(e) => validateField('PricePerDay', e.target.value)}
               sx={{ mb: 2 }}
-              inputProps={{ min: 1 }}
+              inputProps={{ min: 1, max: MAX_BORROW_PRICE_PER_DAY }}
               error={Boolean(fieldErrors.PricePerDay)}
               helperText={fieldErrors.PricePerDay}
             />
           )}
 
-          {/* 📝 Description */}
+          {/* Description */}
           <TextField
             fullWidth
             multiline
@@ -362,7 +428,7 @@ export default function AddBook() {
             helperText={fieldErrors.Description}
           />
 
-          {/* 🔘 Type Selector */}
+          {/* Type Selector */}
           <ToggleButtonGroup
             value={type}
             exclusive
@@ -375,7 +441,7 @@ export default function AddBook() {
             <ToggleButton value="toBorrow">Borrow</ToggleButton>
           </ToggleButtonGroup>
 
-          {/* 🌀 Loading + AI Review Message */}
+          {/* Loading */}
           {loading && (
             <Alert severity="info" sx={{ mt: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
               <CircularProgress size={20} />
@@ -383,14 +449,14 @@ export default function AddBook() {
             </Alert>
           )}
 
-          {/* ⚠️ Error */}
+          {/* Error */}
           {error && !loading && (
             <Alert severity="error" sx={{ mt: 3 }}>
               {error}
             </Alert>
           )}
 
-          {/* ✅ Success */}
+          {/* Success */}
           {successMessage && !loading && (
             <Alert severity="success" sx={{ mt: 3 }}>
               Book added successfully ✅ <br />
@@ -398,7 +464,7 @@ export default function AddBook() {
             </Alert>
           )}
 
-          {/* 🚀 Submit */}
+          {/* Submit */}
           <Button
             type="submit"
             variant="contained"

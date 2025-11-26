@@ -39,7 +39,7 @@ export default function HeroSection() {
         <Typography variant="body1" sx={{ mb: 3 }}>
           Join our community and give your books a new life. Start by listing your first book today.
         </Typography>
-        <Button
+        {/* <Button
           variant="contained"
           sx={{
             bgcolor: "#1b4332",
@@ -50,7 +50,7 @@ export default function HeroSection() {
           }}
         >
           List Your Book
-        </Button>
+        </Button> */}
       </Box>
     </Box>
   );

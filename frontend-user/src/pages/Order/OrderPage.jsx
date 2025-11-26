@@ -1,11 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  createOperation,
-  fetchBookId,
-  completeOperation,
-} from "../../redux/slices/OrderSlice";
+import { createOperation, fetchBookId } from "../../redux/slices/OrderSlice";
 import Spinner from "../../components/Spinner";
 import { useParams } from "react-router-dom";
 import OperationForm from "../../components/Order/OperationForm";
@@ -18,7 +14,7 @@ const OrderPage = () => {
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
 
-  const { book, loading, error, successMessage } = useSelector(
+  const { book, loading, successMessage } = useSelector(
     (state) => state.orders
   );
 
@@ -72,19 +68,33 @@ const OrderPage = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    // ✅ Only open confirm dialog if borrow dates are valid
     if (operationType === "borrow") {
       if (!startDate || !endDate) {
         enqueueSnackbar(
           "Please select both start and end dates for borrowing.",
-          {
-            variant: "warning",
-          }
+          { variant: "warning" }
         );
         return;
       }
 
-      if (borrowDays <= 0) {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      start.setHours(0,0,0,0);
+      end.setHours(0,0,0,0);
+
+      // ✅ منع past
+      if (start < today) {
+        enqueueSnackbar("Start date cannot be in the past.", {
+          variant: "warning",
+        });
+        return;
+      }
+
+      // ✅ end بعد start
+      if (end <= start) {
         enqueueSnackbar("End date must be after start date.", {
           variant: "warning",
         });
@@ -103,18 +113,23 @@ const OrderPage = () => {
     };
 
     if (operationType === "borrow") {
-      if (!startDate || !endDate) {
-        enqueueSnackbar(
-          "Please select both start and end dates for borrowing.",
-          {
-            variant: "warning",
-          }
-        );
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      start.setHours(0,0,0,0);
+      end.setHours(0,0,0,0);
+
+      if (start < today) {
+        enqueueSnackbar("Start date cannot be in the past.", {
+          variant: "warning",
+        });
         setConfirmOpen(false);
         return;
       }
 
-      if (borrowDays <= 0) {
+      if (end <= start) {
         enqueueSnackbar("End date must be after start date.", {
           variant: "warning",
         });
@@ -124,24 +139,14 @@ const OrderPage = () => {
 
       operationData.startDate = startDate;
       operationData.endDate = endDate;
-
-      // Optional: save borrowDays and totalPrice in DB
-      // operationData.numberOfDays = borrowDays;
-      // operationData.totalPrice = totalPrice;
     }
 
     const result = await dispatch(createOperation(operationData));
 
     if (createOperation.fulfilled.match(result)) {
-      const operationId = result.payload?._id;
-      if (operationId) {
-        enqueueSnackbar(
-          "Request sent successfully. Waiting for owner approval.",
-          {
-            variant: "success",
-          }
-        );
-      }
+      enqueueSnackbar("Request sent successfully. Waiting for owner approval.", {
+        variant: "success",
+      });
     } else {
       const backendMsg =
         result.payload?.message ||
@@ -177,7 +182,6 @@ const OrderPage = () => {
         totalPrice={totalPrice}
       />
 
-      {/* Confirmation Dialog */}
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
