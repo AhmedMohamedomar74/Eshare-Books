@@ -5,9 +5,11 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import api from '../../axiosInstance/axiosInstance';
 import { useDispatch } from 'react-redux';
 import { fetchWishlist } from '../../redux/slices/wishlist.slice';
+import { useNavigate } from 'react-router-dom';
 
 export default function WishlistHeartButton({ bookId }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [loading, setLoading] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -40,9 +42,7 @@ export default function WishlistHeartButton({ bookId }) {
     e.stopPropagation();
 
     if (!accessToken) {
-      setMessage('Log in first');
-      setSeverity('warning');
-      setOpenSnackbar(true);
+      navigate('/login');
       return;
     }
 
