@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { deleteBook } from "../../redux/slices/bookSlice";
 
-const BookCard = ({ book, onDelete, isOwner }) => {
+const BookCard = ({ book, onDelete, isOwner, hasPendingOperation }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [openMenu, setOpenMenu] = useState(false);
@@ -55,11 +55,11 @@ const BookCard = ({ book, onDelete, isOwner }) => {
   const confirmDelete = () => {
     dispatch(deleteBook(book._id)).then(() => {
       setOpenConfirm(false);
-      onDelete(book._id);
+      if (onDelete) onDelete(book._id);
     });
   };
 
-  const coverUrl = book?.image?.secure_url || book?.image || "";
+  const coverUrl = book?.image?.secure_url || book?.image || "/placeholder.png";
 
   return (
     <>
@@ -97,8 +97,8 @@ const BookCard = ({ book, onDelete, isOwner }) => {
             )}
           </div>
 
-          {/* Menu button — owner only */}
-          {isOwner && (
+          {/* Options Menu — owner only and no pending operation */}
+          {isOwner && !hasPendingOperation && (
             <div className="absolute top-2 right-2 z-10" ref={menuRef}>
               <button
                 onClick={(e) => {
@@ -142,17 +142,25 @@ const BookCard = ({ book, onDelete, isOwner }) => {
             </div>
           )}
 
+          {/* Pending Operation Badge */}
+          {hasPendingOperation && (
+            <div className="absolute top-2 right-2 z-10">
+              <div className="px-2 py-1 bg-yellow-500 text-white text-xs font-medium rounded-full shadow-sm">
+                Pending Order
+              </div>
+            </div>
+          )}
+
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <img
             className="w-full h-full object-cover"
             alt={`Book cover of ${book.Title}`}
-            src={coverUrl || "/placeholder.png"}
+            src={coverUrl}
           />
         </div>
 
         <div>
           <p className="text-base font-medium truncate">{book.Title}</p>
-
           <div className="flex justify-between items-center">
             <p className="text-[#6f7b7b] text-sm">
               {formatTransactionType(book.TransactionType)}

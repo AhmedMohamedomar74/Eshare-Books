@@ -1,6 +1,15 @@
 import { Box, Typography } from "@mui/material";
 
 const BookInfo = ({ book }) => {
+  //Helper function
+  const truncateWords = (text, count) => {
+    if (!text) return "";
+    const words = text.split(" ");
+    return (
+      words.slice(0, count).join(" ") + (words.length > count ? "..." : "")
+    );
+  };
+
   return (
     <Box
       sx={{
@@ -33,7 +42,7 @@ const BookInfo = ({ book }) => {
       {/* Book Info */}
       <Box sx={{ flex: 1 }}>
         <Typography variant="h4" fontWeight="bold" mb={2}>
-          {book.Title}
+          {truncateWords(book.Title, 4)}
         </Typography>
         <Typography
           color="text.secondary"
@@ -44,8 +53,7 @@ const BookInfo = ({ book }) => {
             alignItems: "flex-start",
           }}
         >
-          {book.Description?.split(" ").slice(0, 8).join(" ") +
-            (book.Description?.split(" ").length > 8 ? "..." : "")}
+          {truncateWords(book.Description, 8)}
         </Typography>
         <Typography variant="body1" mb={1}>
           <strong>Category:</strong> {book.categoryId?.name || "N/A"}
