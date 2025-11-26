@@ -274,10 +274,26 @@
 
           <!-- Category -->
           <td>
-            <span class="category-badge">
-              <i class="bi bi-tag-fill"></i>
-              {{ book.categoryId?.name || 'N/A' }}
-            </span>
+            <div class="category-badge-wrapper">
+              <span class="category-badge">
+                <i class="bi bi-tag-fill"></i>
+                {{ book.categoryId?.name || 'N/A' }}
+              </span>
+              <button
+                class="btn btn-sm btn-link p-0 ms-2 category-edit-btn"
+                [class.text-primary]="canEditBook(book)"
+                [class.text-muted]="!canEditBook(book)"
+                (click)="openEditCategoryModal(book)"
+                [disabled]="loading || !canEditBook(book)"
+                [title]="
+                  !canEditBook(book)
+                    ? 'Cannot edit category for deleted, sold or donated books'
+                    : 'Edit Category'
+                "
+              >
+                <i class="bi bi-pencil-square"></i>
+              </button>
+            </div>
           </td>
 
           <!-- Owner -->
@@ -567,6 +583,82 @@
               [class.bi-x-circle]="moderationAction === 'unapprove'"
             ></i>
             {{ moderationAction === 'approve' ? 'Approve' : 'Unapprove' }}
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT CATEGORY MODAL -->
+  <div
+    *ngIf="showEditCategoryModal"
+    class="modal-overlay"
+    (click)="!modalLoading && closeEditCategoryModal()"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>
+          <i class="bi bi-pencil-square text-primary"></i>
+          Edit Book Category
+        </h5>
+        <button
+          class="btn-close"
+          (click)="closeEditCategoryModal()"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">
+          Select a new category for the book
+          <strong>"{{ bookToEditCategory?.Title }}"</strong>:
+        </p>
+
+        <div class="category-list">
+          <div
+            *ngFor="let category of categories"
+            class="category-item"
+            [class.selected]="selectedNewCategory === category._id"
+            (click)="onCategorySelect(category._id)"
+          >
+            <div class="category-radio">
+              <i
+                class="bi"
+                [class.bi-circle]="selectedNewCategory !== category._id"
+                [class.bi-check-circle-fill]="selectedNewCategory === category._id"
+              ></i>
+            </div>
+            <div class="category-name">
+              <i class="bi bi-tag-fill"></i>
+              {{ category.name }}
+            </div>
+          </div>
+        </div>
+
+        <p class="text-muted small mt-3 mb-0">
+          <i class="bi bi-info-circle"></i>
+          Current category: <strong>{{ bookToEditCategory?.categoryId?.name || 'N/A' }}</strong>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          (click)="closeEditCategoryModal()"
+          [disabled]="modalLoading"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn btn-primary"
+          (click)="confirmCategoryUpdate()"
+          [disabled]="modalLoading || !selectedNewCategory"
+        >
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Updating...
+          </span>
+          <span *ngIf="!modalLoading">
+            <i class="bi bi-check-circle"></i>
+            Confirm
           </span>
         </button>
       </div>

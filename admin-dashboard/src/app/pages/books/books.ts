@@ -41,9 +41,12 @@ export class Books implements OnInit {
   showDeleteModal = false;
   showRestoreModal = false;
   showModerationModal = false;
+  showEditCategoryModal = false;
   bookToDelete: Book | null = null;
   bookToRestore: Book | null = null;
   bookToModerate: Book | null = null;
+  bookToEditCategory: Book | null = null;
+  selectedNewCategory = '';
   moderationAction: 'approve' | 'unapprove' = 'approve';
   modalLoading = false;
 
@@ -61,6 +64,10 @@ export class Books implements OnInit {
   ngOnInit(): void {
     this.loadCategories();
     this.loadBooks();
+  }
+
+  canEditBook(book: Book): boolean {
+    return !book.isDeleted && !book.isSold && !book.isDonated;
   }
 
   loadCategories(): void {
@@ -390,6 +397,50 @@ export class Books implements OnInit {
         },
         error: (err) => {
           this.showToast(err.error?.message || 'Failed to update moderation', 'error');
+        },
+      })
+      .add(() => (this.modalLoading = false));
+  }
+
+  // Category Edit Modal
+  openEditCategoryModal(book: Book): void {
+    if (!this.canEditBook(book)) {
+      return;
+    }
+    this.bookToEditCategory = book;
+    this.selectedNewCategory = book.categoryId?._id || '';
+    this.showEditCategoryModal = true;
+  }
+
+  closeEditCategoryModal(): void {
+    this.showEditCategoryModal = false;
+    this.bookToEditCategory = null;
+    this.selectedNewCategory = '';
+  }
+
+  onCategorySelect(categoryId: string): void {
+    this.selectedNewCategory = categoryId;
+  }
+
+  confirmCategoryUpdate(): void {
+    if (!this.bookToEditCategory || !this.selectedNewCategory) {
+      this.showToast('Please select a category', 'error');
+      return;
+    }
+
+    this.modalLoading = true;
+    const token = this.authService.getAccessToken()!;
+
+    this.booksService
+      .adminUpdateBookCategory(this.bookToEditCategory._id, this.selectedNewCategory, token)
+      .subscribe({
+        next: () => {
+          this.showToast('Category updated successfully', 'success');
+          this.loadBooks();
+          this.closeEditCategoryModal();
+        },
+        error: (err) => {
+          this.showToast(err.error?.message || 'Failed to update category', 'error');
         },
       })
       .add(() => (this.modalLoading = false));
