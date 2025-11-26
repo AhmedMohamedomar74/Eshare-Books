@@ -20,6 +20,7 @@ import ForgotPassword from "./pages/forgetPassword/ForgotPassword.jsx";
 import NotFound from "./pages/NotFound/NotFound.jsx";
 import EditBook from "./pages/Edit Book/EditBook.jsx";
 import PaymentSuccess from "./pages/payment-success/payment-success.jsx";
+import VerifyEmail from "./pages/VerificationPage/VerifyEmail.jsx";
 function App() {
   return (
     <BrowserRouter>
@@ -60,6 +61,7 @@ function App() {
           <Route path="/forget-password" element={<ForgotPassword />} />
           <Route path="/register" element={<BookShareRegister />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="*" element={<NotFound />} />
 
         </Routes>
