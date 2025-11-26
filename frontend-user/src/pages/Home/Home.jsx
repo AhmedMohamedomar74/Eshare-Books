@@ -11,7 +11,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import HeroSection from "../../components/Home/HeroSection";
 import Filters from "../../components/Home/Filters";
 import BookGrid from "../../components/Home/BookGrid";
-import Spinner from "../../components/Spinner"; // ✅ عدلي المسار حسب مكان الملف عندك
+import Spinner from "../../components/Spinner";
+import EmptyBooksState from "../../components/Home/EmptyBooksState"; // ✅ الجديد
 import bookService from "../../services/book.service";
 
 export default function Home() {
@@ -22,9 +23,10 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const limit = 9; // ✅ هنا خليت العدد 9 كتب بس
+  const limit = 9; // عدد الكتب في الصفحة
+  const SEARCH_FETCH_LIMIT = 5000; // ✅ limit كبير عشان السيرش يجيب كل النتائج
 
-  const [loading, setLoading] = useState(false); // ✅ loading state
+  const [loading, setLoading] = useState(false);
 
   const [activeFilter, setActiveFilter] = useState({
     type: null,
@@ -32,36 +34,74 @@ export default function Home() {
   });
 
   useEffect(() => {
-    fetchBooks();
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    fetchBooks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, activeFilter, searchTerm]);
 
   const fetchBooks = async () => {
     try {
       setLoading(true);
 
-      if (activeFilter.type) {
-        const data = await bookService.getBooksByType(activeFilter.type);
-        setBooks((data || []).slice(0, 9)); // ✅ حتى لو رجع أكتر من 9 نقصهم
-        setTotalPages(1);
-        return;
-      }
+      const { type, categoryId } = activeFilter;
+      let list = [];
 
-      if (activeFilter.categoryId) {
-        const data = await bookService.getBooksByCategory(
-          activeFilter.categoryId
+      // ✅ 1) لو فيه Search → السيرش على كل الكتب من الباك
+      if (searchTerm.trim()) {
+        const data = await bookService.getAllBooks(
+          1,
+          SEARCH_FETCH_LIMIT,
+          searchTerm
         );
-        setBooks((data || []).slice(0, 9)); // ✅ نقصهم لـ 9
-        setTotalPages(1);
-        return;
+        list = data?.books || [];
+      }
+      // ✅ 2) مفيش Search → هات البيانات حسب الفلاتر
+      else {
+        if (type && categoryId) {
+          const data = await bookService.getBooksByCategory(categoryId);
+          list = (data || []).filter(
+            (b) => (b.TransactionType || b.type) === type
+          );
+        } else if (categoryId) {
+          list = (await bookService.getBooksByCategory(categoryId)) || [];
+        } else if (type) {
+          list = (await bookService.getBooksByType(type)) || [];
+        } else {
+          // بدون Search ولا Filters → pagination من الباك
+          const data = await bookService.getAllBooks(page, limit, "");
+          setBooks((data?.books || []).slice(0, limit));
+
+          const pages = Math.ceil(
+            (data?.total || 0) / (data?.limit || limit)
+          );
+          setTotalPages(pages || 1);
+          return;
+        }
       }
 
-      const data = await bookService.getAllBooks(page, limit, searchTerm);
+      // ✅ 3) بعد ما جبنا list (Search أو Filters) نطبق الفلاتر لو موجودة
+      if (categoryId) {
+        list = list.filter(
+          (b) => (b.categoryId?._id || b.categoryId) === categoryId
+        );
+      }
 
-      setBooks((data?.books || []).slice(0, 9)); // ✅ تأكيد 9
-      const pages = Math.ceil((data?.total || 0) / (data?.limit || limit));
-      setTotalPages(pages || 1);
+      if (type) {
+        list = list.filter(
+          (b) => (b.TransactionType || b.type) === type
+        );
+      }
+
+      // ✅ 4) pagination client-side بعد Search + Filters
+      const pages = Math.ceil(list.length / limit) || 1;
+      setTotalPages(pages);
+
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      setBooks(list.slice(startIndex, endIndex));
     } catch (err) {
       console.error("Error fetching books:", err);
       setBooks([]);
@@ -81,91 +121,38 @@ export default function Home() {
     }
   };
 
-  // 🔍 Search by title
-  const handleSearch = async (e) => {
+  // 🔍 Search by title (على كل الكتب)
+  const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
     setPage(1);
-    setActiveFilter({ type: null, categoryId: null });
-
-    try {
-      setLoading(true);
-      const data = await bookService.getAllBooks(1, limit, value);
-      setBooks((data?.books || []).slice(0, 9));
-      const pages = Math.ceil((data?.total || 0) / (data?.limit || limit));
-      setTotalPages(pages || 1);
-    } catch (err) {
-      console.error("Error searching books:", err);
-      setBooks([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
   };
 
-  // 🏷️ Filter by category
-  const handleCategoryChange = async (selectedCategoryIds) => {
-    if (selectedCategoryIds.length === 0) {
-      setActiveFilter((prev) => ({ ...prev, categoryId: null }));
-      setPage(1);
-      fetchBooks();
-      return;
-    }
-
-    const catId = selectedCategoryIds[0];
-    setActiveFilter({ type: null, categoryId: catId });
+  // ✅ Category Radio
+  const handleCategoryChange = (catId) => {
     setPage(1);
-
-    try {
-      setLoading(true);
-      const data = await bookService.getBooksByCategory(catId);
-      setBooks((data || []).slice(0, 9));
-      setTotalPages(1);
-    } catch (err) {
-      console.error("Error filtering by category:", err);
-      setBooks([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
+    setActiveFilter((prev) => ({
+      ...prev,
+      categoryId: catId || null,
+    }));
   };
 
-  // 💡 Filter by type
-  const handleTypeChange = async (selectedType) => {
-    if (!selectedType) {
-      setActiveFilter((prev) => ({ ...prev, type: null }));
-      setPage(1);
-      fetchBooks();
-      return;
-    }
-
-    setActiveFilter({ type: selectedType, categoryId: null });
+  // ✅ Type Radio
+  const handleTypeChange = (selectedType) => {
     setPage(1);
-
-    try {
-      setLoading(true);
-      const data = await bookService.getBooksByType(selectedType);
-      setBooks((data || []).slice(0, 9));
-      setTotalPages(1);
-    } catch (err) {
-      console.error("Error filtering by type:", err);
-      setBooks([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
+    setActiveFilter((prev) => ({
+      ...prev,
+      type: selectedType || null,
+    }));
   };
 
-  // 🔄 Clear all filters
   const handleClearFilters = () => {
     setSearchTerm("");
     setActiveFilter({ type: null, categoryId: null });
     setPage(1);
-    fetchBooks();
   };
 
-  // ⏭️ Page change
-  const handlePageChange = (event, value) => {
+  const handlePageChange = (_, value) => {
     setPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -192,10 +179,7 @@ export default function Home() {
                   <SearchIcon color="action" />
                 </InputAdornment>
               ),
-              sx: {
-                height: 36,
-                borderRadius: 2,
-              },
+              sx: { height: 36, borderRadius: 2 },
             }}
             sx={{
               "& fieldset": { border: "none" },
@@ -205,13 +189,12 @@ export default function Home() {
           />
         </Paper>
 
-        {/* ✅ Layout: Flex row + Filters same height as books */}
         <Box
           sx={{
             display: "flex",
             flexDirection: "row",
             gap: 3,
-            alignItems: "stretch", // ✅ important: يخلي الفلتر بطول الكتب
+            alignItems: "stretch",
             overflowX: { xs: "auto", md: "visible" },
           }}
         >
@@ -224,7 +207,7 @@ export default function Home() {
               bgcolor: "white",
               flex: "0 0 280px",
               minWidth: 340,
-              height: "100%", // ✅ stretch مع الكتب
+              height: "100%",
               minHeight: "185vh",
             }}
           >
@@ -238,40 +221,51 @@ export default function Home() {
 
           {/* Books Grid + Pagination */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            {/* ✅ Spinner وقت التحميل */}
             {loading ? (
               <Spinner />
+            ) : books.length === 0 ? (
+              <EmptyBooksState
+                hasFiltersOrSearch={
+                  !!searchTerm.trim() ||
+                  !!activeFilter.categoryId ||
+                  !!activeFilter.type
+                }
+                onClearFilters={handleClearFilters}
+              />
             ) : (
               <>
                 <BookGrid books={books} />
 
-                <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
-                  <Pagination
-                    page={page}
-                    count={totalPages}
-                    onChange={handlePageChange}
-                    shape="rounded"
-                    color="primary"
-                    size="large"
-                    sx={{
-                      "& .MuiPaginationItem-root": {
-                        borderRadius: 2,
-                        fontWeight: "bold",
-                        color: "#1976d2",
-                        "&:hover": {
+                {/* ✅ Pagination دايمًا شغالة */}
+                {totalPages > 1 && (
+                  <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
+                    <Pagination
+                      page={page}
+                      count={totalPages}
+                      onChange={handlePageChange}
+                      shape="rounded"
+                      color="primary"
+                      size="large"
+                      sx={{
+                        "& .MuiPaginationItem-root": {
+                          borderRadius: 2,
+                          fontWeight: "bold",
+                          color: "#1976d2",
+                          "&:hover": {
+                            backgroundColor: "#1976d2",
+                            color: "#fff",
+                            transform: "scale(1.1)",
+                          },
+                        },
+                        "& .Mui-selected": {
                           backgroundColor: "#1976d2",
                           color: "#fff",
-                          transform: "scale(1.1)",
+                          fontWeight: "bold",
                         },
-                      },
-                      "& .Mui-selected": {
-                        backgroundColor: "#1976d2",
-                        color: "#fff",
-                        fontWeight: "bold",
-                      },
-                    }}
-                  />
-                </Box>
+                      }}
+                    />
+                  </Box>
+                )}
               </>
             )}
           </Box>

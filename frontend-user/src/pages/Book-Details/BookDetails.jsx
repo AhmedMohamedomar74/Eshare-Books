@@ -13,6 +13,7 @@ import {
   removeFromWishlist,
 } from "../../redux/slices/wishlist.slice";
 import BookHeader from "../../components/Book-detalis/BookHeader.jsx";
+import dayjs from "dayjs";
 
 const BookDetails = () => {
   const { id } = useParams();
@@ -65,8 +66,9 @@ const BookDetails = () => {
       case "toSale":
         return `For Sale: $${book.Price}`;
       case "toBorrow":
+        // ✅ هنا مش هنقول Not available، هنقول reserved لو محجوز دلوقتي
         return book.isBorrowedNow
-          ? "Not available (currently borrowed)"
+          ? "Currently borrowed (you can reserve another period)"
           : "Available to Borrow";
       case "toExchange":
         return "Available to Exchange";
@@ -84,9 +86,6 @@ const BookDetails = () => {
         Book not found or unavailable.
       </Typography>
     );
-
-  const isBorrowDisabled =
-    book.TransactionType === "toBorrow" && book.isBorrowedNow;
 
   return (
     <Box
@@ -149,29 +148,38 @@ const BookDetails = () => {
               userId={book.UserID?._id}
             />
 
-            {isBorrowDisabled && (
-              <>
-                <Typography color="error" sx={{ mt: 2, fontWeight: "bold" }}>
-                  This book is currently borrowed and not available for new
-                  requests.
+            {/* ✅ تنبيه فقط لو Borrow شغالة */}
+            {/* {book.TransactionType === "toBorrow" && book.isBorrowedNow && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 1.5,
+                  borderRadius: 2,
+                  bgcolor: "#fff3e0",
+                  color: "#e65100",
+                  fontWeight: 600,
+                  width: "fit-content",
+                }}
+              >
+                <Typography fontWeight="bold">
+                  This book is currently borrowed.
                 </Typography>
 
                 {book.currentBorrow?.endDate && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: 1 }}
-                  >
-                    Expected to be available again after{" "}
-                    {new Date(book.currentBorrow.endDate).toLocaleDateString()}
+                  <Typography variant="body2">
+                    Current borrow ends at{" "}
+                    {dayjs(book.currentBorrow.endDate).format("YYYY-MM-DD")}
                   </Typography>
                 )}
-              </>
-            )}
 
-            <BookActions bookId={book._id} disabled={isBorrowDisabled} />
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
+                  You can still reserve another period.
+                </Typography>
+              </Box>
+            )} */}
 
-            
+            {/* ✅ BookActions دايمًا شغال */}
+            <BookActions bookId={book._id} />
           </Box>
         </Box>
       </Box>

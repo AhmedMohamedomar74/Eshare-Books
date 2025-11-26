@@ -7,7 +7,6 @@ import {
   Divider,
   Button,
 } from "@mui/material";
-import { EmailOutlined } from "@mui/icons-material";
 import BorrowDate from "./BorrowDate";
 
 const OperationForm = ({
@@ -21,6 +20,7 @@ const OperationForm = ({
   successMessage,
   borrowDays,
   totalPrice,
+  reservedBorrows = [],
 }) => {
   return (
     <Box
@@ -54,22 +54,20 @@ const OperationForm = ({
             endDate={endDate}
             setStartDate={setStartDate}
             setEndDate={setEndDate}
+            reservedBorrows={reservedBorrows}
           />
 
-          {/* ✅ عدد أيام الاستعارة */}
           <Typography variant="body1" mb={1}>
             Borrow days:{" "}
             {borrowDays > 0 ? `${borrowDays} day(s)` : "Select valid dates"}
           </Typography>
 
-          {/* ✅ سعر اليوم الواحد */}
           <Typography variant="body1" mb={3}>
             Price per day: {book.PricePerDay || 0} EGP
           </Typography>
         </>
       )}
 
-      {/* ✅ Total في حالتي sale / borrow (+ donate) */}
       <Typography fontWeight="bold" mb={3}>
         Total:{" "}
         {operationType === "borrow"
@@ -84,6 +82,7 @@ const OperationForm = ({
       </Typography>
 
       <Box sx={{ textAlign: "center" }}>
+        {/* ✅ الزرار دايمًا شغال */}
         <Button
           type="button"
           variant="contained"
@@ -98,24 +97,14 @@ const OperationForm = ({
             "&:hover": { backgroundColor: "#00695c" },
           }}
         >
-          Complete {operationType}
+          Process {operationType}
         </Button>
 
-        {/* <Button
-          variant="contained"
-          startIcon={<EmailOutlined />}
-          sx={{
-            mt: 2,
-            backgroundColor: "#c0ca33",
-            color: "black",
-            fontWeight: "bold",
-            textTransform: "none",
-            width: "300px",
-            "&:hover": { backgroundColor: "#afb42b" },
-          }}
-        >
-          Contact Owner
-        </Button> */}
+        {successMessage && (
+          <Typography color="success.main" mt={2}>
+            {successMessage}
+          </Typography>
+        )}
       </Box>
     </Box>
   );
