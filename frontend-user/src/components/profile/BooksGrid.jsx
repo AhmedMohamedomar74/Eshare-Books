@@ -27,7 +27,6 @@ const BooksGrid = ({
           <BookCard
             key={book._id}
             book={book}
-            userId={userId}
             isOwner={isOwner}
             hasPendingOperation={hasPendingOperation}
             onDelete={onDelete}
