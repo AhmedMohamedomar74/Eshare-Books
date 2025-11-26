@@ -1,48 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   Typography,
-  FormGroup,
   FormControlLabel,
-  Checkbox,
   RadioGroup,
   Radio,
-  Slider,
   Divider,
   Button,
-} from '@mui/material';
+} from "@mui/material";
 
 export default function Filters({
   categories = [],
   onCategoryChange,
   onTypeChange,
-  onPriceChange,
   onClearFilters,
 }) {
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedType, setSelectedType] = useState('');
-  const [priceRange, setPriceRange] = useState([0, 100]);
+  // ✅ بقي اختيار واحد زي الـ type
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedType, setSelectedType] = useState("");
 
   const handleCategoryChange = (event) => {
-    const { value, checked } = event.target;
-    const updatedCategories = checked
-      ? [...selectedCategories, value]
-      : selectedCategories.filter((c) => c !== value);
-
-    setSelectedCategories(updatedCategories);
-    onCategoryChange?.(updatedCategories);
+    const catId = event.target.value; // "" أو id
+    setSelectedCategory(catId);
+    onCategoryChange?.(catId); // ✅ بيرجع قيمة واحدة مش array
   };
 
   const handleTypeChange = (event) => {
-    const type = event.target.value;
+    const type = event.target.value; // "" أو toSale/toBorrow/toDonate
     setSelectedType(type);
     onTypeChange?.(type);
   };
 
   const handleClear = () => {
-    setSelectedCategories([]);
-    setSelectedType('');
-    setPriceRange([0, 100]);
+    setSelectedCategory("");
+    setSelectedType("");
     onClearFilters?.();
   };
 
@@ -51,17 +42,17 @@ export default function Filters({
       sx={{
         p: 2.5,
         width: 250,
-        borderRight: '1px solid #e0e0e0',
-        bgcolor: '#fff',
-        height: '100%',
+        borderRight: "1px solid #e0e0e0",
+        bgcolor: "#fff",
+        height: "100%",
       }}
     >
       {/* Header */}
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           mb: 2,
         }}
       >
@@ -73,17 +64,17 @@ export default function Filters({
           size="small"
           onClick={handleClear}
           sx={{
-            color: 'primary.main',
-            textTransform: 'none',
+            color: "primary.main",
+            textTransform: "none",
             fontWeight: 500,
-            fontSize: '0.85rem',
+            fontSize: "0.85rem",
           }}
         >
           Clear Filters
         </Button>
       </Box>
 
-      {/* Category Filter */}
+      {/* ✅ Category Filter (Radio زي Transaction Type) */}
       <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
         Category
       </Typography>
@@ -91,25 +82,30 @@ export default function Filters({
       <Box
         sx={{
           maxHeight: 270,
-          overflowY: 'auto',
+          overflowY: "auto",
           mb: 2,
-          '&::-webkit-scrollbar': {
-            width: 6,
-          },
-          '&::-webkit-scrollbar-track': {
-            background: '#f1f1f1',
+          "&::-webkit-scrollbar": { width: 6 },
+          "&::-webkit-scrollbar-track": {
+            background: "#f1f1f1",
             borderRadius: 3,
           },
-          '&::-webkit-scrollbar-thumb': {
-            background: '#c1c1c1',
+          "&::-webkit-scrollbar-thumb": {
+            background: "#c1c1c1",
             borderRadius: 3,
           },
-          '&::-webkit-scrollbar-thumb:hover': {
-            background: '#a8a8a8',
+          "&::-webkit-scrollbar-thumb:hover": {
+            background: "#a8a8a8",
           },
         }}
       >
-        <FormGroup>
+        <RadioGroup value={selectedCategory} onChange={handleCategoryChange}>
+          {/* All categories */}
+          <FormControlLabel
+            value=""
+            control={<Radio size="small" />}
+            label={<Typography variant="body2">All Categories</Typography>}
+          />
+
           {categories.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
               No categories found
@@ -118,34 +114,40 @@ export default function Filters({
             categories.map((cat) => (
               <FormControlLabel
                 key={cat._id}
-                control={
-                  <Checkbox
-                    checked={selectedCategories.includes(cat._id)}
-                    onChange={handleCategoryChange}
-                    value={cat._id}
-                    size="small"
-                  />
-                }
+                value={cat._id}
+                control={<Radio size="small" />}
                 label={<Typography variant="body2">{cat.name}</Typography>}
               />
             ))
           )}
-        </FormGroup>
+        </RadioGroup>
       </Box>
 
       <Divider sx={{ my: 2 }} />
 
-      {/* Type Filter */}
+      {/* ✅ Type Filter */}
       <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
         Transaction Type
       </Typography>
+
       <RadioGroup value={selectedType} onChange={handleTypeChange}>
-        {['toSale', 'toBorrow', 'toDonate'].map((type) => (
+        {/* All types */}
+        <FormControlLabel
+          value=""
+          control={<Radio size="small" />}
+          label={<Typography variant="body2">All Types</Typography>}
+        />
+
+        {["toSale", "toBorrow", "toDonate"].map((type) => (
           <FormControlLabel
             key={type}
             value={type}
             control={<Radio size="small" />}
-            label={<Typography variant="body2">{type.replace('to', 'To ')}</Typography>}
+            label={
+              <Typography variant="body2">
+                {type.replace("to", "To ")}
+              </Typography>
+            }
           />
         ))}
       </RadioGroup>

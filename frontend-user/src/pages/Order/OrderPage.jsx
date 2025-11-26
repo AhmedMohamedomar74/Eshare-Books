@@ -8,6 +8,11 @@ import OperationForm from "../../components/Order/OperationForm";
 import BookInfo from "../../components/Order/BookInfo";
 import { useSnackbar } from "notistack";
 import ConfirmDialog from "../../components/Order/ConfirmDialog";
+import dayjs from "dayjs";
+
+// ✅ Plugins لازم تتفعل
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+dayjs.extend(isSameOrBefore);
 
 const OrderPage = () => {
   const { id } = useParams();
@@ -18,15 +23,17 @@ const OrderPage = () => {
     (state) => state.orders
   );
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(null); // dayjs
+  const [endDate, setEndDate] = useState(null); // dayjs
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (id) dispatch(fetchBookId(id));
   }, [id, dispatch]);
 
+  // ✅ لا تخرجي قبل ما كل الـ hooks تخلص
   if (loading) return <Spinner />;
+
   if (!book)
     return (
       <Typography textAlign="center" mt={4}>
@@ -43,16 +50,17 @@ const OrderPage = () => {
       ? "exchange"
       : "donate";
 
+  // ✅ الفترات المحجوزة جاية من الباك
+  const reservedBorrows = book?.reservedBorrows || [];
+  const currentBorrow = book?.currentBorrow || null;
+
   const getBorrowDays = () => {
     if (operationType !== "borrow" || !startDate || !endDate) return 0;
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const diff = endDate.startOf("day").diff(startDate.startOf("day"), "day");
+    if (diff <= 0) return 0;
 
-    const diffTime = end - start;
-    if (diffTime <= 0) return 0;
-
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diff;
   };
 
   const borrowDays = getBorrowDays();
@@ -70,31 +78,13 @@ const OrderPage = () => {
 
     if (operationType === "borrow") {
       if (!startDate || !endDate) {
-        enqueueSnackbar(
-          "Please select both start and end dates for borrowing.",
-          { variant: "warning" }
-        );
-        return;
-      }
-
-      const today = new Date();
-      today.setHours(0,0,0,0);
-
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      start.setHours(0,0,0,0);
-      end.setHours(0,0,0,0);
-
-      // ✅ منع past
-      if (start < today) {
-        enqueueSnackbar("Start date cannot be in the past.", {
+        enqueueSnackbar("Please select both start and end dates.", {
           variant: "warning",
         });
         return;
       }
 
-      // ✅ end بعد start
-      if (end <= start) {
+      if (endDate.isSameOrBefore(startDate, "day")) {
         enqueueSnackbar("End date must be after start date.", {
           variant: "warning",
         });
@@ -102,6 +92,7 @@ const OrderPage = () => {
       }
     }
 
+    // ✅ حتى لو الكتاب محجوز دلوقتي، سيبي اليوزر يكمل
     setConfirmOpen(true);
   };
 
@@ -113,23 +104,15 @@ const OrderPage = () => {
     };
 
     if (operationType === "borrow") {
-      const today = new Date();
-      today.setHours(0,0,0,0);
-
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      start.setHours(0,0,0,0);
-      end.setHours(0,0,0,0);
-
-      if (start < today) {
-        enqueueSnackbar("Start date cannot be in the past.", {
+      if (!startDate || !endDate) {
+        enqueueSnackbar("Borrow dates are required.", {
           variant: "warning",
         });
         setConfirmOpen(false);
         return;
       }
 
-      if (end <= start) {
+      if (endDate.isSameOrBefore(startDate, "day")) {
         enqueueSnackbar("End date must be after start date.", {
           variant: "warning",
         });
@@ -137,21 +120,20 @@ const OrderPage = () => {
         return;
       }
 
-      operationData.startDate = startDate;
-      operationData.endDate = endDate;
+      // ✅ نبعت للباك ISO
+      operationData.startDate = startDate.toISOString();
+      operationData.endDate = endDate.toISOString();
     }
 
     const result = await dispatch(createOperation(operationData));
 
     if (createOperation.fulfilled.match(result)) {
-      enqueueSnackbar("Request sent successfully. Waiting for owner approval.", {
-        variant: "success",
-      });
+      enqueueSnackbar("Request sent successfully.", { variant: "success" });
     } else {
       const backendMsg =
         result.payload?.message ||
         result.error?.message ||
-        "Something went wrong while creating the operation.";
+        "Something went wrong.";
       enqueueSnackbar(backendMsg, { variant: "error" });
     }
 
@@ -167,8 +149,31 @@ const OrderPage = () => {
         gap: 4,
       }}
     >
-      <BookInfo book={book} />
+      {/* Book Info */}
+      <Box sx={{ flex: 1 }}>
+        <BookInfo book={book} />
 
+        {/* ✅ لو محجوز حاليًا، نعرض تنبيه بسيط من غير منع */}
+        {operationType === "borrow" && currentBorrow && (
+          <Typography
+            sx={{
+              mt: 2,
+              p: 1.5,
+              borderRadius: 2,
+              bgcolor: "#fff3e0",
+              color: "#e65100",
+              fontWeight: 600,
+              width: "fit-content",
+            }}
+          >
+            This book is currently borrowed until{" "}
+            {dayjs(currentBorrow.endDate).format("YYYY-MM-DD")}.  
+            You can still reserve another period.
+          </Typography>
+        )}
+      </Box>
+
+      {/* Operation Form */}
       <OperationForm
         operationType={operationType}
         book={book}
@@ -180,8 +185,10 @@ const OrderPage = () => {
         successMessage={successMessage}
         borrowDays={borrowDays}
         totalPrice={totalPrice}
+        reservedBorrows={reservedBorrows}
       />
 
+      {/* Confirm Dialog */}
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
