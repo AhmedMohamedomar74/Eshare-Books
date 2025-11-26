@@ -66,7 +66,6 @@ export class Books implements OnInit {
     this.loadBooks();
   }
 
-  // دالة جديدة للتحقق مما إذا كان يمكن تعديل الكتاب
   canEditBook(book: Book): boolean {
     return !book.isDeleted && !book.isSold && !book.isDonated;
   }
