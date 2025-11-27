@@ -1,9 +1,11 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { orderReducer } from './slices/OrderSlice';
-import wishlistReducer from './slices/wishlist.slice';
-import reportReducer from './slices/report.slice';
-import bookReducer from './slices/bookSlice.js';
-import suggestCategoryReducer from './slices/suggestCategory.slice.js';
+import { configureStore } from "@reduxjs/toolkit";
+import { orderReducer } from "./slices/OrderSlice";
+import wishlistReducer from "./slices/wishlist.slice";
+import reportReducer from "./slices/report.slice";
+import bookReducer from "./slices/bookSlice.js";
+import suggestCategoryReducer from "./slices/suggestCategory.slice.js";
+import LangReducer from "./slices/LangReducer.js";
+
 const store = configureStore({
   reducer: {
     orders: orderReducer,
@@ -11,6 +13,7 @@ const store = configureStore({
     reports: reportReducer,
     books: bookReducer,
     suggestCategory: suggestCategoryReducer,
+    lang: LangReducer,
   },
 });
 
