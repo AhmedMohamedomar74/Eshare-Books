@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { BooksService, Book } from '../../shared/services/books';
 import { AuthService } from '../../shared/services/auth';
 import { CategoriesService } from '../../shared/services/categories';
 import { CommonModule } from '@angular/common';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 interface Category {
   _id: string;
@@ -15,10 +17,11 @@ interface Category {
   templateUrl: './books.html',
   styleUrls: ['./books.css'],
 })
-export class Books implements OnInit {
+export class Books implements OnInit, OnDestroy {
   books: Book[] = [];
   categories: Category[] = [];
   loading = true;
+  searchLoading = false;
   error: string | null = null;
 
   // Filters
@@ -26,6 +29,9 @@ export class Books implements OnInit {
   selectedCategory = '';
   selectedStatus = '';
   selectedTransactionType = '';
+
+  // Subject for search debounce
+  private searchSubject = new Subject<string>();
 
   // Dropdown states
   categoryDropdownOpen = false;
@@ -64,6 +70,15 @@ export class Books implements OnInit {
   ngOnInit(): void {
     this.loadCategories();
     this.loadBooks();
+
+    this.searchSubject.pipe(debounceTime(500), distinctUntilChanged()).subscribe(() => {
+      this.currentPage = 1;
+      this.loadBooks();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
   }
 
   canEditBook(book: Book): boolean {
@@ -84,7 +99,12 @@ export class Books implements OnInit {
   }
 
   loadBooks(): void {
-    this.loading = true;
+    if (this.searchQuery.trim()) {
+      this.searchLoading = true;
+    } else {
+      this.loading = true;
+    }
+
     this.error = null;
 
     const token = this.authService.getAccessToken()!;
@@ -113,10 +133,12 @@ export class Books implements OnInit {
         this.books = res.books;
         this.totalResults = res.total;
         this.loading = false;
+        this.searchLoading = false;
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to load books';
         this.loading = false;
+        this.searchLoading = false;
       },
     });
   }
@@ -124,8 +146,7 @@ export class Books implements OnInit {
   // Filters
   onSearch(event: any): void {
     this.searchQuery = event.target.value;
-    this.currentPage = 1;
-    this.loadBooks();
+    this.searchSubject.next(this.searchQuery);
   }
 
   // Dropdown Handlers

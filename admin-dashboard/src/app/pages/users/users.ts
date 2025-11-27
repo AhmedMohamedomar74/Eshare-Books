@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { UsersService, User } from '../../shared/services/users';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-userss',
@@ -20,8 +22,11 @@ export class Users implements OnInit {
   itemsPerPage: number = 10;
   totalResults: number = 0;
   loading: boolean = false;
+  searchLoading: boolean = false;
 
   users: User[] = [];
+
+  private searchSubject = new Subject<string>();
 
   // Modals
   showRoleModal: boolean = false;
@@ -45,10 +50,21 @@ export class Users implements OnInit {
 
   ngOnInit(): void {
     this.loadUsers();
+
+    // Setup search debounce
+    this.searchSubject.pipe(debounceTime(500), distinctUntilChanged()).subscribe(() => {
+      this.currentPage = 1;
+      this.loadUsers();
+    });
   }
 
   loadUsers(): void {
-    this.loading = true;
+    if (this.searchTerm.trim()) {
+      this.searchLoading = true;
+    } else {
+      this.loading = true;
+    }
+
     this.usersService
       .getAllUsers({
         page: this.currentPage,
@@ -61,10 +77,12 @@ export class Users implements OnInit {
           this.users = response.users;
           this.totalResults = response.pagination.totalCount;
           this.loading = false;
+          this.searchLoading = false;
         },
         error: (error) => {
           console.error('Failed to load users:', error);
           this.loading = false;
+          this.searchLoading = false;
           this.showToast('Failed to load users', 'error');
         },
       });
@@ -135,8 +153,7 @@ export class Users implements OnInit {
   }
 
   onSearch(): void {
-    this.currentPage = 1;
-    this.loadUsers();
+    this.searchSubject.next(this.searchTerm);
   }
 
   onRoleFilter(): void {
@@ -162,7 +179,6 @@ export class Users implements OnInit {
 
   // ---------- Role Change Modal ----------
   openRoleModal(user: User): void {
-    // منع فتح المودال لو اليوزر admin
     if (user.role === 'admin') {
       return;
     }
@@ -175,8 +191,7 @@ export class Users implements OnInit {
 
     this.modalLoading = true;
 
-    // بس promote للـ admin ومفيش demote
-    const newRole = 'admin'; // دايماً بنحول لـ admin بس
+    const newRole = 'admin';
     const action = 'promote';
 
     this.usersService.promoteToAdmin(this.userForRoleChange._id).subscribe({
@@ -231,7 +246,7 @@ export class Users implements OnInit {
     this.modalLoading = true;
     this.usersService.deleteUser(this.userForDeletion._id).subscribe({
       next: () => {
-        this.loadUsers(); // Reload the list
+        this.loadUsers();
         this.showDeleteModal = false;
         this.modalLoading = false;
         this.showToast('User deleted successfully!', 'success');
@@ -250,5 +265,9 @@ export class Users implements OnInit {
       this.currentPage = page;
       this.loadUsers();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
   }
 }
