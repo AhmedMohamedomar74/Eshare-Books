@@ -17,6 +17,10 @@
         (input)="onSearch()"
         [disabled]="loading"
       />
+      <!-- Search Loading Spinner -->
+      <span *ngIf="searchLoading" class="search-spinner">
+        <span class="spinner-border spinner-border-sm"></span>
+      </span>
     </div>
 
     <div class="filter-group">
@@ -56,14 +60,14 @@
     </div>
   </div>
 
-  <!-- Loading Indicator -->
-  <div *ngIf="loading" class="loading-indicator">
+  <!-- search loading -->
+  <div *ngIf="loading && !searchLoading" class="loading-indicator">
     <div class="spinner"></div>
     <span>Loading users...</span>
   </div>
 
   <!-- Users Table -->
-  <div class="table-container" *ngIf="!loading">
+  <div class="table-container" *ngIf="!loading || searchLoading">
     <table class="table user-table">
       <thead>
         <tr>
