@@ -18,6 +18,7 @@ const ar = {
   unknown: "غير معروف",
   home: "الرئيسية",
   category: "الفئة",
+  currency: "جنيه",
 };
 
 export default ar;

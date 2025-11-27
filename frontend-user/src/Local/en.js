@@ -18,6 +18,7 @@ const en = {
   unknown: "Unknown",
   home: "Home",
   category: "Category",
+  currency: "EGP",
 };
 
 export default en;

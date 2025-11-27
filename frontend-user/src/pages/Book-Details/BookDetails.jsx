@@ -64,7 +64,7 @@ const BookDetails = () => {
     if (!book) return "";
     switch (type) {
       case "toSale":
-        return `${content.forSale}: $${book.Price}`;
+        return `${content.forSale}: ${book.Price} ${content.currency}`;
       case "toBorrow":
         return book.isBorrowedNow
           ? content.currentlyBorrowed
