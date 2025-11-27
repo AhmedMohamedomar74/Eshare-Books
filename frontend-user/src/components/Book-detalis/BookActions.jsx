@@ -1,8 +1,10 @@
 import { Box, Button } from "@mui/material";
 import { OutlinedFlag } from "@mui/icons-material";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const BookActions = ({ bookId }) => {
+  const { content } = useSelector((state) => state.lang);
   return (
     <>
       {/* Buttons section */}
@@ -13,7 +15,7 @@ const BookActions = ({ bookId }) => {
           mt: 4,
         }}
       >
-        {/* ✅ Proceed to Order دايمًا شغال */}
+        {/*  Proceed to Order  */}
         <Button
           component={Link}
           to={`/order/${bookId}`}
@@ -28,7 +30,7 @@ const BookActions = ({ bookId }) => {
             "&:hover": { backgroundColor: "#b39b20" },
           }}
         >
-          Proceed to Order
+          {content.proceedToOrder}
         </Button>
       </Box>
 
@@ -50,7 +52,7 @@ const BookActions = ({ bookId }) => {
         }}
       >
         <OutlinedFlag sx={{ fontSize: "18px" }} />
-        Report this book
+        {content.reportBook}
       </Box>
     </>
   );

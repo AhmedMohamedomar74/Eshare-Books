@@ -4,6 +4,7 @@ import en from "../../Local/en";
 const initialState = {
   lang: "en",
   content: en,
+  direction: "ltr",
 };
 
 //Reducer
@@ -14,11 +15,13 @@ export default function LangReducer(state = initialState, action) {
         return {
           lang: "ar",
           content: ar,
+          direction: "rtl",
         };
       } else {
         return {
           lang: "en",
           content: en,
+          direction: "ltr",
         };
       }
     default:

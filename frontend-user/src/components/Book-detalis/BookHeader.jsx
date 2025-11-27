@@ -1,7 +1,9 @@
 import { Box, Typography } from "@mui/material";
 import WishlistHeartButton from "../WishlistComponents/WishlistHeartButton";
+import { useSelector } from "react-redux";
 
 const BookHeader = ({ title, author, bookId }) => {
+  const { content } = useSelector((state) => state.lang);
   return (
     <>
       <Box
@@ -17,7 +19,7 @@ const BookHeader = ({ title, author, bookId }) => {
         <WishlistHeartButton bookId={bookId} />
       </Box>
       <Typography variant="subtitle1" color="text.secondary" mb={2}>
-        by {author || "Unknown Author"}
+        {content.by} {author || content.unknownAuthor}
       </Typography>
     </>
   );

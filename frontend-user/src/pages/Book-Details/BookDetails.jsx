@@ -13,7 +13,6 @@ import {
   removeFromWishlist,
 } from "../../redux/slices/wishlist.slice";
 import BookHeader from "../../components/Book-detalis/BookHeader.jsx";
-import dayjs from "dayjs";
 
 const BookDetails = () => {
   const { id } = useParams();
@@ -25,6 +24,7 @@ const BookDetails = () => {
   const [inWishlist, setInWishlist] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [message, setMessage] = useState("");
+  const { content } = useSelector((state) => state.lang);
 
   useEffect(() => {
     api
@@ -47,15 +47,15 @@ const BookDetails = () => {
     try {
       if (inWishlist) {
         await dispatch(removeFromWishlist(book._id));
-        setMessage("Book removed from wishlist");
+        setMessage(content.bookRemoved);
         setInWishlist(false);
       } else {
         await dispatch(addToWishlist(book._id));
-        setMessage("Book added to wishlist");
+        setMessage(content.bookAdded);
         setInWishlist(true);
       }
     } catch {
-      setMessage("Something went wrong.");
+      setMessage(content.errorMessage);
     }
     setOpenSnackbar(true);
   };
@@ -64,16 +64,15 @@ const BookDetails = () => {
     if (!book) return "";
     switch (type) {
       case "toSale":
-        return `For Sale: $${book.Price}`;
+        return `${content.forSale}: $${book.Price}`;
       case "toBorrow":
-        // ✅ هنا مش هنقول Not available، هنقول reserved لو محجوز دلوقتي
         return book.isBorrowedNow
-          ? "Currently borrowed (you can reserve another period)"
-          : "Available to Borrow";
+          ? content.currentlyBorrowed
+          : content.availableToBorrow;
       case "toExchange":
-        return "Available to Exchange";
+        return content.availableToExchange;
       case "toDonate":
-        return "Free to Donate";
+        return content.freeToDonate;
       default:
         return "";
     }
@@ -83,7 +82,7 @@ const BookDetails = () => {
   if (!book)
     return (
       <Typography textAlign="center" mt={5} color="error">
-        Book not found or unavailable.
+        {content.bookNotFound}
       </Typography>
     );
 
@@ -120,7 +119,7 @@ const BookDetails = () => {
 
             <Box sx={{ display: "flex", gap: "10px", mb: 2, flexWrap: "wrap" }}>
               <Chip
-                label={book.categoryId?.name || "General"}
+                label={book.categoryId?.name || content.general}
                 variant="outlined"
               />
               <Chip
