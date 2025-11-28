@@ -1,4 +1,5 @@
 import { Typography, FormControl, Select, MenuItem, FormHelperText, Box } from '@mui/material';
+import { useSelector } from 'react-redux';
 
 const reportReasons = [
   'Inappropriate Content',
@@ -10,10 +11,24 @@ const reportReasons = [
 ];
 
 export default function ReportReasonSelect({ reason, onChange, error, disabled }) {
+  const { content } = useSelector((state) => state.lang);
+
+  const getTranslatedReason = (reasonKey) => {
+    const reasonMap = {
+      'Inappropriate Content': content.inappropriateContent || 'Inappropriate Content',
+      'Spam or Fake': content.spamOrFake || 'Spam or Fake',
+      'Offensive Language': content.offensiveLanguage || 'Offensive Language',
+      Harassment: content.harassment || 'Harassment',
+      'Scam or Fraud': content.scamOrFraud || 'Scam or Fraud',
+      Other: content.other || 'Other',
+    };
+    return reasonMap[reasonKey] || reasonKey;
+  };
+
   return (
     <Box>
       <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#000', mb: 1 }}>
-        Reason for Reporting
+        {content.reasonForReporting || 'Reason for Reporting'}
       </Typography>
       <FormControl fullWidth error={Boolean(error)}>
         <Select
@@ -31,11 +46,11 @@ export default function ReportReasonSelect({ reason, onChange, error, disabled }
           }}
         >
           <MenuItem value="" disabled>
-            Select a reason
+            {content.selectReason || 'Select a reason'}
           </MenuItem>
           {reportReasons.map((item) => (
             <MenuItem key={item} value={item}>
-              {item}
+              {getTranslatedReason(item)}
             </MenuItem>
           ))}
         </Select>

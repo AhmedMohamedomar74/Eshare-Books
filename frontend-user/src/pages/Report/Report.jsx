@@ -1,9 +1,11 @@
-import { Box, Container, Card, CardContent } from '@mui/material';
+import { Box, Container, Card, CardContent, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import ReportForm from '../../components/ReportComponents/ReportForm';
 
 export default function Report() {
   const { type, targetId } = useParams();
+  const { content } = useSelector((state) => state.lang);
 
   const targetType = type === 'book' ? 'Book' : type === 'user' ? 'user' : null;
 
@@ -20,11 +22,12 @@ export default function Report() {
         }}
       >
         <Typography color="error" variant="h6" align="center">
-          Invalid report target.
+          {content.invalidReportTarget || 'Invalid report target.'}
         </Typography>
       </Box>
     );
   }
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
       <Container maxWidth="sm" sx={{ py: 6 }}>

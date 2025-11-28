@@ -1,6 +1,9 @@
 import { Button, Box } from '@mui/material';
+import { useSelector } from 'react-redux';
 
 export default function ReportActions({ onCancel, onSend, loading }) {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', pt: 2 }}>
       <Button
@@ -17,7 +20,7 @@ export default function ReportActions({ onCancel, onSend, loading }) {
           '&:hover': { backgroundColor: '#e0e0e0' },
         }}
       >
-        Cancel
+        {content.cancel || 'Cancel'}
       </Button>
       <Button
         onClick={onSend}
@@ -33,7 +36,7 @@ export default function ReportActions({ onCancel, onSend, loading }) {
           '&:hover': { backgroundColor: '#1d4ed8' },
         }}
       >
-        {loading ? 'Sending...' : 'Send Report'}{' '}
+        {loading ? content.sending || 'Sending...' : content.sendReport || 'Send Report'}
       </Button>
     </Box>
   );

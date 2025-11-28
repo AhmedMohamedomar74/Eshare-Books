@@ -13,9 +13,11 @@ import {
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import { useSelector } from 'react-redux';
 
 export default function MyReportsTableRow({ row, getStatusColor, getStatusTextColor, onCancel }) {
   const [openDialog, setOpenDialog] = useState(false);
+  const { content } = useSelector((state) => state.lang);
 
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
@@ -29,7 +31,7 @@ export default function MyReportsTableRow({ row, getStatusColor, getStatusTextCo
     <>
       <TableRow sx={{ borderBottom: '1px solid #f0f0f0' }}>
         <TableCell sx={{ color: '#666', textAlign: 'center', verticalAlign: 'middle' }}>
-          {row.targetType}
+          {row.targetType === 'user' ? content.user || 'User' : content.book || 'Book'}
         </TableCell>
 
         <TableCell align="center">
@@ -41,8 +43,8 @@ export default function MyReportsTableRow({ row, getStatusColor, getStatusTextCo
             )}
             <Typography variant="body2" component="span">
               {row.targetType === 'user'
-                ? row.targetId?.fullName || 'User Not Found'
-                : row.targetId?.Title || 'Book Not Found'}
+                ? row.targetId?.fullName || content.userNotFound || 'User Not Found'
+                : row.targetId?.Title || content.bookNotFound || 'Book Not Found'}
             </Typography>
           </Stack>
         </TableCell>
@@ -57,7 +59,7 @@ export default function MyReportsTableRow({ row, getStatusColor, getStatusTextCo
 
         <TableCell sx={{ textAlign: 'center', verticalAlign: 'middle' }}>
           <Chip
-            label={row.status}
+            label={content[row.status?.toLowerCase()] || row.status}
             sx={{
               backgroundColor: getStatusColor(row.status),
               color: getStatusTextColor(row.status),
@@ -74,7 +76,7 @@ export default function MyReportsTableRow({ row, getStatusColor, getStatusTextCo
               sx={{ color: '#2563EB', textTransform: 'capitalize' }}
               onClick={handleOpenDialog}
             >
-              Cancel
+              {content.cancel || 'Cancel'}
             </Button>
           ) : (
             <Typography sx={{ color: '#999', fontSize: '0.9rem' }}>—</Typography>
@@ -82,24 +84,23 @@ export default function MyReportsTableRow({ row, getStatusColor, getStatusTextCo
         </TableCell>
       </TableRow>
 
-      {/* Dialog التأكيد */}
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}
         PaperProps={{ sx: { borderRadius: 3, p: 1.5 } }}
       >
         <DialogTitle sx={{ fontWeight: 'bold', color: '#b91c1c' }}>
-          Confirm Cancel Report
+          {content.confirmCancelReport || 'Confirm Cancel Report'}
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ color: '#555', mt: 1 }}>
-            Are you sure you want to <strong>cancel this report</strong>? This action cannot be
-            undone.
+            {content.cancelReportConfirmation ||
+              'Are you sure you want to cancel this report? This action cannot be undone.'}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleCloseDialog} sx={{ textTransform: 'none', fontWeight: 600 }}>
-            No
+            {content.no || 'No'}
           </Button>
           <Button
             onClick={handleConfirmCancel}
@@ -111,7 +112,7 @@ export default function MyReportsTableRow({ row, getStatusColor, getStatusTextCo
               fontWeight: 600,
             }}
           >
-            Yes, Cancel
+            {content.yesCancel || 'Yes, Cancel'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -12,6 +12,7 @@ export default function ReportForm({ targetType, targetId }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, successMessage, error } = useSelector((state) => state.reports);
+  const { content } = useSelector((state) => state.lang);
 
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
@@ -32,14 +33,16 @@ export default function ReportForm({ targetType, targetId }) {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!reason) newErrors.reason = 'Please select a reason for reporting.';
+    if (!reason)
+      newErrors.reason = content.selectReasonError || 'Please select a reason for reporting.';
     if (description.length > 500)
-      newErrors.description = 'Description cannot exceed 500 characters.';
+      newErrors.description =
+        content.descriptionLengthError || 'Description cannot exceed 500 characters.';
     return newErrors;
   };
 
   const handleCancel = () => {
-    navigate(-1); // Go back to previous page
+    navigate(-1);
   };
 
   const handleSendReport = () => {
@@ -62,12 +65,13 @@ export default function ReportForm({ targetType, targetId }) {
   useEffect(() => {
     if (successMessage) {
       setSnackbarType('success');
-      setSnackbarMsg('Report sent successfully! It will be reviewed shortly.');
+      setSnackbarMsg(
+        content.reportSentSuccess || 'Report sent successfully! It will be reviewed shortly.'
+      );
       setOpenSnackbar(true);
       setReason('');
       setDescription('');
 
-      // Navigate to previous page after 3 seconds
       const timer = setTimeout(() => {
         dispatch(clearReportMessage());
         navigate(-1);
@@ -75,19 +79,20 @@ export default function ReportForm({ targetType, targetId }) {
 
       return () => clearTimeout(timer);
     } else if (error) {
-      let userFriendlyError = 'Failed to send report. Please try again.';
+      let userFriendlyError = content.reportSendError || 'Failed to send report. Please try again.';
 
       if (error.response) {
         const status = error.response.status;
 
         if (status === 400) {
-          userFriendlyError = 'You have already submitted this exact report.';
+          userFriendlyError =
+            content.duplicateReportError || 'You have already submitted this exact report.';
         } else if (status === 403) {
-          userFriendlyError = 'You cannot report yourself.';
+          userFriendlyError = content.selfReportError || 'You cannot report yourself.';
         } else if (status === 404) {
-          userFriendlyError = 'Book or user not found.';
+          userFriendlyError = content.targetNotFoundError || 'Book or user not found.';
         } else if (status === 500) {
-          userFriendlyError = 'Server error. Please try again later.';
+          userFriendlyError = content.serverError || 'Server error. Please try again later.';
         }
       }
 
@@ -96,7 +101,7 @@ export default function ReportForm({ targetType, targetId }) {
       setOpenSnackbar(true);
       setTimeout(() => dispatch(clearReportMessage()), 2500);
     }
-  }, [successMessage, error, dispatch, navigate]);
+  }, [successMessage, error, dispatch, navigate, content]);
 
   return (
     <Box sx={{ position: 'relative' }}>

@@ -10,11 +10,12 @@ import {
   Alert,
 } from '@mui/material';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { clearWishlist } from '../../redux/slices/wishlist.slice';
 
 export default function ClearWishlistButton() {
   const dispatch = useDispatch();
+  const { content } = useSelector((state) => state.lang);
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
@@ -52,7 +53,7 @@ export default function ClearWishlistButton() {
           },
         }}
       >
-        Clear Wishlist
+        {content.clearWishlist || 'Clear Wishlist'}
       </Button>
 
       {/* Confirmation Dialog */}
@@ -64,17 +65,17 @@ export default function ClearWishlistButton() {
         }}
       >
         <DialogTitle sx={{ fontWeight: 'bold', color: '#b91c1c' }}>
-          Confirm Clear Wishlist
+          {content.confirmClearWishlist || 'Confirm Clear Wishlist'}
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ color: '#555', mt: 1 }}>
-            Are you sure you want to <strong>remove all items</strong> from your wishlist? This
-            action <strong>cannot be undone.</strong>
+            {content.clearWishlistConfirmation ||
+              'Are you sure you want to remove all items from your wishlist? This action cannot be undone.'}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleClose} sx={{ textTransform: 'none', fontWeight: 600 }}>
-            Cancel
+            {content.cancel || 'Cancel'}
           </Button>
           <Button
             onClick={handleConfirmClear}
@@ -86,7 +87,7 @@ export default function ClearWishlistButton() {
               fontWeight: 600,
             }}
           >
-            Yes, Clear
+            {content.yesClear || 'Yes, Clear'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -103,7 +104,7 @@ export default function ClearWishlistButton() {
           severity="success"
           sx={{ width: '100%', borderRadius: 2 }}
         >
-          Wishlist cleared successfully!
+          {content.wishlistCleared || 'Wishlist cleared successfully!'}
         </Alert>
       </Snackbar>
     </>

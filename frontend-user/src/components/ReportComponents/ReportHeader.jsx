@@ -1,6 +1,9 @@
 import { Typography, Box } from '@mui/material';
+import { useSelector } from 'react-redux';
 
 export default function ReportHeader() {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <Box sx={{ mb: 3 }}>
       <Typography
@@ -11,7 +14,7 @@ export default function ReportHeader() {
           mb: 2,
         }}
       >
-        Report Inappropriate Content
+        {content.reportTitle || 'Report Inappropriate Content'}
       </Typography>
       <Typography
         sx={{
@@ -20,8 +23,8 @@ export default function ReportHeader() {
           lineHeight: 1.6,
         }}
       >
-        Please select a reason and provide details below. Your feedback helps keep our community
-        safe.
+        {content.reportDescription ||
+          'Please select a reason and provide details below. Your feedback helps keep our community safe.'}
       </Typography>
     </Box>
   );

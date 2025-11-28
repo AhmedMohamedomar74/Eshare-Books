@@ -10,9 +10,11 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
+import { useSelector } from 'react-redux';
 import notFoundImage from '/src/assets/not_foundimage.png';
 
 export default function BookCardList({ book, onView, onDelete }) {
+  const { content } = useSelector((state) => state.lang);
   const imageSrc = book.image?.secure_url || notFoundImage;
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -83,7 +85,7 @@ export default function BookCardList({ book, onView, onDelete }) {
               onClick={onView}
               sx={{ backgroundColor: '#1976d2', textTransform: 'none', fontWeight: 'bold' }}
             >
-              View Details
+              {content.viewDetails || 'View Details'}
             </Button>
 
             <Button
@@ -100,7 +102,7 @@ export default function BookCardList({ book, onView, onDelete }) {
                 },
               }}
             >
-              Remove
+              {content.remove || 'Remove'}
             </Button>
           </Box>
         </CardContent>
@@ -112,17 +114,17 @@ export default function BookCardList({ book, onView, onDelete }) {
         PaperProps={{ sx: { borderRadius: 3, p: 1.5 } }}
       >
         <DialogTitle sx={{ fontWeight: 'bold', color: '#b91c1c' }}>
-          Confirm Book Removal
+          {content.confirmBookRemoval || 'Confirm Book Removal'}
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ color: '#555', mt: 1 }}>
-            Are you sure you want to <strong>remove this book</strong> from your wishlist? This
-            action <strong>cannot be undone.</strong>
+            {content.removeBookConfirmation ||
+              'Are you sure you want to remove this book from your wishlist? This action cannot be undone.'}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleCloseDialog} sx={{ textTransform: 'none', fontWeight: 600 }}>
-            Cancel
+            {content.cancel || 'Cancel'}
           </Button>
           <Button
             onClick={handleConfirmDelete}
@@ -134,7 +136,7 @@ export default function BookCardList({ book, onView, onDelete }) {
               fontWeight: 600,
             }}
           >
-            Yes, Remove
+            {content.yesRemove || 'Yes, Remove'}
           </Button>
         </DialogActions>
       </Dialog>
