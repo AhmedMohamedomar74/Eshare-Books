@@ -217,6 +217,8 @@ request: "Request",
   reason: "Reason",
   cancel: "Cancel",
   sendRefusal: "Send Refusal",
+switchToArabic: "Switch to Arabic",
+  switchToEnglish: "Switch to English",
 
 };
 

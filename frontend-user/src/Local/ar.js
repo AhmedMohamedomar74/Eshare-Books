@@ -216,6 +216,8 @@ const ar = {
   reason: "السبب",
   cancel: "إلغاء",
   sendRefusal: "إرسال الرفض",
+  switchToArabic: "التبديل إلى العربية",
+  switchToEnglish: "التبديل إلى الإنجليزية",
 };
 
 export default ar;
