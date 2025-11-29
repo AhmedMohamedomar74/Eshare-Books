@@ -24,13 +24,10 @@ const BookCard = ({ book }) => {
   const title = book.title || book.Title || 'Untitled';
   const type = book.TransactionType || book.type || book.Type || 'Other';
   const price = book.price || book.Price || 0;
-  const pricePerDay = book.PricePerDay || book.pricePerDay || 0; // سعر اليوم في حالة الاستعارة
+  const pricePerDay = book.PricePerDay || book.pricePerDay || 0;
   const description =
     book.description || book.Description || 'No description available.';
   const id = book._id || book.id;
-
-  // 👇 ده الفلاغ اللي backend بيبعتُه لو الكتاب مستعار حاليًا
-  const isBorrowedNow = book.isBorrowedNow;
 
   const getChipColor = (type) => {
     switch (type) {
@@ -107,6 +104,7 @@ const BookCard = ({ book }) => {
         </Link>
       )}
 
+      {/* Wishlist */}
       <Box
         sx={{
           position: 'absolute',
@@ -133,7 +131,7 @@ const BookCard = ({ book }) => {
         <WishlistHeartButton bookId={book._id} />
       </Box>
 
-      {/* الصورة */}
+      {/* Image */}
       <CardMedia
         component="img"
         image={
@@ -149,7 +147,7 @@ const BookCard = ({ book }) => {
         }}
       />
 
-      {/* المحتوى */}
+      {/* Content */}
       <CardContent
         sx={{
           flexGrow: 1,
@@ -196,7 +194,7 @@ const BookCard = ({ book }) => {
             {shortDescription}
           </Typography>
 
-          {/* السعر / حالة الإتاحة حسب نوع العملية */}
+          {/* Price */}
           {type === 'toSale' && (
             <Typography
               variant="subtitle1"
@@ -210,12 +208,10 @@ const BookCard = ({ book }) => {
           {type === 'toBorrow' && (
             <Typography
               variant="subtitle2"
-              color={isBorrowedNow ? 'error' : 'primary'}
+              color="primary"
               sx={{ fontWeight: 500, mb: 1 }}
             >
-              {isBorrowedNow
-                ? 'Not available now'
-                : `${pricePerDay} EGP / day`}
+              {pricePerDay} EGP / day
             </Typography>
           )}
 

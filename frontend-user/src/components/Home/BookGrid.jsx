@@ -46,20 +46,7 @@ export default function BookGrid({ books = [] }) {
                 justifyContent: "center",
               }}
             >
-              {isBorrowedNow && (
-                <Chip
-                  label="Currently borrowed"
-                  color="warning"
-                  size="small"
-                  sx={{
-                    position: "absolute",
-                    top: 8,
-                    left: 8,
-                    zIndex: 2,
-                    fontWeight: "bold",
-                  }}
-                />
-              )}
+              
 
               <BookCard book={book} disabled={isBorrowedNow} />
             </Box>

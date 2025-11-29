@@ -9,8 +9,6 @@ import BookInfo from "../../components/Order/BookInfo";
 import { useSnackbar } from "notistack";
 import ConfirmDialog from "../../components/Order/ConfirmDialog";
 import dayjs from "dayjs";
-
-// ✅ Plugins لازم تتفعل
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 dayjs.extend(isSameOrBefore);
 
@@ -23,15 +21,14 @@ const OrderPage = () => {
     (state) => state.orders
   );
 
-  const [startDate, setStartDate] = useState(null); // dayjs
-  const [endDate, setEndDate] = useState(null); // dayjs
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (id) dispatch(fetchBookId(id));
   }, [id, dispatch]);
 
-  // ✅ لا تخرجي قبل ما كل الـ hooks تخلص
   if (loading) return <Spinner />;
 
   if (!book)
@@ -50,17 +47,12 @@ const OrderPage = () => {
       ? "exchange"
       : "donate";
 
-  // ✅ الفترات المحجوزة جاية من الباك
   const reservedBorrows = book?.reservedBorrows || [];
-  const currentBorrow = book?.currentBorrow || null;
 
   const getBorrowDays = () => {
     if (operationType !== "borrow" || !startDate || !endDate) return 0;
-
     const diff = endDate.startOf("day").diff(startDate.startOf("day"), "day");
-    if (diff <= 0) return 0;
-
-    return diff;
+    return diff > 0 ? diff : 0;
   };
 
   const borrowDays = getBorrowDays();
@@ -74,7 +66,6 @@ const OrderPage = () => {
 
   const handleCompleteClick = (e) => {
     e.preventDefault();
-    e.stopPropagation();
 
     if (operationType === "borrow") {
       if (!startDate || !endDate) {
@@ -92,7 +83,6 @@ const OrderPage = () => {
       }
     }
 
-    // ✅ حتى لو الكتاب محجوز دلوقتي، سيبي اليوزر يكمل
     setConfirmOpen(true);
   };
 
@@ -104,23 +94,6 @@ const OrderPage = () => {
     };
 
     if (operationType === "borrow") {
-      if (!startDate || !endDate) {
-        enqueueSnackbar("Borrow dates are required.", {
-          variant: "warning",
-        });
-        setConfirmOpen(false);
-        return;
-      }
-
-      if (endDate.isSameOrBefore(startDate, "day")) {
-        enqueueSnackbar("End date must be after start date.", {
-          variant: "warning",
-        });
-        setConfirmOpen(false);
-        return;
-      }
-
-      // ✅ نبعت للباك ISO
       operationData.startDate = startDate.toISOString();
       operationData.endDate = endDate.toISOString();
     }
@@ -143,37 +116,18 @@ const OrderPage = () => {
   return (
     <Box
       sx={{
-        p: 4,
-        display: "flex",
-        flexDirection: { xs: "column", md: "row" },
-        gap: 4,
+        px: { xs: 2, md: 5 },
+        py: { xs: 2, md: 4 },
+        bgcolor: "#fafafa",
+        minHeight: "100vh",
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", md: "1.25fr 0.75fr" },
+        gap: 3,
+        alignItems: "start",
       }}
     >
-      {/* Book Info */}
-      <Box sx={{ flex: 1 }}>
-        <BookInfo book={book} />
+      <BookInfo book={book} />
 
-        {/* ✅ لو محجوز حاليًا، نعرض تنبيه بسيط من غير منع */}
-        {operationType === "borrow" && currentBorrow && (
-          <Typography
-            sx={{
-              mt: 2,
-              p: 1.5,
-              borderRadius: 2,
-              bgcolor: "#fff3e0",
-              color: "#e65100",
-              fontWeight: 600,
-              width: "fit-content",
-            }}
-          >
-            This book is currently borrowed until{" "}
-            {dayjs(currentBorrow.endDate).format("YYYY-MM-DD")}.  
-            You can still reserve another period.
-          </Typography>
-        )}
-      </Box>
-
-      {/* Operation Form */}
       <OperationForm
         operationType={operationType}
         book={book}
@@ -188,7 +142,6 @@ const OrderPage = () => {
         reservedBorrows={reservedBorrows}
       />
 
-      {/* Confirm Dialog */}
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
