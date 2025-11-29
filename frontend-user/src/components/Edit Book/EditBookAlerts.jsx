@@ -1,32 +1,36 @@
 import React from "react";
 import { Alert, CircularProgress } from "@mui/material";
+import { useSelector } from "react-redux";
 
 export default function EditBookAlerts({ loading, error, successMessage }) {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <>
-      {/* 🌀 Loading */}
+      {/* Loading */}
       {loading && (
         <Alert
           severity="info"
           sx={{ mt: 3, display: "flex", alignItems: "center", gap: 2 }}
         >
           <CircularProgress size={20} />
-          Updating your book...
+          {content.updatingBook}
         </Alert>
       )}
 
-      {/* ⚠️ Error */}
+      {/* Error */}
       {error && !loading && (
         <Alert severity="error" sx={{ mt: 3 }}>
           {error}
         </Alert>
       )}
 
-      {/* ✅ Success */}
+      {/* Success */}
       {successMessage && !loading && (
         <Alert severity="success" sx={{ mt: 3 }}>
-          Book updated successfully! ✅ <br />
-          Redirecting to your profile...
+          {content.bookUpdatedSuccess}
+          <br />
+          {content.redirectingProfile}
         </Alert>
       )}
     </>

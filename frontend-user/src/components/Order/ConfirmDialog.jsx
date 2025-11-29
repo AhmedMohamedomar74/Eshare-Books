@@ -7,20 +7,22 @@ import {
   Button,
 } from "@mui/material";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const ConfirmDialog = ({ open, onClose, onConfirm, operationType }) => {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Confirm Operation</DialogTitle>
+      <DialogTitle>{content.confirmOperation}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Are you sure you want to complete this{" "}
-          <strong>{operationType}</strong> operation?
+          {content.confirmMessage} <strong>{content[operationType]}</strong>?
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="error">
-          Cancel
+          {content.cancel}
         </Button>
         <Button
           component={Link}
@@ -30,7 +32,7 @@ const ConfirmDialog = ({ open, onClose, onConfirm, operationType }) => {
           variant="contained"
           autoFocus
         >
-          Confirm
+          {content.confirm}
         </Button>
       </DialogActions>
     </Dialog>

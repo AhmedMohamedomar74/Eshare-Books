@@ -17,6 +17,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import PersonIcon from "@mui/icons-material/Person";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 
 const PendingInvitationItem = ({
   invitation,
@@ -26,6 +27,7 @@ const PendingInvitationItem = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { content } = useSelector((state) => state.lang);
 
   const [openRefuseDialog, setOpenRefuseDialog] = useState(false);
   const [reason, setReason] = useState("");
@@ -83,7 +85,7 @@ const PendingInvitationItem = ({
 
               <Stack direction="row" spacing={0.5} mt={0.5} flexWrap="wrap">
                 <Chip
-                  label={invitation.type || "Request"}
+                  label={invitation.type || content.request}
                   size="small"
                   color="primary"
                   variant="outlined"
@@ -128,7 +130,7 @@ const PendingInvitationItem = ({
               }
               fullWidth={isMobile}
             >
-              Accept
+              {content.accept}
             </Button>
 
             <Button
@@ -139,7 +141,7 @@ const PendingInvitationItem = ({
               onClick={handleRefuseClick}
               fullWidth={isMobile}
             >
-              Refuse
+              {content.refuse}
             </Button>
           </Stack>
         </Stack>
@@ -151,26 +153,28 @@ const PendingInvitationItem = ({
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Write the reason for refusal</DialogTitle>
+        <DialogTitle>{content.writeReasonForRefusal}</DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
             multiline
             rows={4}
-            label="Reason"
+            label={content.reason}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             autoFocus
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenRefuseDialog(false)}>Cancel</Button>
+          <Button onClick={() => setOpenRefuseDialog(false)}>
+            {content.cancel}
+          </Button>
           <Button
             variant="contained"
             color="error"
             onClick={handleConfirmRefuse}
           >
-            Send Refusal
+            {content.sendRefusal}
           </Button>
         </DialogActions>
       </Dialog>

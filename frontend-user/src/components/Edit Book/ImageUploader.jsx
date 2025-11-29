@@ -1,5 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { useSelector } from "react-redux";
 
 const ImageUploader = ({
   existingImage,
@@ -7,6 +8,8 @@ const ImageUploader = ({
   fieldError,
   handleImageUpload,
 }) => {
+  const { content } = useSelector((state) => state.lang);
+
   // Determine which image to show
   const imageToShow = image ? URL.createObjectURL(image) : existingImage;
 
@@ -26,7 +29,7 @@ const ImageUploader = ({
           <Box
             component="img"
             src={imageToShow}
-            alt="Book cover preview"
+            alt={content.bookCoverPreview}
             sx={{
               width: "100%",
               height: "auto",
@@ -52,7 +55,7 @@ const ImageUploader = ({
               fontWeight: "medium",
             }}
           >
-            {image ? "New Image" : "Current Image"}
+            {image ? content.newImage : content.currentImage}
           </Box>
         </Box>
       )}
@@ -78,10 +81,10 @@ const ImageUploader = ({
           }}
         >
           {image
-            ? `Change Image (${image.name})`
+            ? `${content.changeImage} (${image.name})`
             : existingImage
-            ? "Change Book Cover"
-            : "Upload Book Cover"}
+            ? content.changeBookCover
+            : content.uploadBookCover}
         </Button>
       </label>
 
@@ -106,10 +109,10 @@ const ImageUploader = ({
           sx={{ mt: 1 }}
         >
           {image
-            ? "Click to choose a different image"
+            ? content.chooseDifferentImage
             : existingImage
-            ? "Current image will be kept if you don't upload a new one"
-            : "Upload an image (max 5MB)"}
+            ? content.keepCurrentImage
+            : content.uploadImageHelp}
         </Typography>
       )}
     </Box>

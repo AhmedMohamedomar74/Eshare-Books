@@ -22,6 +22,7 @@ export default function EditBook() {
   const { loading, error, successMessage } = useSelector(
     (state) => state.books
   );
+  const { content } = useSelector((state) => state.lang);
 
   const [type, setType] = useState("toSale");
   const [image, setImage] = useState(null);
@@ -76,7 +77,7 @@ export default function EditBook() {
         setType(book.TransactionType || "toSale");
         setExistingImage(book.image?.secure_url || book.image || null);
       } catch (err) {
-        alert("Failed to load the book data.");
+        alert(content.failedLoadBook);
         navigate("/profile");
       } finally {
         setLoadingBook(false);
@@ -86,7 +87,7 @@ export default function EditBook() {
     fetchData();
 
     return () => dispatch(clearMessages());
-  }, [id, dispatch, navigate]);
+  }, [id, dispatch, navigate, content]);
 
   useEffect(() => {
     if (successMessage) {
@@ -117,7 +118,7 @@ export default function EditBook() {
     if (!file.type.startsWith("image/")) {
       setFieldErrors((prev) => ({
         ...prev,
-        image: "Only image files are allowed",
+        image: content.onlyImagesAllowed,
       }));
       return;
     }
@@ -126,7 +127,7 @@ export default function EditBook() {
     if (file.size > maxSizeMB * 1024 * 1024) {
       setFieldErrors((prev) => ({
         ...prev,
-        image: `Image must be less than ${maxSizeMB}MB`,
+        image: content.imageTooLarge,
       }));
       return;
     }
@@ -142,7 +143,7 @@ export default function EditBook() {
       setForm((prev) => ({ ...prev, [name]: "" }));
       setFieldErrors((prev) => ({
         ...prev,
-        [name]: "Price cannot be negative",
+        [name]: content.priceNegative,
       }));
       return;
     }
@@ -158,18 +159,18 @@ export default function EditBook() {
     let err = "";
 
     if (name === "Title" && (!value.trim() || value.trim().length < 2))
-      err = "Title must be at least 2 characters";
+      err = content.titleTooShort;
 
-    if (name === "categoryId" && !value) err = "Category is required";
+    if (name === "categoryId" && !value) err = content.categoryRequired;
 
     if (name === "Description" && (!value.trim() || value.trim().length < 10))
-      err = "Description must be at least 10 characters";
+      err = content.descriptionTooShort;
 
     if (name === "Price" && type === "toSale" && Number(value) <= 0)
-      err = "Price must be greater than zero";
+      err = content.priceMustBePositive;
 
     if (name === "PricePerDay" && type === "toBorrow" && Number(value) <= 0)
-      err = "Price per day must be greater than zero";
+      err = content.pricePerDayMustBePositive;
 
     setFieldErrors((prev) => ({ ...prev, [name]: err }));
     return err === "";
@@ -179,21 +180,21 @@ export default function EditBook() {
     const errors = {};
 
     if (!form.Title.trim() || form.Title.trim().length < 2)
-      errors.Title = "Title is required";
+      errors.Title = content.titleTooShort;
 
-    if (!form.categoryId) errors.categoryId = "Category is required";
+    if (!form.categoryId) errors.categoryId = content.categoryRequired;
 
     if (!form.Description.trim() || form.Description.trim().length < 10)
-      errors.Description = "Description must be at least 10 characters";
+      errors.Description = content.descriptionTooShort;
 
     if (type === "toSale") {
       if (!form.Price || Number(form.Price) <= 0)
-        errors.Price = "Price is required";
+        errors.Price = content.priceRequired;
     }
 
     if (type === "toBorrow") {
       if (!form.PricePerDay || Number(form.PricePerDay) <= 0)
-        errors.PricePerDay = "Price per day is required";
+        errors.PricePerDay = content.pricePerDayRequired;
     }
 
     setFieldErrors((prev) => ({ ...prev, ...errors }));
@@ -255,7 +256,7 @@ export default function EditBook() {
             textAlign="center"
             sx={{ mb: 3 }}
           >
-            Edit Your Book
+            {content.editBookTitle}
           </Typography>
 
           {/* Form Section */}

@@ -2,6 +2,7 @@ import { Menu, Box, Typography, Divider } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import PendingInvitationItem from "./PendingInvitationItem";
 import NotificationItem from "./NotificationItem";
+import { useSelector } from "react-redux";
 
 const NotificationMenu = ({
   anchorEl,
@@ -12,14 +13,16 @@ const NotificationMenu = ({
   acceptInvitation,
   refuseInvitation,
 }) => {
+  const { content } = useSelector((state) => state.lang);
+
   const formatTime = (timestamp) => {
     const now = new Date();
     const time = new Date(timestamp);
     const diff = Math.floor((now - time) / 1000);
-    if (diff < 60) return "just now";
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
+    if (diff < 60) return content.justNow;
+    if (diff < 3600) return `${Math.floor(diff / 60)}${content.minutesAgo}`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}${content.hoursAgo}`;
+    return `${Math.floor(diff / 86400)}${content.daysAgo}`;
   };
 
   return (
@@ -43,7 +46,7 @@ const NotificationMenu = ({
       {/* Header */}
       <Box sx={{ px: 2, py: 1.5, borderBottom: 1, borderColor: "divider" }}>
         <Typography variant="h6" fontWeight="bold">
-          Notifications
+          {content.notifications}
         </Typography>
       </Box>
 
@@ -54,7 +57,7 @@ const NotificationMenu = ({
             sx={{ fontSize: { xs: 36, sm: 48 }, color: "text.disabled", mb: 1 }}
           />
           <Typography variant="body2" color="text.secondary">
-            No notifications yet
+            {content.noNotificationsYet}
           </Typography>
         </Box>
       )}
@@ -71,7 +74,7 @@ const NotificationMenu = ({
           }}
         >
           <Typography variant="caption" fontWeight="bold">
-            ACTION REQUIRED ({pendingInvitations.length})
+            {content.actionRequired} ({pendingInvitations.length})
           </Typography>
         </Box>,
         ...pendingInvitations.map((inv) => (
@@ -100,7 +103,7 @@ const NotificationMenu = ({
           }}
         >
           <Typography variant="h6" fontWeight="bold">
-            Recent Activity
+            {content.recentActivity}
           </Typography>
         </Box>,
         ...notifications

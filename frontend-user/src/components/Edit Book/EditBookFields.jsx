@@ -1,6 +1,7 @@
-import React from 'react';
-import { TextField, Box } from '@mui/material';
-import SuggestCategoryButton from '../SuggestCategoryComponents/SuggestCategoryButton';
+import React from "react";
+import { TextField, Box } from "@mui/material";
+import SuggestCategoryButton from "../SuggestCategoryComponents/SuggestCategoryButton";
+import { useSelector } from "react-redux";
 
 export default function EditBookFields({
   form,
@@ -10,37 +11,40 @@ export default function EditBookFields({
   handleChange,
   validateField,
 }) {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <>
-      {/* 🏷️ Title */}
+      {/* Title */}
       <TextField
         fullWidth
-        label="Title"
+        label={content.title}
         name="Title"
         value={form.Title}
         onChange={handleChange}
-        onBlur={(e) => validateField('Title', e.target.value)}
+        onBlur={(e) => validateField("Title", e.target.value)}
         sx={{ mb: 2 }}
         error={Boolean(fieldErrors.Title)}
         helperText={fieldErrors.Title}
       />
 
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-        {/* 📂 Category Dropdown */}
+      <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+        {/* Category Dropdown */}
         <TextField
           select
           fullWidth
+          label={content.category}
           name="categoryId"
           value={form.categoryId}
           onChange={handleChange}
-          onBlur={(e) => validateField('categoryId', e.target.value)}
+          onBlur={(e) => validateField("categoryId", e.target.value)}
           SelectProps={{ native: true }}
           sx={{ mb: 2 }}
           error={Boolean(fieldErrors.categoryId)}
           helperText={fieldErrors.categoryId}
         >
           <option value="" disabled>
-            Select category
+            {content.selectCategory}
           </option>
           {categories.map((cat) => (
             <option key={cat._id} value={cat._id}>
@@ -50,21 +54,21 @@ export default function EditBookFields({
         </TextField>
 
         {/* Suggest Button */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+        <Box sx={{ display: "flex", alignItems: "flex-start" }}>
           <SuggestCategoryButton />
         </Box>
       </Box>
 
-      {/* 💰 Price (Sell) */}
-      {type === 'toSale' && (
+      {/* Price (Sell) */}
+      {type === "toSale" && (
         <TextField
           fullWidth
-          label="Price"
+          label={content.price}
           name="Price"
           type="number"
           value={form.Price}
           onChange={handleChange}
-          onBlur={(e) => validateField('Price', e.target.value)}
+          onBlur={(e) => validateField("Price", e.target.value)}
           sx={{ mb: 2 }}
           inputProps={{ min: 1 }}
           error={Boolean(fieldErrors.Price)}
@@ -72,16 +76,16 @@ export default function EditBookFields({
         />
       )}
 
-      {/* 📅 Price Per Day (Borrow) */}
-      {type === 'toBorrow' && (
+      {/* Price Per Day (Borrow) */}
+      {type === "toBorrow" && (
         <TextField
           fullWidth
-          label="Price Per Day"
+          label={content.pricePerDay}
           name="PricePerDay"
           type="number"
           value={form.PricePerDay}
           onChange={handleChange}
-          onBlur={(e) => validateField('PricePerDay', e.target.value)}
+          onBlur={(e) => validateField("PricePerDay", e.target.value)}
           sx={{ mb: 2 }}
           inputProps={{ min: 1 }}
           error={Boolean(fieldErrors.PricePerDay)}
@@ -89,16 +93,16 @@ export default function EditBookFields({
         />
       )}
 
-      {/* 📝 Description */}
+      {/* Description */}
       <TextField
         fullWidth
         multiline
         rows={4}
-        label="Description"
+        label={content.description}
         name="Description"
         value={form.Description}
         onChange={handleChange}
-        onBlur={(e) => validateField('Description', e.target.value)}
+        onBlur={(e) => validateField("Description", e.target.value)}
         sx={{ mb: 2 }}
         error={Boolean(fieldErrors.Description)}
         helperText={fieldErrors.Description}

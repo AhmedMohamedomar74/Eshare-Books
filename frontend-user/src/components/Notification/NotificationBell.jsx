@@ -3,6 +3,7 @@ import { IconButton, Badge, useTheme, useMediaQuery } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import NotificationMenu from "./NotificationMenu";
 import { useSocketNotifications } from "../../hooks/useSocketNotifications";
+import { useSelector } from "react-redux";
 
 const NotificationBell = () => {
   const {
@@ -12,6 +13,8 @@ const NotificationBell = () => {
     acceptInvitation,
     refuseInvitation,
   } = useSocketNotifications();
+
+  const { content } = useSelector((state) => state.lang);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -29,6 +32,7 @@ const NotificationBell = () => {
   return (
     <>
       <IconButton
+        aria-label={content.notifications}
         onClick={handleClick}
         size={isMobile ? "small" : "medium"}
         sx={{
