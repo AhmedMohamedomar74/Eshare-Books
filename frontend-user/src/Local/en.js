@@ -114,6 +114,47 @@ const en = {
   myProfile: 'My Profile',
   logout: 'Logout',
   language: 'Language',
+
+   profile: {
+    // Profile Header
+    myReports: "My Reports",
+    changeProfilePicture: "Change profile picture",
+    memberSince: "Member since",
+    
+    // Tab Navigation
+    myBooks: "My Books",
+    userBooks: "User's Books",
+    
+    // Books Grid
+    noBooksFound: "No books found",
+    noBooksDescription: "No books available to display at the moment",
+    
+    // Book Card
+    forSale: "For Sale",
+    forBorrow: "For Borrow",
+    forExchange: "For Exchange", 
+    forDonation: "For Donation",
+    pendingOrder: "Pending Order",
+    editBook: "Edit Book",
+    deleteBook: "Delete Book",
+    confirmDelete: "Confirm Delete",
+    deleteConfirmation: "Are you sure you want to delete this book?",
+    cancel: "Cancel",
+    delete: "Delete",
+    
+    // Public Profile
+    reportUser: "Report User",
+    friends: "Friends",
+    
+    // Loading States
+    loadingProfile: "Loading profile...",
+    loadingBooks: "Loading books...",
+    
+    // Error States
+    errorLoadingProfile: "Error loading profile",
+    errorLoadingBooks: "Error loading books",
+    retry: "Retry"
+  }
 };
 
 export default en;

@@ -1,7 +1,8 @@
-// PublicProfileHeader.jsx
 import React from "react";
+import { useSelector } from "react-redux";
 
 const PublicProfileHeader = ({ user, onReportUser }) => {
+  const { content } = useSelector((state) => state.lang);
   const fullName = `${user?.firstName || ''} ${user?.secondName || ''}`.trim();
 
   return (
@@ -24,10 +25,10 @@ const PublicProfileHeader = ({ user, onReportUser }) => {
             </p>
             <div className="flex gap-4 mt-2">
               <span className="text-[#6f7b7b] text-sm">
-                Friends: {user?.friendCount || 0}
+                {content.profile.friends}: {user?.friendCount || 0}
               </span>
               <span className="text-[#6f7b7b] text-sm">
-                Member since: {user?.memberSince ? new Date(user.memberSince).toLocaleDateString() : 'N/A'}
+                {content.profile.memberSince}: {user?.memberSince ? new Date(user.memberSince).toLocaleDateString() : 'N/A'}
               </span>
             </div>
           </div>
@@ -36,7 +37,7 @@ const PublicProfileHeader = ({ user, onReportUser }) => {
           onClick={onReportUser}
           className="h-10 px-4 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-colors"
         >
-          Report User
+          {content.profile.reportUser}
         </button>
       </div>
     </div>

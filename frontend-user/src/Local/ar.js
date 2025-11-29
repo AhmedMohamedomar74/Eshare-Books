@@ -113,6 +113,47 @@ const ar = {
   myProfile: 'ملفي',
   logout: 'تسجيل الخروج',
   language: 'اللغة',
+
+  profile: {
+    // Profile Header
+    myReports: "تقاريري",
+    changeProfilePicture: "تغيير صورة الملف الشخصي",
+    memberSince: "عضو منذ",
+    
+    // Tab Navigation
+    myBooks: "كتبي",
+    userBooks: "كتب المستخدم",
+    
+    // Books Grid
+    noBooksFound: "لم يتم العثور على كتب",
+    noBooksDescription: "لا توجد كتب لعرضها حالياً",
+    
+    // Book Card
+    forSale: "للبيع",
+    forBorrow: "للإعارة", 
+    forExchange: "للمبادلة",
+    forDonation: "للتبرع",
+    pendingOrder: "طلب قيد الانتظار",
+    editBook: "تعديل الكتاب",
+    deleteBook: "حذف الكتاب",
+    confirmDelete: "تأكيد الحذف",
+    deleteConfirmation: "هل أنت متأكد أنك تريد حذف هذا الكتاب؟",
+    cancel: "إلغاء",
+    delete: "حذف",
+    
+    // Public Profile
+    reportUser: "الإبلاغ عن المستخدم",
+    friends: "أصدقاء",
+    
+    // Loading States
+    loadingProfile: "جاري تحميل الملف الشخصي...",
+    loadingBooks: "جاري تحميل الكتب...",
+    
+    // Error States
+    errorLoadingProfile: "خطأ في تحميل الملف الشخصي",
+    errorLoadingBooks: "خطأ في تحميل الكتب",
+    retry: "إعادة المحاولة"
+  },
 };
 
 export default ar;

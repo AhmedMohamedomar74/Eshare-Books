@@ -1,8 +1,14 @@
 import React from "react";
+import { useSelector } from "react-redux";
 
-const TabNavigation = ({ activeTab, setActiveTab }) => {
+const TabNavigation = ({ activeTab, setActiveTab, isPublic = false }) => {
+  const { content } = useSelector((state) => state.lang);
+  
   const tabs = [
-    { id: "my-books", label: "My Books" },
+    { 
+      id: isPublic ? "user-books" : "my-books", 
+      label: isPublic ? content.profile.userBooks : content.profile.myBooks 
+    },
   ];
 
   return (
