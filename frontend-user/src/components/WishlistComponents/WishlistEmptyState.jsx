@@ -1,9 +1,12 @@
 import { Box, Typography } from '@mui/material';
+import { useSelector } from 'react-redux';
 
 const WishlistEmptyState = () => {
+  const { content } = useSelector((state) => state.lang);
+
   const texts = {
-    title: 'Your wishlist is empty',
-    subtitle: 'Add your favorite books and find them here later.',
+    title: content.emptyWishlistTitle || 'Your wishlist is empty',
+    subtitle: content.emptyWishlistSubtitle || 'Add your favorite books and find them here later.',
   };
 
   return (

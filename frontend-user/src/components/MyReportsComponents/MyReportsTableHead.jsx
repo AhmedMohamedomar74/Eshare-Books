@@ -1,8 +1,18 @@
 import { TableCell, TableRow } from '@mui/material';
-
-const headers = ['Target Type', 'Target', 'Reason', 'Date Submitted', 'Status', 'Action'];
+import { useSelector } from 'react-redux';
 
 export default function MyReportsTableHead() {
+  const { content } = useSelector((state) => state.lang);
+
+  const headers = [
+    content.targetType || 'Target Type',
+    content.target || 'Target',
+    content.reason || 'Reason',
+    content.dateSubmitted || 'Date Submitted',
+    content.status || 'Status',
+    content.action || 'Action',
+  ];
+
   return (
     <TableRow sx={{ backgroundColor: '#f9f9f9' }}>
       {headers.map((header) => (

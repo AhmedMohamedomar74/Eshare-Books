@@ -1,23 +1,28 @@
-import React from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { IconButton, Tooltip } from "@mui/material";
-import LanguageIcon from "@mui/icons-material/Language"; // 🌐 أيقونة اللغة
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { IconButton, Tooltip } from '@mui/material';
+import LanguageIcon from '@mui/icons-material/Language'; // 🌐 أيقونة اللغة
 
 const LangButton = () => {
   const dispatch = useDispatch();
   const { lang } = useSelector((state) => state.lang);
 
   const toggleLang = () => {
-    dispatch({ type: "TOGGLE_LANG" });
+    dispatch({ type: 'TOGGLE_LANG' });
   };
 
   return (
-    <Tooltip title={lang === "en" ? "Switch to Arabic" : "Switch to English"}>
+    <Tooltip title={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'}>
       <IconButton
         onClick={toggleLang}
         sx={{
-          color: "gray",
-          "&:hover": { color: "black" },
+          color: 'gray',
+          '&:hover': { backgroundColor: 'transparent !important', color: 'black' },
+          '&:focus': {
+            backgroundColor: 'transparent !important',
+            outline: 'none',
+          },
+          '& .MuiTouchRipple-root': { display: 'none' },
         }}
       >
         <LanguageIcon />

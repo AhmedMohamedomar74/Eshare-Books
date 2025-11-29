@@ -1,9 +1,11 @@
 import { Box, Typography, Button } from '@mui/material';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 export default function MyReportsEmptyState() {
   const navigate = useNavigate();
+  const { content } = useSelector((state) => state.lang);
 
   const handleBrowseBooks = () => {
     navigate('/');
@@ -25,11 +27,12 @@ export default function MyReportsEmptyState() {
       <MenuBookIcon sx={{ fontSize: 80, color: '#ccc', mb: 3 }} />
 
       <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#555', mb: 1 }}>
-        No Reports Found
+        {content.noReportsFound || 'No Reports Found'}
       </Typography>
 
       <Typography variant="body1" sx={{ color: '#777', maxWidth: 500, mb: 3 }}>
-        You haven't submitted any reports yet. Explore books and report any issues you find.
+        {content.noReportsDescription ||
+          "You haven't submitted any reports yet. Explore books and report any issues you find."}{' '}
       </Typography>
 
       <Button
@@ -46,7 +49,7 @@ export default function MyReportsEmptyState() {
           '&:hover': { backgroundColor: '#1d4ed8' },
         }}
       >
-        Browse Books
+        {content.browseBooks || 'Browse Books'}{' '}
       </Button>
     </Box>
   );

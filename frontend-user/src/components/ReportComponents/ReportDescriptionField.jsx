@@ -1,16 +1,19 @@
 import { Typography, TextField, Box } from '@mui/material';
+import { useSelector } from 'react-redux';
 
 export default function ReportDescriptionField({ value, onChange, error, charCount, disabled }) {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <Box>
       <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#000', mb: 1 }}>
-        Additional Comments (Optional)
+        {content.additionalComments || 'Additional Comments (Optional)'}
       </Typography>
       <TextField
         fullWidth
         multiline
         rows={6}
-        placeholder="Provide more details here..."
+        placeholder={content.commentsPlaceholder || 'Provide more details here...'}
         value={value}
         onChange={onChange}
         error={Boolean(error)}

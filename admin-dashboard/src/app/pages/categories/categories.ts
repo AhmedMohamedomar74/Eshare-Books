@@ -204,6 +204,18 @@ export class Categories implements OnInit {
     return '';
   }
 
+  // ---------- Check if category exists ----------
+  private checkCategoryExists(name: string, excludeCategory?: Category): boolean {
+    const trimmedName = name.trim().toLowerCase();
+    return this.categories.some((category) => {
+      // If we're editing, exclude the current category from the check
+      if (excludeCategory && category._id === excludeCategory._id) {
+        return false;
+      }
+      return category.name.toLowerCase() === trimmedName;
+    });
+  }
+
   // ---------- Toast ----------
   private showToast(message: string, type: 'success' | 'error' = 'success'): void {
     this.toastMessage = message;
@@ -243,6 +255,12 @@ export class Categories implements OnInit {
       return;
     }
 
+    // Check if category already exists (case insensitive)
+    if (this.checkCategoryExists(name)) {
+      this.addCategoryError = 'Category already exists!';
+      return;
+    }
+
     this.modalLoading = true;
 
     this.categoriesService.createCategory({ name }).subscribe({
@@ -256,9 +274,14 @@ export class Categories implements OnInit {
         this.addCategoryError = '';
         this.showToast('Category added successfully!', 'success');
       },
-      error: () => {
+      error: (err) => {
         this.modalLoading = false;
-        this.showToast('Failed to add category', 'error');
+        // If backend returns conflict error, show appropriate message
+        if (err.status === 409 || err.error?.message?.includes('exists')) {
+          this.addCategoryError = 'Category already exists!';
+        } else {
+          this.showToast('Failed to add category', 'error');
+        }
       },
     });
   }
@@ -287,6 +310,18 @@ export class Categories implements OnInit {
       return;
     }
 
+    // Check if the name actually changed
+    if (this.categoryToEdit.name.toLowerCase() === name.toLowerCase()) {
+      this.showEditModal = false;
+      return;
+    }
+
+    // Check if category with new name already exists (excluding current category)
+    if (this.checkCategoryExists(name, this.categoryToEdit)) {
+      this.editCategoryError = 'Category with this name already exists!';
+      return;
+    }
+
     this.modalLoading = true;
 
     this.categoriesService.updateCategory(this.categoryToEdit._id!, { name }).subscribe({
@@ -298,9 +333,14 @@ export class Categories implements OnInit {
         this.editCategoryError = '';
         this.showToast('Category updated successfully!', 'success');
       },
-      error: () => {
+      error: (err) => {
         this.modalLoading = false;
-        this.showToast('Failed to update category', 'error');
+        // If backend returns conflict error, show appropriate message
+        if (err.status === 409 || err.error?.message?.includes('exists')) {
+          this.editCategoryError = 'Category with this name already exists!';
+        } else {
+          this.showToast('Failed to update category', 'error');
+        }
       },
     });
   }

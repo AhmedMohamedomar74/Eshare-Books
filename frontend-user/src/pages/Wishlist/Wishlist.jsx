@@ -14,6 +14,7 @@ export default function Wishlist() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items: wishlistBooks, loading } = useSelector((state) => state.wishlist);
+  const { content } = useSelector((state) => state.lang);
   const [viewMode, setViewMode] = useState('grid');
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function Wishlist() {
       >
         <CircularProgress />
         <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
-          Loading wishlist...
+          {content.loadingWishlist || 'Loading wishlist...'}
         </Typography>
       </Box>
     );
@@ -128,7 +129,7 @@ export default function Wishlist() {
           '&:hover': { backgroundColor: '#1565c0' },
         }}
       >
-        Browse Books
+        {content.browseBooks || 'Browse Books'}
       </Button>
     </Box>
   );

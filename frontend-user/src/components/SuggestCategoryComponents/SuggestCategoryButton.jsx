@@ -28,6 +28,7 @@ import {
 const SuggestCategoryButton = () => {
   const dispatch = useDispatch();
   const { loading, successMessage, error } = useSelector((state) => state.suggestCategory);
+  const { content } = useSelector((state) => state.lang);
 
   const [isOpen, setIsOpen] = useState(false);
   const [categoryName, setCategoryName] = useState('');
@@ -35,15 +36,15 @@ const SuggestCategoryButton = () => {
 
   const validateInput = (value) => {
     if (/\d/.test(value)) {
-      return 'Category name cannot contain numbers';
+      return content.noNumbersError || 'Category name cannot contain numbers';
     }
 
     if (value.trim().length > 0 && value.trim().length < 3) {
-      return 'Category name must be at least 3 characters';
+      return content.minCharactersError || 'Category name must be at least 3 characters';
     }
 
     if (value.length > 50) {
-      return 'Category name must not exceed 50 characters';
+      return content.maxCharactersError || 'Category name must not exceed 50 characters';
     }
 
     return '';
@@ -74,7 +75,9 @@ const SuggestCategoryButton = () => {
     }
 
     if (trimmedName.length < 3) {
-      setValidationError('Category name must be at least 3 characters');
+      setValidationError(
+        content.minCharactersError || 'Category name must be at least 3 characters'
+      );
       return;
     }
 
@@ -116,7 +119,7 @@ const SuggestCategoryButton = () => {
           whiteSpace: 'nowrap',
         }}
       >
-        Suggest
+        {content.suggest || 'Suggest'}
       </Button>
 
       <Dialog open={isOpen} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -125,10 +128,11 @@ const SuggestCategoryButton = () => {
         >
           <Box>
             <Typography variant="h6" fontWeight={700}>
-              Suggest a Category
+              {content.suggestCategoryTitle || 'Suggest a Category'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Help us improve by suggesting a new book category
+              {content.suggestCategoryDescription ||
+                'Help us improve by suggesting a new book category'}
             </Typography>
           </Box>
           <IconButton onClick={handleClose} size="small">
@@ -153,19 +157,21 @@ const SuggestCategoryButton = () => {
 
           <TextField
             fullWidth
-            label="Category Name"
-            placeholder="e.g., Science Fiction, History..."
+            label={content.categoryName || 'Category Name'}
+            placeholder={content.categoryPlaceholder || 'e.g., Science Fiction, History...'}
             value={categoryName}
             onChange={handleInputChange}
             error={Boolean(validationError)}
-            helperText={validationError || `${categoryName.length}/50 characters`}
+            helperText={
+              validationError || `${categoryName.length}/50 ${content.characters || 'characters'}`
+            }
             disabled={loading}
             sx={{ mb: 2 }}
           />
 
           <Box sx={{ bgcolor: 'grey.50', borderRadius: 2, p: 2 }}>
             <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
-              Requirements:
+              {content.requirements || 'Requirements'}:
             </Typography>
             <List dense disablePadding>
               <ListItem disablePadding>
@@ -177,7 +183,7 @@ const SuggestCategoryButton = () => {
                   )}
                 </ListItemIcon>
                 <ListItemText
-                  primary="At least 3 characters"
+                  primary={content.atLeastThreeChars || 'At least 3 characters'}
                   primaryTypographyProps={{
                     variant: 'body2',
                     color: isValid ? 'success.main' : 'text.secondary',
@@ -193,7 +199,7 @@ const SuggestCategoryButton = () => {
                   )}
                 </ListItemIcon>
                 <ListItemText
-                  primary="No numbers allowed"
+                  primary={content.noNumbers || 'No numbers allowed'}
                   primaryTypographyProps={{
                     variant: 'body2',
                     color: hasNoNumbers ? 'success.main' : 'text.secondary',
@@ -209,7 +215,7 @@ const SuggestCategoryButton = () => {
                   )}
                 </ListItemIcon>
                 <ListItemText
-                  primary="Maximum 50 characters"
+                  primary={content.maxFiftyChars || 'Maximum 50 characters'}
                   primaryTypographyProps={{
                     variant: 'body2',
                     color: isWithinLimit ? 'success.main' : 'text.secondary',
@@ -222,14 +228,16 @@ const SuggestCategoryButton = () => {
 
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={handleClose} disabled={loading}>
-            Cancel
+            {content.cancel || 'Cancel'}
           </Button>
           <Button
             variant="contained"
             onClick={handleSubmit}
             disabled={loading || validationError || categoryName.trim().length < 3}
           >
-            {loading ? 'Submitting...' : 'Submit Suggestion'}
+            {loading
+              ? content.submitting || 'Submitting...'
+              : content.submitSuggestion || 'Submit Suggestion'}
           </Button>
         </DialogActions>
       </Dialog>
