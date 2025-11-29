@@ -37,6 +37,17 @@ export const register = async (firstName, secondName, email, password) => {
   }
 };
 
+export const removeImage = async (imageUrl, id) => {
+  try {
+    const response = await api.delete("/image", {data : { imageUrl, id }})
+    const registerresponse = response.data;
+    return registerresponse;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
 export const uploadImage = async (file, id) => {
   try {
     // Create FormData object
@@ -77,7 +88,7 @@ export const verifyResetCode = async (email, resetCode) => {
   }
 };
 
-export const resetPassword = async ( resetToken , newPassword) => {
+export const resetPassword = async (resetToken, newPassword) => {
   try {
     const response = await api.post('/auth/reset-password', { resetToken, newPassword });
     return response.data;

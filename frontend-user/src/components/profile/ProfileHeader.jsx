@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { uploadImage } from '../../services/auth/auth.service.js';
+import { removeImage, uploadImage } from '../../services/auth/auth.service.js';
 
 const ProfileHeader = ({ user }) => {
   const fileInputRef = useRef(null);
@@ -47,10 +47,10 @@ const ProfileHeader = ({ user }) => {
     }
   };
 
-  const handleRemoveImage = () => {
+  const handleRemoveImage = async() => {
     // Set to default image
     setProfileImage(defaultImage);
-    
+    await removeImage(user.profilePic , user.id)
     // Here you would typically also call an API to remove the profile picture from the server
     // For example: removeProfileImage(user.id);
     console.log('Profile image removed, using default image');
