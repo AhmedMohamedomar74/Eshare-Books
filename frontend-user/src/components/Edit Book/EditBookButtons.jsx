@@ -1,7 +1,10 @@
 import React from "react";
 import { Button, Box } from "@mui/material";
+import { useSelector } from "react-redux";
 
 const EditBookButtons = ({ loading, onCancel }) => {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <Box sx={{ mt: 3 }}>
       <Button
@@ -11,7 +14,7 @@ const EditBookButtons = ({ loading, onCancel }) => {
         sx={{ py: 1.3 }}
         disabled={loading}
       >
-        Update Book
+        {content.updateBook}
       </Button>
 
       <Button
@@ -21,7 +24,7 @@ const EditBookButtons = ({ loading, onCancel }) => {
         onClick={onCancel}
         disabled={loading}
       >
-        Cancel
+        {content.cancel}
       </Button>
     </Box>
   );

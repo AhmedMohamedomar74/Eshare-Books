@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Button, Typography } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { useSelector } from "react-redux";
 
 export default function EditBookImage({
   existingImage,
@@ -8,17 +9,19 @@ export default function EditBookImage({
   fieldErrors,
   handleImageUpload,
 }) {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <>
       {/* Current Image */}
       {existingImage && !image && (
         <Box sx={{ textAlign: "center", mb: 2 }}>
           <Typography variant="body2" color="text.secondary" mb={1}>
-            Current Image:
+            {content.currentImage}
           </Typography>
           <img
             src={existingImage}
-            alt="Book cover"
+            alt={content.bookCoverAlt}
             style={{
               maxWidth: "200px",
               maxHeight: "200px",
@@ -46,7 +49,9 @@ export default function EditBookImage({
           fullWidth
           sx={{ mb: 1, py: 2, fontSize: "1rem" }}
         >
-          {image ? `New Image: ${image.name}` : "Change Book Cover (Optional)"}
+          {image
+            ? `${content.newImage}: ${image.name}`
+            : content.changeBookCoverOptional}
         </Button>
       </label>
 
