@@ -1,4 +1,5 @@
 import React from "react";
+import { useSelector } from "react-redux";
 
 const Input = ({
   label,
@@ -11,10 +12,12 @@ const Input = ({
   required = false,
   className = "",
 }) => {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <label className="flex flex-col">
       <p className="text-base font-medium leading-normal pb-2">
-        {label} {required && <span className="text-red-500">*</span>}
+        {label} {required && <span className="text-red-500">{content.common.required}</span>}
       </p>
       <input
         className={`w-full rounded-lg border ${

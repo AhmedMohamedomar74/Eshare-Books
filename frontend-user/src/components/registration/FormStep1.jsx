@@ -1,6 +1,7 @@
 import Input from "../../components/form/inputComponents.jsx";
 import PasswordInput from "../../components/form/passwordInputComponent.jsx";
 import Button from "../../components/form/buttonComponent.jsx";
+import { useSelector } from "react-redux";
 
 const FormStep1 = ({ 
   formData, 
@@ -11,12 +12,14 @@ const FormStep1 = ({
   onBlur, 
   onSubmit 
 }) => {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <div className="flex flex-col gap-4">
       <Input
-        label="First Name"
+        label={content.register.step1.firstName}
         name="firstName"
-        placeholder="Enter your first name"
+        placeholder={content.register.step1.firstNamePlaceholder}
         value={formData.firstName}
         onChange={onChange}
         onBlur={onBlur}
@@ -25,9 +28,9 @@ const FormStep1 = ({
       />
 
       <Input
-        label="Second Name"
+        label={content.register.step1.secondName}
         name="secondName"
-        placeholder="Enter your second name"
+        placeholder={content.register.step1.secondNamePlaceholder}
         value={formData.secondName}
         onChange={onChange}
         onBlur={onBlur}
@@ -36,10 +39,10 @@ const FormStep1 = ({
       />
 
       <Input
-        label="Email Address"
+        label={content.register.step1.email}
         name="email"
         type="email"
-        placeholder="Enter your email"
+        placeholder={content.register.step1.emailPlaceholder}
         value={formData.email}
         onChange={onChange}
         onBlur={onBlur}
@@ -48,9 +51,9 @@ const FormStep1 = ({
       />
 
       <PasswordInput
-        label="Password"
+        label={content.register.step1.password}
         name="password"
-        placeholder="Enter your password"
+        placeholder={content.register.step1.passwordPlaceholder}
         value={formData.password}
         onChange={onChange}
         onBlur={onBlur}
@@ -60,9 +63,9 @@ const FormStep1 = ({
       />
 
       <PasswordInput
-        label="Confirm Password"
+        label={content.register.step1.confirmPassword}
         name="confirmPassword"
-        placeholder="Confirm your password"
+        placeholder={content.register.step1.confirmPasswordPlaceholder}
         value={formData.confirmPassword}
         onChange={onChange}
         onBlur={onBlur}
@@ -81,9 +84,9 @@ const FormStep1 = ({
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Creating Account...
+            {content.register.loading.creatingAccount}
           </span>
-        ) : 'Next: Add Profile Photo'}
+        ) : content.register.step1.nextButton}
       </Button>
     </div>
   );

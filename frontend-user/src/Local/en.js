@@ -20,8 +20,7 @@ const en = {
   category: 'Category',
   currency: 'EGP',
   noReportsFound: 'No Reports Found',
-  noReportsDescription:
-    "You haven't submitted any reports yet. Explore books and report any issues you find.",
+  noReportsDescription: "You haven't submitted any reports yet. Explore books and report any issues you find.",
   browseBooks: 'Browse Books',
   status: 'Status',
   targetType: 'Target Type',
@@ -41,18 +40,12 @@ const en = {
   userNotFound: 'User Not Found',
   bookNotFound: 'Book Not Found',
   confirmCancelReport: 'Confirm Cancel Report',
-  cancelReportConfirmation:
-    'Are you sure you want to cancel this report? This action cannot be undone.',
+  cancelReportConfirmation: 'Are you sure you want to cancel this report? This action cannot be undone.',
   no: 'No',
   yesCancel: 'Yes, Cancel',
   cancel: 'Cancel',
-  pending: 'Pending',
-  reviewed: 'Reviewed',
-  dismissed: 'Dismissed',
-  cancelled: 'Cancelled',
   sendReport: 'Send Report',
   sending: 'Sending...',
-  reportBook: 'Report Book',
   additionalComments: 'Additional Comments (Optional)',
   commentsPlaceholder: 'Provide more details here...',
   selectReasonError: 'Please select a reason for reporting.',
@@ -64,8 +57,7 @@ const en = {
   targetNotFoundError: 'Book or user not found.',
   serverError: 'Server error. Please try again later.',
   reportTitle: 'Report Inappropriate Content',
-  reportDescription:
-    'Please select a reason and provide details below. Your feedback helps keep our community safe.',
+  reportDescription: 'Please select a reason and provide details below. Your feedback helps keep our community safe.',
   reasonForReporting: 'Reason for Reporting',
   selectReason: 'Select a reason',
   inappropriateContent: 'Inappropriate Content',
@@ -93,27 +85,80 @@ const en = {
   maxCharactersError: 'Category name must not exceed 50 characters',
   viewDetails: 'View Details',
   confirmBookRemoval: 'Confirm Book Removal',
-  removeBookConfirmation:
-    'Are you sure you want to remove this book from your wishlist? This action cannot be undone.',
+  removeBookConfirmation: 'Are you sure you want to remove this book from your wishlist? This action cannot be undone.',
   yesRemove: 'Yes, Remove',
   remove: 'Remove',
   clearWishlist: 'Clear Wishlist',
   confirmClearWishlist: 'Confirm Clear Wishlist',
-  clearWishlistConfirmation:
-    'Are you sure you want to remove all items from your wishlist? This action cannot be undone.',
+  clearWishlistConfirmation: 'Are you sure you want to remove all items from your wishlist? This action cannot be undone.',
   yesClear: 'Yes, Clear',
   wishlistCleared: 'Wishlist cleared successfully!',
   emptyWishlistTitle: 'Your wishlist is empty',
   emptyWishlistSubtitle: 'Add your favorite books and find them here later.',
   mySavedBooks: 'My Saved Books',
   loadingWishlist: 'Loading wishlist...',
-  home: 'Home',
   addBook: 'Add Book',
   wishlist: 'Wishlist',
   notification: 'Notification',
   myProfile: 'My Profile',
   logout: 'Logout',
   language: 'Language',
+
+  // Register & Login
+  register: {
+    title: 'Create Your Account',
+    subtitle: 'Join our community of book lovers',
+    step1: {
+      firstName: 'First Name',
+      firstNamePlaceholder: 'Enter your first name',
+      secondName: 'Second Name',
+      secondNamePlaceholder: 'Enter your second name',
+      email: 'Email Address',
+      emailPlaceholder: 'Enter your email',
+      password: 'Password',
+      passwordPlaceholder: 'Enter your password',
+      confirmPassword: 'Confirm Password',
+      confirmPasswordPlaceholder: 'Confirm your password',
+      nextButton: 'Next: Add Profile Photo'
+    },
+    step2: {
+      title: 'Add Your Profile Photo',
+      subtitle: 'Help others recognize you (optional)',
+      choosePhoto: 'Choose Photo',
+      fileRequirements: 'JPG, PNG or GIF (Max 5MB)',
+      backButton: 'Back',
+      completeButton: 'Complete Registration'
+    },
+    loading: {
+      creatingAccount: 'Creating Account...',
+      registering: 'Registering...'
+    },
+    passwordStrength: {
+      weak: 'Weak',
+      fair: 'Fair',
+      good: 'Good',
+      strong: 'Strong'
+    }
+  },
+  login: {
+    title: 'Welcome Back',
+    subtitle: 'Sign in to your account',
+    email: 'Email Address',
+    emailPlaceholder: 'Enter your email',
+    password: 'Password',
+    passwordPlaceholder: 'Enter your password',
+    forgotPassword: 'Forgot your password?',
+    loginButton: 'Sign In',
+    noAccount: 'Don\'t have an account?',
+    signUp: 'Sign up',
+    loading: 'Signing In...'
+  },
+  common: {
+    required: '*',
+    loading: 'Loading...',
+    passwordShow: 'Show password',
+    passwordHide: 'Hide password'
+  }
 };
 
 export default en;

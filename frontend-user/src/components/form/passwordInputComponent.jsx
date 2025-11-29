@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSelector } from "react-redux";
 
 const PasswordInput = ({ 
   label, 
@@ -11,37 +12,30 @@ const PasswordInput = ({
   showStrength = false
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const { content } = useSelector((state) => state.lang);
 
   const getPasswordStrength = (password) => {
     if (!password) return { strength: 0, label: '', color: '' };
     
     let strength = 0;
     
-    // Length requirement (8+ characters)
     if (password.length >= 8) strength++;
-    
-    // Contains lowercase and uppercase letters
     if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-    
-    // Contains numbers
     if (/[0-9]/.test(password)) strength++;
-    
-    // Contains special characters
     if (/[@$!%*?&]/.test(password)) strength++;
     
-    const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+    const labels = ['', content.register.passwordStrength.weak, content.register.passwordStrength.fair, content.register.passwordStrength.good, content.register.passwordStrength.strong];
     const colors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
     
     return { strength, label: labels[strength], color: colors[strength] };
-};
-
+  };
 
   const passwordStrength = showStrength ? getPasswordStrength(value) : null;
 
   return (
     <label className="flex flex-col">
       <p className="text-base font-medium leading-normal pb-2">
-        {label} {required && <span className="text-red-500">*</span>}
+        {label} {required && <span className="text-red-500">{content.common.required}</span>}
       </p>
       <div className="relative flex w-full items-center">
         <input
@@ -55,6 +49,7 @@ const PasswordInput = ({
         <div 
           className="absolute right-3 flex items-center justify-center text-gray-500 cursor-pointer"
           onClick={() => setShowPassword(!showPassword)}
+          title={showPassword ? content.common.passwordHide : content.common.passwordShow}
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
             {showPassword ? (

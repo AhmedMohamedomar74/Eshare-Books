@@ -1,4 +1,5 @@
 import Button from "../../components/form/buttonComponent.jsx";
+import { useSelector } from "react-redux";
 
 const FormStep2 = ({ 
   profileImage, 
@@ -7,6 +8,8 @@ const FormStep2 = ({
   onBack, 
   onSubmit 
 }) => {
+  const { content } = useSelector((state) => state.lang);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -17,8 +20,8 @@ const FormStep2 = ({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-[#333333] mb-2">Add Your Profile Photo</h2>
-        <p className="text-sm text-[#757575]">Help others recognize you (optional)</p>
+        <h2 className="text-2xl font-semibold text-[#333333] mb-2">{content.register.step2.title}</h2>
+        <p className="text-sm text-[#757575]">{content.register.step2.subtitle}</p>
       </div>
 
       <div className="flex flex-col items-center gap-6">
@@ -33,7 +36,7 @@ const FormStep2 = ({
             className="cursor-pointer rounded-lg bg-[#5D9C59] px-6 py-3 text-center text-base font-medium text-white transition-colors hover:bg-[#5D9C59]/90" 
             htmlFor="file-upload"
           >
-            <span>Choose Photo</span>
+            <span>{content.register.step2.choosePhoto}</span>
             <input 
               className="hidden" 
               id="file-upload" 
@@ -44,7 +47,7 @@ const FormStep2 = ({
           </label>
           
           <p className="text-xs text-center text-[#757575]">
-            JPG, PNG or GIF (Max 5MB)
+            {content.register.step2.fileRequirements}
           </p>
         </div>
       </div>
@@ -54,7 +57,7 @@ const FormStep2 = ({
           className="flex-1 rounded-lg border-2 border-[#5D9C59] py-3.5 text-base font-semibold text-[#5D9C59] transition-colors hover:bg-[#5D9C59]/10 focus:outline-none focus:ring-2 focus:ring-[#5D9C59]/50 focus:ring-offset-2" 
           onClick={onBack}
         >
-          Back
+          {content.register.step2.backButton}
         </Button>
 
         <Button 
@@ -68,9 +71,9 @@ const FormStep2 = ({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Registering...
+              {content.register.loading.registering}
             </span>
-          ) : 'Complete Registration'}
+          ) : content.register.step2.completeButton}
         </Button>
       </div>
     </div>

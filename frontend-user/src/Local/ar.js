@@ -34,24 +34,18 @@ const ar = {
   mySubmittedReports: 'تقاريري المقدمة',
   showingResults: 'عرض {start} إلى {end} من أصل {total} نتيجة',
   target: 'الهدف',
-  reason: 'السبب',
+  reason: 'سبب',
   dateSubmitted: 'تاريخ الإرسال',
   action: 'إجراء',
   userNotFound: 'المستخدم غير موجود',
   bookNotFound: 'الكتاب غير موجود',
   confirmCancelReport: 'تأكيد إلغاء التقرير',
-  cancelReportConfirmation:
-    'هل أنت متأكد أنك تريد إلغاء هذا التقرير؟ لا يمكن التراجع عن هذا الإجراء.',
+  cancelReportConfirmation: 'هل أنت متأكد أنك تريد إلغاء هذا التقرير؟ لا يمكن التراجع عن هذا الإجراء.',
   no: 'لا',
   yesCancel: 'نعم، إلغاء',
   cancel: 'إلغاء',
-  pending: 'قيد الانتظار',
-  reviewed: 'تم المراجعة',
-  dismissed: 'مرفوض',
-  cancelled: 'ملغى',
   sendReport: 'إرسال التقرير',
   sending: 'جاري الإرسال...',
-  reportBook: 'الإبلاغ عن الكتاب',
   additionalComments: 'تعليقات إضافية (اختياري)',
   commentsPlaceholder: 'قدم المزيد من التفاصيل هنا...',
   selectReasonError: 'يرجى اختيار سبب للإبلاغ.',
@@ -63,8 +57,7 @@ const ar = {
   targetNotFoundError: 'الكتاب أو المستخدم غير موجود.',
   serverError: 'خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.',
   reportTitle: 'الإبلاغ عن محتوى غير لائق',
-  reportDescription:
-    'يرجى اختيار سبب وتقديم التفاصيل أدناه. ملاحظاتك تساعد في الحفاظ على مجتمعنا آمناً.',
+  reportDescription: 'يرجى اختيار سبب وتقديم التفاصيل أدناه. ملاحظاتك تساعد في الحفاظ على مجتمعنا آمناً.',
   reasonForReporting: 'سبب الإبلاغ',
   selectReason: 'اختر سبباً',
   inappropriateContent: 'محتوى غير لائق',
@@ -92,27 +85,80 @@ const ar = {
   maxCharactersError: 'يجب ألا يتجاوز اسم الفئة 50 حرف',
   viewDetails: 'عرض التفاصيل',
   confirmBookRemoval: 'تأكيد إزالة الكتاب',
-  removeBookConfirmation:
-    'هل أنت متأكد أنك تريد إزالة هذا الكتاب من قائمة المفضلة؟ لا يمكن التراجع عن هذا الإجراء.',
+  removeBookConfirmation: 'هل أنت متأكد أنك تريد إزالة هذا الكتاب من قائمة المفضلة؟ لا يمكن التراجع عن هذا الإجراء.',
   yesRemove: 'نعم، إزالة',
   remove: 'إزالة',
   clearWishlist: 'مسح قائمة المفضلة',
   confirmClearWishlist: 'تأكيد مسح قائمة المفضلة',
-  clearWishlistConfirmation:
-    'هل أنت متأكد أنك تريد إزالة جميع العناصر من قائمة المفضلة؟ لا يمكن التراجع عن هذا الإجراء.',
+  clearWishlistConfirmation: 'هل أنت متأكد أنك تريد إزالة جميع العناصر من قائمة المفضلة؟ لا يمكن التراجع عن هذا الإجراء.',
   yesClear: 'نعم، مسح',
   wishlistCleared: 'تم مسح قائمة المفضلة بنجاح!',
   emptyWishlistTitle: 'قائمة المفضلة فارغة',
   emptyWishlistSubtitle: 'أضف كتبك المفضلة واعثر عليها هنا لاحقاً.',
   mySavedBooks: 'كتبي المحفوظة',
   loadingWishlist: 'جاري تحميل قائمة المفضلة...',
-  home: 'الرئيسية',
   addBook: 'إضافة كتاب',
   wishlist: 'المفضلة',
   notification: 'الإشعارات',
   myProfile: 'ملفي',
   logout: 'تسجيل الخروج',
   language: 'اللغة',
+
+  // Register & Login
+  register: {
+    title: 'إنشاء حسابك',
+    subtitle: 'انضم إلى مجتمع محبي الكتب',
+    step1: {
+      firstName: 'الاسم الأول',
+      firstNamePlaceholder: 'أدخل اسمك الأول',
+      secondName: 'اسم العائلة',
+      secondNamePlaceholder: 'أدخل اسم العائلة',
+      email: 'البريد الإلكتروني',
+      emailPlaceholder: 'أدخل بريدك الإلكتروني',
+      password: 'كلمة المرور',
+      passwordPlaceholder: 'أدخل كلمة المرور',
+      confirmPassword: 'تأكيد كلمة المرور',
+      confirmPasswordPlaceholder: 'تأكيد كلمة المرور',
+      nextButton: 'التالي: إضافة صورة الملف الشخصي'
+    },
+    step2: {
+      title: 'إضافة صورة الملف الشخصي',
+      subtitle: 'ساعد الآخرين في التعرف عليك (اختياري)',
+      choosePhoto: 'اختر صورة',
+      fileRequirements: 'JPG, PNG أو GIF (الحد الأقصى 5 ميجابايت)',
+      backButton: 'رجوع',
+      completeButton: 'إكمال التسجيل'
+    },
+    loading: {
+      creatingAccount: 'جاري إنشاء الحساب...',
+      registering: 'جاري التسجيل...'
+    },
+    passwordStrength: {
+      weak: 'ضعيف',
+      fair: 'متوسط',
+      good: 'جيد',
+      strong: 'قوي'
+    }
+  },
+  login: {
+    title: 'مرحباً بعودتك',
+    subtitle: 'سجل الدخول إلى حسابك',
+    email: 'البريد الإلكتروني',
+    emailPlaceholder: 'أدخل بريدك الإلكتروني',
+    password: 'كلمة المرور',
+    passwordPlaceholder: 'أدخل كلمة المرور',
+    forgotPassword: 'نسيت كلمة المرور؟',
+    loginButton: 'تسجيل الدخول',
+    noAccount: 'ليس لديك حساب؟',
+    signUp: 'اشتراك',
+    loading: 'جاري تسجيل الدخول...'
+  },
+  common: {
+    required: '*',
+    loading: 'جاري التحميل...',
+    passwordShow: 'إظهار كلمة المرور',
+    passwordHide: 'إخفاء كلمة المرور'
+  }
 };
 
 export default ar;
