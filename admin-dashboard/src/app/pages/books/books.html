@@ -1,0 +1,671 @@
+<div class="books-page">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h1>Book Management</h1>
+      <p class="text-muted">Manage all book listings in the system.</p>
+    </div>
+  </div>
+
+  <!-- LOADING & ERROR STATES -->
+  <div *ngIf="loading && !searchLoading" class="alert alert-info">
+    <i class="bi bi-hourglass-split"></i> Loading books...
+  </div>
+
+  <div *ngIf="error && !loading" class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle"></i> {{ error }}
+    <button class="btn btn-sm btn-outline-secondary ms-2" (click)="loadBooks()">
+      <i class="bi bi-arrow-clockwise"></i> Retry
+    </button>
+  </div>
+
+  <!-- SEARCH & FILTERS -->
+  <div class="mb-4">
+    <div class="row g-3">
+      <!-- Search Input -->
+      <div class="col-lg-6">
+        <div class="input-group position-relative">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control border-start-0"
+            placeholder="Search by title or book ID..."
+            [value]="searchQuery"
+            (input)="onSearch($event)"
+            [disabled]="loading"
+          />
+          <!-- Search Loading Spinner -->
+          <span *ngIf="searchLoading" class="search-spinner">
+            <span class="spinner-border spinner-border-sm text-primary"></span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="col-lg-6">
+        <div class="d-flex gap-2 flex-wrap">
+          <!-- Category Filter -->
+          <div class="dropdown" [class.show]="categoryDropdownOpen">
+            <button
+              class="btn btn-outline-secondary dropdown-toggle"
+              type="button"
+              (click)="toggleCategoryDropdown()"
+              [disabled]="loading"
+            >
+              <i class="bi bi-tag"></i> {{ getSelectedCategoryName() }}
+            </button>
+            <ul class="dropdown-menu category-scroll-menu" [class.show]="categoryDropdownOpen">
+              <li>
+                <a class="dropdown-item" href="javascript:void(0)" (click)="onCategoryFilter('')">
+                  All Categories
+                </a>
+              </li>
+              <li *ngFor="let category of categories">
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onCategoryFilter(category._id)"
+                  [class.active]="selectedCategory === category._id"
+                >
+                  {{ category.name }}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="dropdown" [class.show]="statusDropdownOpen">
+            <button
+              class="btn btn-outline-secondary dropdown-toggle"
+              type="button"
+              (click)="toggleStatusDropdown()"
+              [disabled]="loading"
+            >
+              <i class="bi bi-circle-fill status-icon"></i> {{ getSelectedStatusName() }}
+            </button>
+            <ul class="dropdown-menu" [class.show]="statusDropdownOpen">
+              <li>
+                <a class="dropdown-item" href="javascript:void(0)" (click)="onStatusFilter('')">
+                  All Status
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onStatusFilter('available')"
+                  [class.active]="selectedStatus === 'available'"
+                >
+                  Available
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onStatusFilter('borrowed')"
+                  [class.active]="selectedStatus === 'borrowed'"
+                >
+                  Borrowed
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onStatusFilter('sold')"
+                  [class.active]="selectedStatus === 'sold'"
+                >
+                  Sold
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onStatusFilter('donated')"
+                  [class.active]="selectedStatus === 'donated'"
+                >
+                  Donated
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onStatusFilter('deleted')"
+                  [class.active]="selectedStatus === 'deleted'"
+                >
+                  Deleted
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Transaction Type Filter -->
+          <div class="dropdown" [class.show]="transactionTypeDropdownOpen">
+            <button
+              class="btn btn-outline-secondary dropdown-toggle"
+              type="button"
+              (click)="toggleTransactionTypeDropdown()"
+              [disabled]="loading"
+            >
+              <i class="bi bi-arrow-left-right"></i> {{ getSelectedTransactionTypeName() }}
+            </button>
+            <ul class="dropdown-menu" [class.show]="transactionTypeDropdownOpen">
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onTransactionTypeFilter('')"
+                >
+                  All Types
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onTransactionTypeFilter('toSale')"
+                  [class.active]="selectedTransactionType === 'toSale'"
+                >
+                  Sell
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onTransactionTypeFilter('toBorrow')"
+                  [class.active]="selectedTransactionType === 'toBorrow'"
+                >
+                  Borrow
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onTransactionTypeFilter('toDonate')"
+                  [class.active]="selectedTransactionType === 'toDonate'"
+                >
+                  Donate
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Clear Filters -->
+          <button
+            class="btn btn-outline-danger"
+            (click)="clearFilters()"
+            [disabled]="
+              loading ||
+              (!searchQuery && !selectedCategory && !selectedStatus && !selectedTransactionType)
+            "
+          >
+            <i class="bi bi-x-circle"></i> Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA TABLE -->
+  <div class="table-responsive border rounded" [class.table-loading]="loading && !searchLoading">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th class="fw-bold text-dark">Title</th>
+          <th class="fw-bold text-dark">Type</th>
+          <th class="fw-bold text-dark">Price</th>
+          <th class="fw-bold text-dark">Status</th>
+          <th class="fw-bold text-dark">Moderated</th>
+          <th class="fw-bold text-dark">Category</th>
+          <th class="fw-bold text-dark">Owner</th>
+          <th class="fw-bold text-dark">Borrowed</th>
+          <th class="fw-bold text-dark text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let book of books">
+          <!-- Title -->
+          <td>
+            <div class="book-title">
+              <i class="bi bi-book text-primary me-2"></i>
+              {{ book.Title }}
+            </div>
+          </td>
+
+          <!-- Transaction Type -->
+          <td>
+            <span class="badge badge-type">
+              {{ getTransactionTypeDisplay(book.TransactionType) }}
+            </span>
+          </td>
+
+          <!-- Price -->
+          <td>
+            <span class="price-text">{{ getPriceDisplay(book) }}</span>
+          </td>
+
+          <!-- Status -->
+          <td>
+            <span class="badge" [ngClass]="getStatusBadgeClass(book)">
+              {{ getBookStatus(book) }}
+            </span>
+          </td>
+
+          <!-- Moderated -->
+          <td>
+            <span
+              class="badge"
+              [class.bg-success-light]="book.IsModerated"
+              [class.text-success]="book.IsModerated"
+              [class.bg-warning-light]="!book.IsModerated"
+              [class.text-warning]="!book.IsModerated"
+            >
+              <i
+                class="bi"
+                [class.bi-check-circle-fill]="book.IsModerated"
+                [class.bi-exclamation-circle-fill]="!book.IsModerated"
+              ></i>
+              {{ book.IsModerated ? 'Approved' : 'Pending' }}
+            </span>
+          </td>
+
+          <!-- Category -->
+          <td>
+            <div class="category-badge-wrapper">
+              <span class="category-badge">
+                <i class="bi bi-tag-fill"></i>
+                {{ book.categoryId?.name || 'N/A' }}
+              </span>
+              <button
+                class="btn btn-sm btn-link p-0 ms-2 category-edit-btn"
+                [class.text-primary]="canEditBook(book)"
+                [class.text-muted]="!canEditBook(book)"
+                (click)="openEditCategoryModal(book)"
+                [disabled]="loading || !canEditBook(book)"
+                [title]="
+                  !canEditBook(book)
+                    ? 'Cannot edit category for deleted, sold or donated books'
+                    : 'Edit Category'
+                "
+              >
+                <i class="bi bi-pencil-square"></i>
+              </button>
+            </div>
+          </td>
+
+          <!-- Owner -->
+          <td>
+            <div class="owner-info">
+              <div class="owner-name">
+                <i class="bi bi-person-circle me-1"></i>
+                {{ getOwnerName(book) }}
+              </div>
+              <small class="text-muted">{{ book.UserID?.email || 'N/A' }}</small>
+            </div>
+          </td>
+
+          <!-- Borrowed Now -->
+          <td>
+            <span
+              class="badge"
+              [class.bg-warning-light]="book.isBorrowedNow"
+              [class.text-warning]="book.isBorrowedNow"
+              [class.bg-light]="!book.isBorrowedNow"
+              [class.text-dark]="!book.isBorrowedNow"
+            >
+              {{ book.isBorrowedNow ? 'Yes' : 'No' }}
+            </span>
+          </td>
+
+          <!-- Actions -->
+          <td class="text-center">
+            <div class="action-buttons">
+              <!-- Restore Button (Only for deleted books) -->
+              <button
+                *ngIf="book.isDeleted"
+                class="btn btn-sm btn-link text-success p-0"
+                (click)="openRestoreModal(book)"
+                [disabled]="loading"
+                title="Restore Book"
+              >
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+
+              <!-- Moderation Button -->
+              <button
+                class="btn btn-sm btn-link text-warning p-0"
+                (click)="openModerationModal(book)"
+                [disabled]="loading || book.isDeleted"
+                [title]="book.IsModerated ? 'Unapprove Book' : 'Approve Book'"
+              >
+                <i
+                  class="bi"
+                  [class.bi-check-circle]="!book.IsModerated"
+                  [class.bi-x-circle]="book.IsModerated"
+                ></i>
+              </button>
+
+              <!-- Delete Button -->
+              <button
+                class="btn btn-sm btn-link text-danger p-0"
+                (click)="openDeleteModal(book)"
+                [disabled]="loading || book.isDeleted"
+                title="Delete Book"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Empty State -->
+        <tr *ngIf="!loading && books.length === 0">
+          <td colspan="9" class="text-center py-5">
+            <div class="empty-state">
+              <i class="bi bi-book display-1 text-muted d-block mb-3"></i>
+              <h5 class="text-muted">No books found</h5>
+              <p class="text-muted small">Try adjusting your filters or search query</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGINATION -->
+  <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-3">
+    <small class="text-muted">
+      Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ totalResults }} results
+    </small>
+
+    <nav aria-label="Page navigation" *ngIf="getTotalPages() > 1">
+      <ul class="pagination mb-0">
+        <!-- Previous Button -->
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <a
+            class="page-link"
+            href="javascript:void(0)"
+            (click)="previousPage()"
+            aria-label="Previous"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </a>
+        </li>
+
+        <!-- Page Numbers -->
+        <li
+          class="page-item"
+          *ngFor="let p of getVisiblePages()"
+          [class.active]="p === currentPage"
+          [class.disabled]="p === '...'"
+        >
+          <a
+            class="page-link"
+            href="javascript:void(0)"
+            (click)="goToPage(p)"
+            [attr.aria-current]="p === currentPage ? 'page' : null"
+          >
+            {{ p }}
+          </a>
+        </li>
+
+        <!-- Next Button -->
+        <li class="page-item" [class.disabled]="isLastPage()">
+          <a class="page-link" href="javascript:void(0)" (click)="nextPage()" aria-label="Next">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div
+    *ngIf="showToastMessage"
+    class="toast-notification"
+    [ngClass]="toastType === 'success' ? 'toast-success' : 'toast-error'"
+  >
+    <i
+      class="bi"
+      [class.bi-check-circle-fill]="toastType === 'success'"
+      [class.bi-exclamation-circle-fill]="toastType === 'error'"
+    ></i>
+    {{ toastMessage }}
+  </div>
+
+  <!-- DELETE MODAL -->
+  <div *ngIf="showDeleteModal" class="modal-overlay" (click)="!modalLoading && closeDeleteModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>
+          <i class="bi bi-trash text-danger"></i>
+          Delete Book
+        </h5>
+        <button class="btn-close" (click)="closeDeleteModal()" [disabled]="modalLoading"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to delete the book
+          <strong>"{{ bookToDelete?.Title }}"</strong>?
+        </p>
+        <p class="text-muted small">
+          <i class="bi bi-info-circle"></i>
+          This action will mark the book as deleted. It can be restored later if needed.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDeleteModal()" [disabled]="modalLoading">
+          Cancel
+        </button>
+        <button class="btn btn-danger" (click)="confirmDeleteBook()" [disabled]="modalLoading">
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Deleting...
+          </span>
+          <span *ngIf="!modalLoading">
+            <i class="bi bi-trash"></i>
+            Delete
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESTORE MODAL -->
+  <div
+    *ngIf="showRestoreModal"
+    class="modal-overlay"
+    (click)="!modalLoading && closeRestoreModal()"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>
+          <i class="bi bi-arrow-clockwise text-success"></i>
+          Restore Book
+        </h5>
+        <button class="btn-close" (click)="closeRestoreModal()" [disabled]="modalLoading"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to restore the book
+          <strong>"{{ bookToRestore?.Title }}"</strong>?
+        </p>
+        <p class="text-muted small">
+          <i class="bi bi-info-circle"></i>
+          This will make the book available again in the system.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeRestoreModal()" [disabled]="modalLoading">
+          Cancel
+        </button>
+        <button class="btn btn-success" (click)="confirmRestoreBook()" [disabled]="modalLoading">
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Restoring...
+          </span>
+          <span *ngIf="!modalLoading">
+            <i class="bi bi-arrow-clockwise"></i>
+            Restore
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODERATION MODAL -->
+  <div
+    *ngIf="showModerationModal"
+    class="modal-overlay"
+    (click)="!modalLoading && closeModerationModal()"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>
+          <i
+            class="bi"
+            [class.bi-check-circle]="moderationAction === 'approve'"
+            [class.bi-x-circle]="moderationAction === 'unapprove'"
+            [class.text-success]="moderationAction === 'approve'"
+            [class.text-warning]="moderationAction === 'unapprove'"
+          ></i>
+          {{ moderationAction === 'approve' ? 'Approve Book' : 'Unapprove Book' }}
+        </h5>
+        <button
+          class="btn-close"
+          (click)="closeModerationModal()"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to
+          <strong>{{ moderationAction }}</strong>
+          the book
+          <strong>"{{ bookToModerate?.Title }}"</strong>?
+        </p>
+        <p class="text-muted small">
+          <i class="bi bi-info-circle"></i>
+          <span *ngIf="moderationAction === 'approve'">
+            Approving the book will mark it as moderated and available.
+          </span>
+          <span *ngIf="moderationAction === 'unapprove'">
+            Unapproving the book will mark it as pending moderation.
+          </span>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          (click)="closeModerationModal()"
+          [disabled]="modalLoading"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn"
+          [class.btn-success]="moderationAction === 'approve'"
+          [class.btn-warning]="moderationAction === 'unapprove'"
+          (click)="confirmModeration()"
+          [disabled]="modalLoading"
+        >
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Processing...
+          </span>
+          <span *ngIf="!modalLoading">
+            <i
+              class="bi"
+              [class.bi-check-circle]="moderationAction === 'approve'"
+              [class.bi-x-circle]="moderationAction === 'unapprove'"
+            ></i>
+            {{ moderationAction === 'approve' ? 'Approve' : 'Unapprove' }}
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT CATEGORY MODAL -->
+  <div
+    *ngIf="showEditCategoryModal"
+    class="modal-overlay"
+    (click)="!modalLoading && closeEditCategoryModal()"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>
+          <i class="bi bi-pencil-square text-primary"></i>
+          Edit Book Category
+        </h5>
+        <button
+          class="btn-close"
+          (click)="closeEditCategoryModal()"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">
+          Select a new category for the book
+          <strong>"{{ bookToEditCategory?.Title }}"</strong>:
+        </p>
+
+        <div class="category-list">
+          <div
+            *ngFor="let category of categories"
+            class="category-item"
+            [class.selected]="selectedNewCategory === category._id"
+            (click)="onCategorySelect(category._id)"
+          >
+            <div class="category-radio">
+              <i
+                class="bi"
+                [class.bi-circle]="selectedNewCategory !== category._id"
+                [class.bi-check-circle-fill]="selectedNewCategory === category._id"
+              ></i>
+            </div>
+            <div class="category-name">
+              <i class="bi bi-tag-fill"></i>
+              {{ category.name }}
+            </div>
+          </div>
+        </div>
+
+        <p class="text-muted small mt-3 mb-0">
+          <i class="bi bi-info-circle"></i>
+          Current category: <strong>{{ bookToEditCategory?.categoryId?.name || 'N/A' }}</strong>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          (click)="closeEditCategoryModal()"
+          [disabled]="modalLoading"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn btn-primary"
+          (click)="confirmCategoryUpdate()"
+          [disabled]="modalLoading || !selectedNewCategory"
+        >
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Updating...
+          </span>
+          <span *ngIf="!modalLoading">
+            <i class="bi bi-check-circle"></i>
+            Confirm
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
