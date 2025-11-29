@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { deleteBook } from "../../redux/slices/bookSlice";
 
 const BookCard = ({ book, onDelete, isOwner, hasPendingOperation }) => {
@@ -9,13 +9,16 @@ const BookCard = ({ book, onDelete, isOwner, hasPendingOperation }) => {
   const [openMenu, setOpenMenu] = useState(false);
   const [openConfirm, setOpenConfirm] = useState(false);
   const menuRef = useRef(null);
+  
+  // Get translations from Redux
+  const { content } = useSelector((state) => state.lang);
 
   const formatTransactionType = (type) => {
     const typeMap = {
-      toSale: "For Sale",
-      toBorrow: "For Borrow",
-      toExchange: "For Exchange",
-      toDonate: "For Donation",
+      toSale: content.forSale,
+      toBorrow: content.toBorrow,
+      toExchange: content.availableToExchange,
+      toDonate: content.toDonate,
     };
     return typeMap[type] || type;
   };
@@ -97,7 +100,7 @@ const BookCard = ({ book, onDelete, isOwner, hasPendingOperation }) => {
             )}
           </div>
 
-          {/* Options Menu — owner only and no pending operation */}
+          {/* Options Menu – owner only and no pending operation */}
           {isOwner && !hasPendingOperation && (
             <div className="absolute top-2 right-2 z-10" ref={menuRef}>
               <button
@@ -128,14 +131,14 @@ const BookCard = ({ book, onDelete, isOwner, hasPendingOperation }) => {
                     onClick={handleEditClick}
                     className="flex items-center w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                   >
-                    Edit Book
+                    {content.editBook}
                   </button>
 
                   <button
                     onClick={handleDeleteClick}
                     className="flex items-center w-full text-left px-4 py-2.5 text-sm text-red-600 border-t border-gray-100 hover:bg-red-50 transition-colors"
                   >
-                    Delete Book
+                    {content.deleteBook}
                   </button>
                 </div>
               )}
@@ -146,7 +149,7 @@ const BookCard = ({ book, onDelete, isOwner, hasPendingOperation }) => {
           {hasPendingOperation && (
             <div className="absolute top-2 right-2 z-10">
               <div className="px-2 py-1 bg-yellow-500 text-white text-xs font-medium rounded-full shadow-sm">
-                Pending Order
+                {content.pendingOrder}
               </div>
             </div>
           )}
@@ -154,7 +157,7 @@ const BookCard = ({ book, onDelete, isOwner, hasPendingOperation }) => {
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <img
             className="w-full h-full object-cover"
-            alt={`Book cover of ${book.Title}`}
+            alt={`${content.bookCoverOf} ${book.Title}`}
             src={coverUrl}
           />
         </div>
@@ -178,9 +181,9 @@ const BookCard = ({ book, onDelete, isOwner, hasPendingOperation }) => {
       {openConfirm && isOwner && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-            <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
+            <h2 className="text-lg font-semibold mb-4">{content.confirmDelete}</h2>
             <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to delete this book?
+              {content.deleteBookConfirmation}
             </p>
 
             <div className="flex justify-end gap-3">
@@ -188,14 +191,14 @@ const BookCard = ({ book, onDelete, isOwner, hasPendingOperation }) => {
                 onClick={() => setOpenConfirm(false)}
                 className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 transition-colors duration-200"
               >
-                Cancel
+                {content.cancel}
               </button>
 
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors duration-200"
               >
-                Delete
+                {content.deleteBook}
               </button>
             </div>
           </div>

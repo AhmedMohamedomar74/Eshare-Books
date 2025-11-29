@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import ProfileHeader from './../../components/profile/ProfileHeader.jsx';
 import TabNavigation from './../../components/profile/TabNavigation.jsx';
 import BooksGrid from './../../components/profile/BooksGrid.jsx';
@@ -13,6 +14,9 @@ const BookShareDashboard = () => {
   const [error, setError] = useState(null);
   const [books, setBooks] = useState([]);
   const [booksWithPendingOps, setBooksWithPendingOps] = useState(new Set());
+  
+  // Get translations from Redux
+  const { content } = useSelector((state) => state.lang);
 
   // Fetch user profile, books, and operations
   useEffect(() => {
@@ -29,12 +33,12 @@ const BookShareDashboard = () => {
         const visibleBooks = booksResponse.books.filter((book) => !book.isDeleted);
         setBooks(visibleBooks);
 
-        // ✅ Fetch user operations
+        // Fetch user operations
         try {
           const operationsResponse = await operationService.getUserOperations();
           const operations = operationsResponse.data || operationsResponse;
 
-          // ✅ Find books with pending operations
+          // Find books with pending operations
           const pendingBookIds = new Set();
           operations.forEach((op) => {
             if (op.status === 'pending' && op.book_dest_id) {
@@ -110,7 +114,7 @@ const BookShareDashboard = () => {
         <main className="px-4 sm:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
           <div className="flex flex-col max-w-screen-xl flex-1 w-full items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c7b7b]"></div>
-            <p className="mt-4 text-[#6f7b7b]">Loading profile...</p>
+            <p className="mt-4 text-[#6f7b7b]">{content.loadingProfile}</p>
           </div>
         </main>
       </div>
@@ -124,13 +128,13 @@ const BookShareDashboard = () => {
         <main className="px-4 sm:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
           <div className="flex flex-col max-w-screen-xl flex-1 w-full items-center justify-center">
             <div className="text-red-500 text-center">
-              <p className="text-lg font-semibold">Error loading profile</p>
+              <p className="text-lg font-semibold">{content.errorLoadingProfile}</p>
               <p className="text-sm mt-2">{error}</p>
               <button
                 onClick={() => window.location.reload()}
                 className="mt-4 px-4 py-2 bg-[#4c7b7b] text-white rounded-lg hover:bg-[#3a5f5f] transition-colors"
               >
-                Retry
+                {content.retry}
               </button>
             </div>
           </div>

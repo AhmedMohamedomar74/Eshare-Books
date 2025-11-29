@@ -1,4 +1,5 @@
 import React from "react";
+import { useSelector } from 'react-redux';
 import BookCard from "./BookCard";
 
 const BooksGrid = ({
@@ -8,10 +9,13 @@ const BooksGrid = ({
   isOwner,
   booksWithPendingOps,
 }) => {
+  // Get translations from Redux
+  const { content } = useSelector((state) => state.lang);
+  
   if (!books || books.length === 0) {
     return (
       <div className="flex justify-center items-center p-8">
-        <p className="text-gray-500 text-lg">No books found</p>
+        <p className="text-gray-500 text-lg">{content.noBooksFound}</p>
       </div>
     );
   }

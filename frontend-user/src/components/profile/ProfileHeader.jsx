@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -9,6 +10,9 @@ const ProfileHeader = ({ user }) => {
   const fileInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(user.profilePic);
   const navigate = useNavigate();
+  
+  // Get translations from Redux
+  const { content } = useSelector((state) => state.lang);
 
   const defaultImage = 'https://cdn-icons-png.flaticon.com/512/3177/3177440.png';
 
@@ -31,14 +35,14 @@ const ProfileHeader = ({ user }) => {
     try {
       console.log('Starting image upload...');
       const response = await uploadImage(file, user.id);
-      console.log('Image upload successful:', response);
+      console.log(content.profilePictureUploadSuccess, response);
 
       // If the API returns the new image URL, use it instead of the temporary one
       if (response.data && response.data.imageUrl) {
         setProfileImage(response.data.imageUrl);
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error(content.profilePictureUploadError, error);
       // Revert to original image if upload fails
       setProfileImage(user.profilePic || defaultImage);
     } finally {
@@ -50,10 +54,8 @@ const ProfileHeader = ({ user }) => {
   const handleRemoveImage = async() => {
     // Set to default image
     setProfileImage(defaultImage);
-    await removeImage(user.profilePic , user.id)
-    // Here you would typically also call an API to remove the profile picture from the server
-    // For example: removeProfileImage(user.id);
-    console.log('Profile image removed, using default image');
+    await removeImage(user.profilePic, user.id);
+    console.log(content.profilePictureRemoved);
   };
 
   const handleFlagClick = () => {
@@ -66,7 +68,7 @@ const ProfileHeader = ({ user }) => {
       <div
         onClick={handleFlagClick}
         className="absolute top-3 right-3 text-[#6f7b7b] hover:text-[#e91e63] transition-colors duration-200 cursor-pointer"
-        title="My Reports"
+        title={content.myReports}
       >
         <OutlinedFlagIcon sx={{ fontSize: 22 }} />
       </div>
@@ -77,14 +79,12 @@ const ProfileHeader = ({ user }) => {
           <div
             className="relative rounded-full min-h-24 w-24 sm:min-h-32 sm:w-32 bg-cover bg-center cursor-pointer group"
             onClick={handleImageClick}
-            title="Click to change profile picture"
+            title={content.clickToChangeProfilePicture}
           >
             <div
               className="rounded-full w-full h-full bg-cover bg-center"
               style={{
-                backgroundImage: `url("${
-                  profileImage || defaultImage
-                }")`,
+                backgroundImage: `url("${profileImage || defaultImage}")`,
               }}
             />
 
@@ -99,10 +99,10 @@ const ProfileHeader = ({ user }) => {
                       e.stopPropagation();
                       handleRemoveImage();
                     }}
-                    title="Remove profile picture"
+                    title={content.removeProfilePicture}
                   >
                     <DeleteIcon sx={{ fontSize: 16 }} />
-                    Remove
+                    {content.remove}
                   </div>
                 )}
               </div>
@@ -124,7 +124,7 @@ const ProfileHeader = ({ user }) => {
             <p className="text-[#6f7b7b] text-sm sm:text-base">{user.address}</p>
             <div className="flex gap-4 mt-2">
               <span className="text-[#6f7b7b] text-sm">
-                Member since: {new Date(user.createdAt).toLocaleDateString()}
+                {content.memberSince} {new Date(user.createdAt).toLocaleDateString()}
               </span>
             </div>
             
@@ -135,7 +135,7 @@ const ProfileHeader = ({ user }) => {
                 className="mt-2 text-red-500 hover:text-red-700 text-sm flex items-center gap-1 w-fit"
               >
                 <DeleteIcon sx={{ fontSize: 16 }} />
-                Remove Profile Picture
+                {content.removeProfilePicture}
               </button>
             )}
           </div>

@@ -1,46 +1,148 @@
-// PublicProfileHeader.jsx
-import React from "react";
+import React, { useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { removeImage, uploadImage } from '../../services/auth/auth.service.js';
 
-const PublicProfileHeader = ({ user, onReportUser }) => {
-  const fullName = `${user?.firstName || ''} ${user?.secondName || ''}`.trim();
+const ProfileHeader = ({ user }) => {
+  const fileInputRef = useRef(null);
+  const [profileImage, setProfileImage] = useState(user.profilePic);
+  const navigate = useNavigate();
+  
+  // Get translations from Redux
+  const { content } = useSelector((state) => state.lang);
+
+  const defaultImage = 'https://cdn-icons-png.flaticon.com/512/3177/3177440.png';
+
+  const handleImageClick = () => {
+    console.log('Profile image clicked! Opening file browser...');
+    console.log({ user });
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    console.log('File selected:', file.name);
+
+    // Create temporary URL for immediate preview
+    const tempUrl = URL.createObjectURL(file);
+    setProfileImage(tempUrl);
+
+    try {
+      console.log('Starting image upload...');
+      const response = await uploadImage(file, user.id);
+      console.log(content.profilePictureUploadSuccess, response);
+
+      // If the API returns the new image URL, use it instead of the temporary one
+      if (response.data && response.data.imageUrl) {
+        setProfileImage(response.data.imageUrl);
+      }
+    } catch (error) {
+      console.error(content.profilePictureUploadError, error);
+      // Revert to original image if upload fails
+      setProfileImage(user.profilePic || defaultImage);
+    } finally {
+      // Reset the file input
+      event.target.value = '';
+    }
+  };
+
+  const handleRemoveImage = async() => {
+    // Set to default image
+    setProfileImage(defaultImage);
+    await removeImage(user.profilePic, user.id);
+    console.log(content.profilePictureRemoved);
+  };
+
+  const handleFlagClick = () => {
+    navigate('/myreports');
+  };
 
   return (
-    <div className="flex p-4 bg-white rounded-xl shadow-sm border border-[#dfe2e2] mb-6">
+    <div className="flex p-4 bg-white rounded-xl shadow-sm border border-[#dfe2e2] mb-6 relative">
+      {/* Flag Icon */}
+      <div
+        onClick={handleFlagClick}
+        className="absolute top-3 right-3 text-[#6f7b7b] hover:text-[#e91e63] transition-colors duration-200 cursor-pointer"
+        title={content.myReports}
+      >
+        <OutlinedFlagIcon sx={{ fontSize: 22 }} />
+      </div>
+
       <div className="flex w-full flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div className="flex gap-4">
+          {/* Profile Image with click handler and edit icon on hover */}
           <div
-            className="rounded-full min-h-24 w-24 sm:min-h-32 sm:w-32 bg-cover bg-center"
-            style={{
-              backgroundImage: `url("${user?.profilePic || "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"}")`,
-            }}
-          />
-          <div className="flex flex-col justify-center">
-            <p className="text-xl sm:text-2xl font-bold">{fullName}</p>
-            <p className="text-[#6f7b7b] text-sm sm:text-base">
-              {user?.email}
-            </p>
-            <p className="text-[#6f7b7b] text-sm sm:text-base">
-              {user?.address}
-            </p>
-            <div className="flex gap-4 mt-2">
-              <span className="text-[#6f7b7b] text-sm">
-                Friends: {user?.friendCount || 0}
-              </span>
-              <span className="text-[#6f7b7b] text-sm">
-                Member since: {user?.memberSince ? new Date(user.memberSince).toLocaleDateString() : 'N/A'}
-              </span>
+            className="relative rounded-full min-h-24 w-24 sm:min-h-32 sm:w-32 bg-cover bg-center cursor-pointer group"
+            onClick={handleImageClick}
+            title={content.clickToChangeProfilePicture}
+          >
+            <div
+              className="rounded-full w-full h-full bg-cover bg-center"
+              style={{
+                backgroundImage: `url("${profileImage || defaultImage}")`,
+              }}
+            />
+
+            {/* Hover overlay with edit and delete icons */}
+            <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <div className="flex flex-col items-center gap-2">
+                <EditIcon className="text-white" sx={{ fontSize: 32 }} />
+                {profileImage && profileImage !== defaultImage && (
+                  <div 
+                    className="text-white text-xs flex items-center gap-1 hover:text-red-300 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveImage();
+                    }}
+                    title={content.removeProfilePicture}
+                  >
+                    <DeleteIcon sx={{ fontSize: 16 }} />
+                    {content.remove}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Hidden file input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            className="hidden"
+          />
+
+          <div className="flex flex-col justify-center">
+            <p className="text-xl sm:text-2xl font-bold">{user.fullName}</p>
+            <p className="text-[#6f7b7b] text-sm sm:text-base">{user.email}</p>
+            <p className="text-[#6f7b7b] text-sm sm:text-base">{user.address}</p>
+            <div className="flex gap-4 mt-2">
+              <span className="text-[#6f7b7b] text-sm">
+                {content.memberSince} {new Date(user.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+            
+            {/* Remove image button (visible outside hover) */}
+            {profileImage && profileImage !== defaultImage && (
+              <button
+                onClick={handleRemoveImage}
+                className="mt-2 text-red-500 hover:text-red-700 text-sm flex items-center gap-1 w-fit"
+              >
+                <DeleteIcon sx={{ fontSize: 16 }} />
+                {content.removeProfilePicture}
+              </button>
+            )}
+          </div>
         </div>
-        <button 
-          onClick={onReportUser}
-          className="h-10 px-4 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-colors"
-        >
-          Report User
-        </button>
       </div>
     </div>
   );
 };
 
-export default PublicProfileHeader;
+export default ProfileHeader;

@@ -1,9 +1,12 @@
-// TabNavigation.jsx (for public profile)
 import React from "react";
+import { useSelector } from 'react-redux';
 
 const TabNavigation = ({ activeTab, setActiveTab }) => {
+  // Get translations from Redux
+  const { content } = useSelector((state) => state.lang);
+  
   const tabs = [
-    { id: "user-books", label: "User's Books" },
+    { id: "user-books", label: content.usersBooks },
   ];
 
   return (

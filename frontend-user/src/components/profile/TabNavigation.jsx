@@ -1,8 +1,12 @@
 import React from "react";
+import { useSelector } from 'react-redux';
 
 const TabNavigation = ({ activeTab, setActiveTab }) => {
+  // Get translations from Redux
+  const { content } = useSelector((state) => state.lang);
+  
   const tabs = [
-    { id: "my-books", label: "My Books" },
+    { id: "my-books", label: content.myBooks },
   ];
 
   return (
