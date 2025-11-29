@@ -1,6 +1,9 @@
 import { Box, Typography, Divider, Chip } from "@mui/material";
+import { useSelector } from "react-redux";
 
 const BookInfo = ({ book }) => {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <Box
       sx={{
@@ -40,15 +43,23 @@ const BookInfo = ({ book }) => {
         </Typography>
 
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
-          <Chip label={book.categoryId?.name || "N/A"} size="small" />
-          <Chip label={book.TransactionType} size="small" color="success" />
+          <Chip
+            label={book.categoryId?.name || content.notAvailable}
+            size="small"
+          />
+          <Chip
+            label={content[book.TransactionType]}
+            size="small"
+            color="success"
+          />
+
           <Chip
             label={
               book.TransactionType === "toDonate"
-                ? "Free"
+                ? content.free
                 : book.TransactionType === "toBorrow"
-                ? `${book.PricePerDay} EGP / day`
-                : `${book.Price} EGP`
+                ? `${book.PricePerDay} ${content.currency} / ${content.perDay}`
+                : `${book.Price} ${content.currency}`
             }
             size="small"
             color="warning"
@@ -58,7 +69,7 @@ const BookInfo = ({ book }) => {
 
         <Divider sx={{ mb: 2 }} />
 
-        {/* ✅ Description كاملة */}
+        {/*  Description  */}
         <Typography
           variant="body1"
           color="text.secondary"
@@ -68,7 +79,7 @@ const BookInfo = ({ book }) => {
             whiteSpace: "pre-line",
           }}
         >
-          {book.Description || "No description available."}
+          {book.Description || content.noDescription}
         </Typography>
       </Box>
     </Box>

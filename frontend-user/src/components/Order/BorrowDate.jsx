@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 // ✅ Plugins لازم تتفعل
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import { useSelector } from "react-redux";
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
@@ -29,6 +30,7 @@ const BorrowDate = ({
   reservedBorrows = [],
 }) => {
   const today = dayjs().startOf("day");
+  const { content } = useSelector((state) => state.lang);
 
   // ✅ نحول reservedBorrows إلى رينجز Dayjs
   const reservedRanges = reservedBorrows.map((r) => ({
@@ -84,7 +86,7 @@ const BorrowDate = ({
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Box sx={{ mb: 3 }}>
         <Typography variant="body1" mb={1}>
-          Select Borrow Duration:
+          {content.selectBorrowDuration}
         </Typography>
 
         <Box
@@ -96,7 +98,7 @@ const BorrowDate = ({
         >
           {/* Start Date */}
           <DatePicker
-            label="Start Date"
+            label={content.startDate}
             value={startDate}
             onChange={(newValue) => {
               if (!newValue) {
@@ -118,12 +120,10 @@ const BorrowDate = ({
 
           {/* End Date */}
           <DatePicker
-            label="End Date"
+            label={content.endDate}
             value={endDate}
             onChange={(newValue) => setEndDate(newValue)}
-            minDate={
-              startDate ? startDate.add(1, "day") : today.add(1, "day")
-            }
+            minDate={startDate ? startDate.add(1, "day") : today.add(1, "day")}
             shouldDisableDate={shouldDisableDate}
             slots={{ day: renderReservedDay }}
             disabled={!startDate}
@@ -142,7 +142,7 @@ const BorrowDate = ({
             }}
           />
           <Typography variant="caption" color="text.secondary">
-            Reserved days (not available)
+            {content.reservedDays}
           </Typography>
         </Box>
       </Box>

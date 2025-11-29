@@ -8,6 +8,7 @@ import {
   Button,
 } from "@mui/material";
 import BorrowDate from "./BorrowDate";
+import { useSelector } from "react-redux";
 
 const OperationForm = ({
   operationType,
@@ -22,6 +23,8 @@ const OperationForm = ({
   totalPrice,
   reservedBorrows = [],
 }) => {
+  const { content } = useSelector((state) => state.lang);
+
   return (
     <Box
       sx={{
@@ -34,17 +37,17 @@ const OperationForm = ({
       }}
     >
       <Typography variant="h6" fontWeight={800} mb={0.5}>
-        Operation Summary
+        {content.operationSummary}
       </Typography>
       <Typography variant="body2" color="text.secondary" mb={2}>
-        Please review your order details.
+        {content.reviewOrderDetails}
       </Typography>
 
       <RadioGroup value={operationType}>
         <FormControlLabel
           value={operationType}
           control={<Radio />}
-          label={`Operation: ${operationType}`}
+          label={`${content.operation}: ${content[operationType]}`}
         />
       </RadioGroup>
 
@@ -63,19 +66,19 @@ const OperationForm = ({
           {/* Borrow Info */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              Borrow days
+              {content.borrowDays}
             </Typography>
             <Typography variant="body2" fontWeight={700}>
-              {borrowDays > 0 ? `${borrowDays} day(s)` : "—"}
+              {borrowDays > 0 ? `${borrowDays} ${content.days}` : "—"}
             </Typography>
           </Box>
 
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Price per day
+              {content.pricePerDay}
             </Typography>
             <Typography variant="body2" fontWeight={700}>
-              {book.PricePerDay || 0} EGP
+              {book.PricePerDay || 0} {content.currency}
             </Typography>
           </Box>
         </>
@@ -85,21 +88,21 @@ const OperationForm = ({
 
       {/* Total */}
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-        <Typography fontWeight={800}>Total</Typography>
+        <Typography fontWeight={800}>{content.total}</Typography>
         <Typography fontWeight={800} sx={{ color: "#c0a427" }}>
           {operationType === "borrow"
             ? borrowDays > 0
-              ? `${totalPrice} EGP`
-              : "Select valid dates"
+              ? `${totalPrice} ${content.currency}`
+              : content.selectValidDates
             : operationType === "buy"
-            ? `${totalPrice} EGP`
+            ? `${totalPrice} ${content.currency}`
             : book.TransactionType === "toDonate"
-            ? "Free"
-            : `${book.Price || 0} EGP`}
+            ? content.free
+            : `${book.Price || 0} ${content.currency}`}
         </Typography>
       </Box>
 
-      {/* Button نفس لون BookCard */}
+      {/* Button */}
       <Button
         fullWidth
         variant="contained"
@@ -114,7 +117,7 @@ const OperationForm = ({
           "&:hover": { backgroundColor: "#b39b20" },
         }}
       >
-        Process {operationType}
+        {content.process} {content[operationType]}
       </Button>
 
       {successMessage && (

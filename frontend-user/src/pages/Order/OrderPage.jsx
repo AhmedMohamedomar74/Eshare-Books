@@ -16,6 +16,7 @@ const OrderPage = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
+  const { content } = useSelector((state) => state.lang);
 
   const { book, loading, successMessage } = useSelector(
     (state) => state.orders
@@ -34,7 +35,7 @@ const OrderPage = () => {
   if (!book)
     return (
       <Typography textAlign="center" mt={4}>
-        No book found.
+        {content.noBookFound}
       </Typography>
     );
 
@@ -69,16 +70,12 @@ const OrderPage = () => {
 
     if (operationType === "borrow") {
       if (!startDate || !endDate) {
-        enqueueSnackbar("Please select both start and end dates.", {
-          variant: "warning",
-        });
+        enqueueSnackbar(content.selectDates, { variant: "warning" });
         return;
       }
 
       if (endDate.isSameOrBefore(startDate, "day")) {
-        enqueueSnackbar("End date must be after start date.", {
-          variant: "warning",
-        });
+        enqueueSnackbar(content.endDateAfterStart, { variant: "warning" });
         return;
       }
     }
@@ -101,12 +98,12 @@ const OrderPage = () => {
     const result = await dispatch(createOperation(operationData));
 
     if (createOperation.fulfilled.match(result)) {
-      enqueueSnackbar("Request sent successfully.", { variant: "success" });
+      enqueueSnackbar(content.requestSuccess, { variant: "success" });
     } else {
       const backendMsg =
         result.payload?.message ||
         result.error?.message ||
-        "Something went wrong.";
+        content.errorMessage;
       enqueueSnackbar(backendMsg, { variant: "error" });
     }
 
