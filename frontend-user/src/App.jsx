@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import { useSelector } from "react-redux";
+import { getMuiTheme } from "./theme/muiTheme";
 import BookDetails from "./pages/Book-Details/BookDetails";
 import Navbar from "./components/Navbar";
 import BookCycleLogin from "./pages/login/Login.jsx";
@@ -22,6 +25,9 @@ import EditBook from "./pages/Edit Book/EditBook.jsx";
 import PaymentSuccess from "./pages/payment-success/payment-success.jsx";
 import VerifyEmail from "./pages/VerificationPage/VerifyEmail.jsx";
 function App() {
+  const { direction } = useSelector((state) => state.lang);
+  const { mode } = useSelector((state) => state.theme);
+  const theme = getMuiTheme({ mode, direction });
   return (
     <BrowserRouter>
       <NavigationProvider>

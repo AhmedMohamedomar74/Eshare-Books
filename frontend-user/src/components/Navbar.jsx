@@ -26,6 +26,8 @@ import UserAvatar from "./common/UserAvatar";
 import { logout } from "../services/auth/auth.service";
 import NotificationBell from "./Notification/NotificationBell";
 import LangButton from "./LangButton";
+import ThemeButton from "./ThemeButton";
+
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -226,6 +228,7 @@ const Navbar = () => {
             ))}
             {/* change lang button */}
             <LangButton />
+            
 
             {/* User Avatar with Dropdown */}
             <Box sx={{ ml: 1 }}>

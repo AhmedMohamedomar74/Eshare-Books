@@ -25,19 +25,22 @@ const OperationForm = ({
   return (
     <Box
       sx={{
-        flex: 0.4,
-        border: "1px solid #e0e0e0",
-        borderRadius: "12px",
-        p: "20px",
-        backgroundColor: "#fafafa",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+        bgcolor: "white",
+        borderRadius: 3,
+        p: { xs: 2, md: 3 },
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        border: "1px solid #eee",
+        height: "fit-content",
       }}
     >
-      <Typography variant="h6" fontWeight="bold" mb={2}>
+      <Typography variant="h6" fontWeight={800} mb={0.5}>
         Operation Summary
       </Typography>
+      <Typography variant="body2" color="text.secondary" mb={2}>
+        Please review your order details.
+      </Typography>
 
-      <RadioGroup defaultValue={operationType}>
+      <RadioGroup value={operationType}>
         <FormControlLabel
           value={operationType}
           control={<Radio />}
@@ -57,55 +60,68 @@ const OperationForm = ({
             reservedBorrows={reservedBorrows}
           />
 
-          <Typography variant="body1" mb={1}>
-            Borrow days:{" "}
-            {borrowDays > 0 ? `${borrowDays} day(s)` : "Select valid dates"}
-          </Typography>
+          {/* Borrow Info */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Borrow days
+            </Typography>
+            <Typography variant="body2" fontWeight={700}>
+              {borrowDays > 0 ? `${borrowDays} day(s)` : "—"}
+            </Typography>
+          </Box>
 
-          <Typography variant="body1" mb={3}>
-            Price per day: {book.PricePerDay || 0} EGP
-          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Price per day
+            </Typography>
+            <Typography variant="body2" fontWeight={700}>
+              {book.PricePerDay || 0} EGP
+            </Typography>
+          </Box>
         </>
       )}
 
-      <Typography fontWeight="bold" mb={3}>
-        Total:{" "}
-        {operationType === "borrow"
-          ? borrowDays > 0
+      <Divider sx={{ my: 2 }} />
+
+      {/* Total */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+        <Typography fontWeight={800}>Total</Typography>
+        <Typography fontWeight={800} sx={{ color: "#c0a427" }}>
+          {operationType === "borrow"
+            ? borrowDays > 0
+              ? `${totalPrice} EGP`
+              : "Select valid dates"
+            : operationType === "buy"
             ? `${totalPrice} EGP`
-            : "Select valid dates"
-          : operationType === "buy"
-          ? `${totalPrice} EGP`
-          : book.TransactionType === "toDonate"
-          ? "Free"
-          : `${book.Price || 0} EGP`}
-      </Typography>
-
-      <Box sx={{ textAlign: "center" }}>
-        {/* ✅ الزرار دايمًا شغال */}
-        <Button
-          type="button"
-          variant="contained"
-          onClick={handleComplete}
-          sx={{
-            py: 1.5,
-            px: 3,
-            fontWeight: "bold",
-            backgroundColor: "#004d40",
-            borderRadius: "8px",
-            width: "300px",
-            "&:hover": { backgroundColor: "#00695c" },
-          }}
-        >
-          Process {operationType}
-        </Button>
-
-        {successMessage && (
-          <Typography color="success.main" mt={2}>
-            {successMessage}
-          </Typography>
-        )}
+            : book.TransactionType === "toDonate"
+            ? "Free"
+            : `${book.Price || 0} EGP`}
+        </Typography>
       </Box>
+
+      {/* Button نفس لون BookCard */}
+      <Button
+        fullWidth
+        variant="contained"
+        onClick={handleComplete}
+        sx={{
+          py: 1.3,
+          fontWeight: 800,
+          borderRadius: 2,
+          textTransform: "none",
+          backgroundColor: "#c0a427",
+          color: "black",
+          "&:hover": { backgroundColor: "#b39b20" },
+        }}
+      >
+        Process {operationType}
+      </Button>
+
+      {successMessage && (
+        <Typography color="success.main" mt={2} textAlign="center">
+          {successMessage}
+        </Typography>
+      )}
     </Box>
   );
 };

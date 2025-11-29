@@ -1,35 +1,29 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Divider, Chip } from "@mui/material";
 
 const BookInfo = ({ book }) => {
-  //Helper function
-  const truncateWords = (text, count) => {
-    if (!text) return "";
-    const words = text.split(" ");
-    return (
-      words.slice(0, count).join(" ") + (words.length > count ? "..." : "")
-    );
-  };
-
   return (
     <Box
       sx={{
+        bgcolor: "white",
+        borderRadius: 3,
+        p: { xs: 2, md: 3 },
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        border: "1px solid #eee",
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
-        gap: 4,
+        gap: 3,
         alignItems: "flex-start",
-        mb: 4,
       }}
     >
-      {/* Book Image */}
+      {/* Image */}
       <Box
         sx={{
-          width: { xs: "100%", md: 300 },
-          height: 300,
-          borderRadius: "12px",
+          width: { xs: "100%", md: 260 },
+          height: { xs: 260, md: 320 },
+          borderRadius: 2,
           overflow: "hidden",
-          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-          transition: "transform 0.3s ease",
-          "&:hover": { transform: "scale(1.02)" },
+          bgcolor: "#f5f5f5",
+          flexShrink: 0,
         }}
       >
         <img
@@ -39,35 +33,42 @@ const BookInfo = ({ book }) => {
         />
       </Box>
 
-      {/* Book Info */}
+      {/* Info */}
       <Box sx={{ flex: 1 }}>
-        <Typography variant="h4" fontWeight="bold" mb={2}>
-          {truncateWords(book.Title, 4)}
+        <Typography variant="h5" fontWeight={800} mb={1}>
+          {book.Title}
         </Typography>
+
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
+          <Chip label={book.categoryId?.name || "N/A"} size="small" />
+          <Chip label={book.TransactionType} size="small" color="success" />
+          <Chip
+            label={
+              book.TransactionType === "toDonate"
+                ? "Free"
+                : book.TransactionType === "toBorrow"
+                ? `${book.PricePerDay} EGP / day`
+                : `${book.Price} EGP`
+            }
+            size="small"
+            color="warning"
+            sx={{ fontWeight: "bold" }}
+          />
+        </Box>
+
+        <Divider sx={{ mb: 2 }} />
+
+        {/* ✅ Description كاملة */}
         <Typography
+          variant="body1"
           color="text.secondary"
-          mb={2}
           sx={{
-            minHeight: "80px",
-            display: "flex",
-            alignItems: "flex-start",
+            lineHeight: 1.8,
+            fontSize: "0.95rem",
+            whiteSpace: "pre-line",
           }}
         >
-          {truncateWords(book.Description, 8)}
-        </Typography>
-        <Typography variant="body1" mb={1}>
-          <strong>Category:</strong> {book.categoryId?.name || "N/A"}
-        </Typography>
-        <Typography variant="body1" mb={1}>
-          <strong>Type:</strong> {book.TransactionType}
-        </Typography>
-        <Typography variant="body1" mb={1}>
-          <strong>Price:</strong>{" "}
-          {book.TransactionType === "toDonate"
-            ? "Free"
-            : book.TransactionType === "toBorrow"
-            ? `${book.PricePerDay} EGP / day`
-            : `${book.Price} EGP`}
+          {book.Description || "No description available."}
         </Typography>
       </Box>
     </Box>
