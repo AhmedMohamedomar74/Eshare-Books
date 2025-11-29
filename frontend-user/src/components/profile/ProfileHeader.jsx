@@ -2,12 +2,15 @@ import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { uploadImage } from '../../services/auth/auth.service.js';
 
 const ProfileHeader = ({ user }) => {
   const fileInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(user.profilePic);
   const navigate = useNavigate();
+
+  const defaultImage = 'https://cdn-icons-png.flaticon.com/512/3177/3177440.png';
 
   const handleImageClick = () => {
     console.log('Profile image clicked! Opening file browser...');
@@ -37,11 +40,20 @@ const ProfileHeader = ({ user }) => {
     } catch (error) {
       console.error('Error uploading image:', error);
       // Revert to original image if upload fails
-      setProfileImage(user.profilePic);
+      setProfileImage(user.profilePic || defaultImage);
     } finally {
       // Reset the file input
       event.target.value = '';
     }
+  };
+
+  const handleRemoveImage = () => {
+    // Set to default image
+    setProfileImage(defaultImage);
+    
+    // Here you would typically also call an API to remove the profile picture from the server
+    // For example: removeProfileImage(user.id);
+    console.log('Profile image removed, using default image');
   };
 
   const handleFlagClick = () => {
@@ -71,14 +83,29 @@ const ProfileHeader = ({ user }) => {
               className="rounded-full w-full h-full bg-cover bg-center"
               style={{
                 backgroundImage: `url("${
-                  profileImage || 'https://cdn-icons-png.flaticon.com/512/3177/3177440.png'
+                  profileImage || defaultImage
                 }")`,
               }}
             />
 
-            {/* Hover overlay with edit icon */}
+            {/* Hover overlay with edit and delete icons */}
             <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <EditIcon className="text-white" sx={{ fontSize: 32 }} />
+              <div className="flex flex-col items-center gap-2">
+                <EditIcon className="text-white" sx={{ fontSize: 32 }} />
+                {profileImage && profileImage !== defaultImage && (
+                  <div 
+                    className="text-white text-xs flex items-center gap-1 hover:text-red-300 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveImage();
+                    }}
+                    title="Remove profile picture"
+                  >
+                    <DeleteIcon sx={{ fontSize: 16 }} />
+                    Remove
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -100,6 +127,17 @@ const ProfileHeader = ({ user }) => {
                 Member since: {new Date(user.createdAt).toLocaleDateString()}
               </span>
             </div>
+            
+            {/* Remove image button (visible outside hover) */}
+            {profileImage && profileImage !== defaultImage && (
+              <button
+                onClick={handleRemoveImage}
+                className="mt-2 text-red-500 hover:text-red-700 text-sm flex items-center gap-1 w-fit"
+              >
+                <DeleteIcon sx={{ fontSize: 16 }} />
+                Remove Profile Picture
+              </button>
+            )}
           </div>
         </div>
       </div>
