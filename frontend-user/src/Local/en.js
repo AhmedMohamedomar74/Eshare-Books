@@ -188,6 +188,36 @@ const en = {
   chooseDifferentImage: "Click to choose a different image",
   keepCurrentImage: "Current image will be kept if you don't upload a new one",
   uploadImageHelp: "Upload an image (max 5MB)",
+
+  //notification
+  invitations: "Invitations",
+  notifications: "Notifications",
+  noNotifications: "No notifications",
+  accept: "Accept",
+  refuse: "Refuse",
+invalidPaymentNotification: "Invalid payment notification.",
+  paymentFailed: "Payment failed",
+  paymentFailedTryAgain: "Payment failed. Please try again.",
+  processing: "Processing...",
+  payNow: "Pay Now",
+  completePayment: "Complete Your Payment",
+  close: "Close",
+notifications: "Notifications",
+  noNotificationsYet: "No notifications yet",
+  actionRequired: "ACTION REQUIRED",
+  recentActivity: "Recent Activity",
+  justNow: "just now",
+  minutesAgo: "m ago",
+  hoursAgo: "h ago",
+  daysAgo: "d ago",
+request: "Request",
+  accept: "Accept",
+  refuse: "Refuse",
+  writeReasonForRefusal: "Write the reason for refusal",
+  reason: "Reason",
+  cancel: "Cancel",
+  sendRefusal: "Send Refusal",
+
 };
 
 export default en;

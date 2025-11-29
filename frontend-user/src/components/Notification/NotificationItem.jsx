@@ -16,6 +16,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import api from "../../axiosInstance/axiosInstance";
+import { useSelector } from "react-redux";
 
 const NotificationItem = ({ notification, formatTime }) => {
   const theme = useTheme();
@@ -25,10 +26,12 @@ const NotificationItem = ({ notification, formatTime }) => {
   const [paymentUrl, setPaymentUrl] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
+  const { content } = useSelector((state) => state.lang);
+
   const handlePayNow = async () => {
     console.log("Notification received:", notification);
     if (!notification.operationId || !notification.totalPrice) {
-      alert("Invalid payment notification.");
+      alert(content.invalidPaymentNotification);
       return;
     }
 
@@ -43,11 +46,11 @@ const NotificationItem = ({ notification, formatTime }) => {
         setPaymentUrl(response.data.data.iframeUrl);
         setShowPaymentModal(true);
       } else {
-        alert("Payment failed ");
+        alert(content.paymentFailed);
       }
     } catch (error) {
       console.error("Payment error:", error);
-      alert("Payment failed. Please try again.");
+      alert(content.paymentFailedTryAgain);
     } finally {
       setLoading(false);
     }
@@ -127,7 +130,7 @@ const NotificationItem = ({ notification, formatTime }) => {
               onClick={handlePayNow}
               disabled={loading}
             >
-              {loading ? "Processing..." : "Pay Now"}
+              {loading ? content.processing : content.payNow}
             </Button>
           )}
         </Box>
@@ -141,7 +144,7 @@ const NotificationItem = ({ notification, formatTime }) => {
           fullWidth
           maxWidth="md"
         >
-          <DialogTitle>Complete Your Payment</DialogTitle>
+          <DialogTitle>{content.completePayment}</DialogTitle>
           <DialogContent>
             <iframe
               src={paymentUrl}
@@ -152,7 +155,9 @@ const NotificationItem = ({ notification, formatTime }) => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setShowPaymentModal(false)}>Close</Button>
+            <Button onClick={() => setShowPaymentModal(false)}>
+              {content.close}
+            </Button>
           </DialogActions>
         </Dialog>
       )}
