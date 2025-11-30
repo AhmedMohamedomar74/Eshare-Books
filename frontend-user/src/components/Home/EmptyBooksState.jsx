@@ -1,11 +1,14 @@
 import React from "react";
 import { Paper, Typography, Button } from "@mui/material";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import useTranslate from "../../hooks/useTranslate";
 
 export default function EmptyBooksState({
   hasFiltersOrSearch = false,
   onClearFilters,
 }) {
+  const { t } = useTranslate();
+
   return (
     <Paper
       elevation={0}
@@ -23,13 +26,13 @@ export default function EmptyBooksState({
       />
 
       <Typography variant="h5" fontWeight={700} sx={{ mb: 1 }}>
-        No books found 📚
+        {t("noBooksTitle", "No books found 📚")}
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
         {hasFiltersOrSearch
-          ? "Try changing your search or filters to see more results."
-          : "There are no books available right now. Check back later!"}
+          ? t("noBooksWithFilters", "Try changing your search or filters to see more results.")
+          : t("noBooksNoFilters", "There are no books available right now. Check back later!")}
       </Typography>
 
       {hasFiltersOrSearch && (
@@ -38,7 +41,7 @@ export default function EmptyBooksState({
           onClick={onClearFilters}
           sx={{ px: 4, py: 1.2, borderRadius: 2 }}
         >
-          Clear Search & Filters
+          {t("clearSearchFilters", "Clear Search & Filters")}
         </Button>
       )}
     </Paper>

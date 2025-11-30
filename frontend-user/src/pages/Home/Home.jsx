@@ -12,10 +12,13 @@ import HeroSection from "../../components/Home/HeroSection";
 import Filters from "../../components/Home/Filters";
 import BookGrid from "../../components/Home/BookGrid";
 import Spinner from "../../components/Spinner";
-import EmptyBooksState from "../../components/Home/EmptyBooksState"; // ✅ الجديد
+import EmptyBooksState from "../../components/Home/EmptyBooksState";
 import bookService from "../../services/book.service";
+import useTranslate from "../../hooks/useTranslate";
 
 export default function Home() {
+  const { t } = useTranslate();
+
   const [books, setBooks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,8 +26,8 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const limit = 9; // عدد الكتب في الصفحة
-  const SEARCH_FETCH_LIMIT = 5000; // ✅ limit كبير عشان السيرش يجيب كل النتائج
+  const limit = 9;
+  const SEARCH_FETCH_LIMIT = 5000;
 
   const [loading, setLoading] = useState(false);
 
@@ -49,7 +52,6 @@ export default function Home() {
       const { type, categoryId } = activeFilter;
       let list = [];
 
-      // ✅ 1) لو فيه Search → السيرش على كل الكتب من الباك
       if (searchTerm.trim()) {
         const data = await bookService.getAllBooks(
           1,
@@ -57,9 +59,7 @@ export default function Home() {
           searchTerm
         );
         list = data?.books || [];
-      }
-      // ✅ 2) مفيش Search → هات البيانات حسب الفلاتر
-      else {
+      } else {
         if (type && categoryId) {
           const data = await bookService.getBooksByCategory(categoryId);
           list = (data || []).filter(
@@ -70,7 +70,6 @@ export default function Home() {
         } else if (type) {
           list = (await bookService.getBooksByType(type)) || [];
         } else {
-          // بدون Search ولا Filters → pagination من الباك
           const data = await bookService.getAllBooks(page, limit, "");
           setBooks((data?.books || []).slice(0, limit));
 
@@ -82,7 +81,6 @@ export default function Home() {
         }
       }
 
-      // ✅ 3) بعد ما جبنا list (Search أو Filters) نطبق الفلاتر لو موجودة
       if (categoryId) {
         list = list.filter(
           (b) => (b.categoryId?._id || b.categoryId) === categoryId
@@ -95,7 +93,6 @@ export default function Home() {
         );
       }
 
-      // ✅ 4) pagination client-side بعد Search + Filters
       const pages = Math.ceil(list.length / limit) || 1;
       setTotalPages(pages);
 
@@ -121,14 +118,12 @@ export default function Home() {
     }
   };
 
-  // 🔍 Search by title (على كل الكتب)
   const handleSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
     setPage(1);
   };
 
-  // ✅ Category Radio
   const handleCategoryChange = (catId) => {
     setPage(1);
     setActiveFilter((prev) => ({
@@ -137,7 +132,6 @@ export default function Home() {
     }));
   };
 
-  // ✅ Type Radio
   const handleTypeChange = (selectedType) => {
     setPage(1);
     setActiveFilter((prev) => ({
@@ -170,7 +164,7 @@ export default function Home() {
           <TextField
             fullWidth
             variant="outlined"
-            placeholder="Search by title..."
+            placeholder={t("searchPlaceholder", "Search by title...")}
             value={searchTerm}
             onChange={handleSearch}
             InputProps={{
@@ -179,11 +173,11 @@ export default function Home() {
                   <SearchIcon color="action" />
                 </InputAdornment>
               ),
-              sx: { height: 36, borderRadius: 2 },
+              sx: { height: 40, borderRadius: 2 },
             }}
             sx={{
               "& fieldset": { border: "none" },
-              "& .MuiInputBase-input": { py: 0.5 },
+              "& .MuiInputBase-input": { py: 0.8 },
               bgcolor: "transparent",
             }}
           />
@@ -216,6 +210,8 @@ export default function Home() {
               onCategoryChange={handleCategoryChange}
               onTypeChange={handleTypeChange}
               onClearFilters={handleClearFilters}
+              selectedCategoryId={activeFilter.categoryId}
+              selectedType={activeFilter.type}
             />
           </Paper>
 
@@ -236,7 +232,6 @@ export default function Home() {
               <>
                 <BookGrid books={books} />
 
-                {/* ✅ Pagination دايمًا شغالة */}
                 {totalPages > 1 && (
                   <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
                     <Pagination
@@ -254,7 +249,7 @@ export default function Home() {
                           "&:hover": {
                             backgroundColor: "#1976d2",
                             color: "#fff",
-                            transform: "scale(1.1)",
+                            transform: "scale(1.06)",
                           },
                         },
                         "& .Mui-selected": {

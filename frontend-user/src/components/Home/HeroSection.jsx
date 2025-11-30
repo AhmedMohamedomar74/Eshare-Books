@@ -1,7 +1,10 @@
 import React from "react";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import useTranslate from "../../hooks/useTranslate";
 
 export default function HeroSection() {
+  const { t } = useTranslate();
+
   return (
     <Box
       sx={{
@@ -18,7 +21,7 @@ export default function HeroSection() {
         mt: 4,
       }}
     >
-      {/* الخلفية */}
+      {/* background */}
       <Box
         sx={{
           position: "absolute",
@@ -31,26 +34,17 @@ export default function HeroSection() {
         }}
       />
 
-      {/* المحتوى */}
-      <Box sx={{ position: "relative", zIndex: 2, maxWidth: "700px", px: 2 }}>
+      {/* content */}
+      <Box sx={{ position: "relative", zIndex: 2, maxWidth: 700, px: 2 }}>
         <Typography variant="h4" fontWeight="bold" sx={{ mb: 2 }}>
-          Share, Donate, or Sell Your Books
+          {t("heroTitle", "Share, Donate, or Sell Your Books")}
         </Typography>
         <Typography variant="body1" sx={{ mb: 3 }}>
-          Join our community and give your books a new life. Start by listing your first book today.
+          {t(
+            "heroSubtitle",
+            "Join our community and give your books a new life. Start by listing your first book today."
+          )}
         </Typography>
-        {/* <Button
-          variant="contained"
-          sx={{
-            bgcolor: "#1b4332",
-            "&:hover": { bgcolor: "#2d6a4f" },
-            px: 4,
-            py: 1.2,
-            borderRadius: 2,
-          }}
-        >
-          List Your Book
-        </Button> */}
       </Box>
     </Box>
   );
