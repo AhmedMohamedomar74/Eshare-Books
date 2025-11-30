@@ -1,8 +1,11 @@
 import React from "react";
-import { Grid, Box, Chip, Typography } from "@mui/material";
+import { Grid, Box, Typography } from "@mui/material";
 import BookCard from "./BookCard";
+import useTranslate from "../../hooks/useTranslate";
 
 export default function BookGrid({ books = [] }) {
+  const { t } = useTranslate();
+
   if (!books || books.length === 0) {
     return (
       <Box
@@ -16,7 +19,7 @@ export default function BookGrid({ books = [] }) {
         }}
       >
         <Typography variant="h6" color="text.secondary">
-          No books found.
+          {t("noBooksFound", "No books found.")}
         </Typography>
       </Box>
     );
@@ -38,16 +41,7 @@ export default function BookGrid({ books = [] }) {
             display="flex"
             justifyContent="center"
           >
-            <Box
-              sx={{
-                position: "relative",
-                width: "100%",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              
-
+            <Box sx={{ position: "relative", width: "100%", display: "flex", justifyContent: "center" }}>
               <BookCard book={book} disabled={isBorrowedNow} />
             </Box>
           </Grid>

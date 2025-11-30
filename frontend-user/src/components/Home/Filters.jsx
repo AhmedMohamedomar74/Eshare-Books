@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   Typography,
@@ -8,32 +8,31 @@ import {
   Divider,
   Button,
 } from "@mui/material";
+import useTranslate from "../../hooks/useTranslate";
 
 export default function Filters({
   categories = [],
   onCategoryChange,
   onTypeChange,
   onClearFilters,
+
+  // ✅ controlled values from Home
+  selectedCategoryId = null,
+  selectedType = null,
 }) {
-  // ✅ بقي اختيار واحد زي الـ type
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+  const { t } = useTranslate();
 
   const handleCategoryChange = (event) => {
     const catId = event.target.value; // "" أو id
-    setSelectedCategory(catId);
-    onCategoryChange?.(catId); // ✅ بيرجع قيمة واحدة مش array
+    onCategoryChange?.(catId);
   };
 
   const handleTypeChange = (event) => {
     const type = event.target.value; // "" أو toSale/toBorrow/toDonate
-    setSelectedType(type);
     onTypeChange?.(type);
   };
 
   const handleClear = () => {
-    setSelectedCategory("");
-    setSelectedType("");
     onClearFilters?.();
   };
 
@@ -56,8 +55,8 @@ export default function Filters({
           mb: 2,
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Filters
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          {t("filters", "Filters")}
         </Typography>
         <Button
           variant="text"
@@ -66,17 +65,17 @@ export default function Filters({
           sx={{
             color: "primary.main",
             textTransform: "none",
-            fontWeight: 500,
+            fontWeight: 600,
             fontSize: "0.85rem",
           }}
         >
-          Clear Filters
+          {t("clearFilters", "Clear Filters")}
         </Button>
       </Box>
 
-      {/* ✅ Category Filter (Radio زي Transaction Type) */}
-      <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
-        Category
+      {/* Category */}
+      <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 700 }}>
+        {t("category", "Category")}
       </Typography>
 
       <Box
@@ -98,17 +97,24 @@ export default function Filters({
           },
         }}
       >
-        <RadioGroup value={selectedCategory} onChange={handleCategoryChange}>
-          {/* All categories */}
+        {/* ✅ controlled value */}
+        <RadioGroup
+          value={selectedCategoryId || ""}
+          onChange={handleCategoryChange}
+        >
           <FormControlLabel
             value=""
             control={<Radio size="small" />}
-            label={<Typography variant="body2">All Categories</Typography>}
+            label={
+              <Typography variant="body2">
+                {t("allCategories", "All Categories")}
+              </Typography>
+            }
           />
 
           {categories.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
-              No categories found
+              {t("noCategoriesFound", "No categories found")}
             </Typography>
           ) : (
             categories.map((cat) => (
@@ -125,17 +131,21 @@ export default function Filters({
 
       <Divider sx={{ my: 2 }} />
 
-      {/* ✅ Type Filter */}
-      <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
-        Transaction Type
+      {/* Type */}
+      <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 700 }}>
+        {t("transactionType", "Transaction Type")}
       </Typography>
 
-      <RadioGroup value={selectedType} onChange={handleTypeChange}>
-        {/* All types */}
+      {/* ✅ controlled value */}
+      <RadioGroup value={selectedType || ""} onChange={handleTypeChange}>
         <FormControlLabel
           value=""
           control={<Radio size="small" />}
-          label={<Typography variant="body2">All Types</Typography>}
+          label={
+            <Typography variant="body2">
+              {t("allTypes", "All Types")}
+            </Typography>
+          }
         />
 
         {["toSale", "toBorrow", "toDonate"].map((type) => (
@@ -143,11 +153,7 @@ export default function Filters({
             key={type}
             value={type}
             control={<Radio size="small" />}
-            label={
-              <Typography variant="body2">
-                {type.replace("to", "To ")}
-              </Typography>
-            }
+            label={<Typography variant="body2">{t(type, type)}</Typography>}
           />
         ))}
       </RadioGroup>

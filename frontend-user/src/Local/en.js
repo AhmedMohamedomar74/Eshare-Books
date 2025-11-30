@@ -451,6 +451,75 @@ switchToArabic: "Switch to Arabic",
   sendRefusal: "Send Refusal",
   switchToArabic: "Switch to Arabic",
   switchToEnglish: "Switch to English",
+  //Home page////////////////////////////////////////
+    filters: "Filters",
+  clearFilters: "Clear Filters",
+  category: "Category",
+  allCategories: "All Categories",
+  noCategoriesFound: "No categories found",
+  transactionType: "Transaction Type",
+  allTypes: "All Types",
+
+  heroTitle: "Share, Donate, or Sell Your Books",
+  heroSubtitle:
+    "Join our community and give your books a new life. Start by listing your first book today.",
+
+  searchPlaceholder: "Search by title...",
+  viewDetails: "View Details",
+
+  toSale: "For Sale",
+  toBorrow: "Available to Borrow",
+  toDonate: "Free to Donate",
+  toExchange: "Available to Exchange",
+
+  noBooksFound: "No books found.",
+  noBooksTitle: "No books found 📚",
+  noBooksWithFilters:
+    "Try changing your search or filters to see more results.",
+  noBooksNoFilters:
+    "There are no books available right now. Check back later!",
+  clearSearchFilters: "Clear Search & Filters",
+
+  untitled: "Untitled",
+  noDescription: "No description available.",
+  reportBook: "report this book",
+  egp: "EGP",
+  egpPerDay: "EGP / day",
+
+  switchToArabic: "Switch to Arabic",
+  switchToEnglish: "Switch to English",
+  // Add Book
+  addNewBook: "Add Your Book",
+  uploadBookCover: "Upload Book Cover",
+  clickToChangeImage: "Click to change image",
+  titleLabel: "Title",
+  selectCategory: "Select category",
+  priceLabel: "Price",
+  pricePerDayLabel: "Price Per Day",
+  descriptionLabel: "Description",
+  sellType: "Sell",
+  donateType: "Donate",
+  borrowType: "Borrow",
+  aiReviewLoading: "Your book is being reviewed by our AI model...",
+  bookAddedSuccessfully: "Book added successfully ✅",
+  passedAiReview: "It passed our AI review.",
+
+  // validation messages
+  bookCoverRequired: "Book cover image is required",
+  onlyImagesAllowed: "Only image files are allowed",
+  imageTooLarge: "Image size must be less than 5MB",
+  priceNegative: "Price cannot be negative",
+  titleRequired: "Title is required",
+  titleTooShort: "Title must be at least 2 characters",
+  categoryRequired: "Category is required",
+  descriptionRequired: "Description is required",
+  descriptionTooShort: "Description must be at least 10 characters",
+  priceRequired: "Price is required for sale",
+  priceMustBePositive: "Price must be greater than zero",
+  pricePerDayRequired: "Price per day is required for borrowing",
+  pricePerDayMustBePositive: "Price per day must be greater than zero",
+  priceMaxSale: "Price is too high",
+  priceMaxBorrow: "Price per day is too high",
 };
 
 export default en;
