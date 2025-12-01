@@ -8,6 +8,7 @@ import { userService } from "../../services/user/userService.js";
 import { bookService } from "../../services/books/bookServices.js";
 import { operationService } from "../../services/operations/operationService.js";
 import TransactionFilter from "../../components/profile/Filter.jsx";
+import EmptyBooksMessage from "../../components/profile/EmptyBook.jsx";
 
 const BookShareDashboard = () => {
   const [activeTab, setActiveTab] = useState("my-books");
@@ -99,21 +100,24 @@ const BookShareDashboard = () => {
     }
   };
 
-  // ✅ فلترة الكتب حسب TransactionType الموجود في الـ DB
+  
   const filteredBooks = books.filter((book) => {
     if (!transactionFilter) return true;
     return book.TransactionType === transactionFilter;
   });
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case "my-books":
-        return (
-          <>
-            <TransactionFilter
-              filterType={transactionFilter}
-              onFilterChange={setTransactionFilter}
-            />
+  switch (activeTab) {
+    case "my-books":
+      return (
+        <>
+          <TransactionFilter
+            filterType={transactionFilter}
+            onFilterChange={setTransactionFilter}
+          />
+          {filteredBooks.length === 0 ? (
+            <EmptyBooksMessage />
+          ) : (
             <BooksGrid
               books={filteredBooks}
               isOwner={true}
@@ -125,12 +129,13 @@ const BookShareDashboard = () => {
                 )
               }
             />
-          </>
-        );
-      default:
-        return <BooksGrid books={books} />;
-    }
-  };
+          )}
+        </>
+      );
+    default:
+      return <BooksGrid books={books} />;
+  }
+};
 
   // Loading state
   if (loading) {
