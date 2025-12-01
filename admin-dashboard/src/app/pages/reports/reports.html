@@ -1,4 +1,3 @@
-<!-- reports.html -->
 <div class="reports-page">
   <!-- Page Header -->
   <div class="page-header">
@@ -73,11 +72,6 @@
         </ul>
       </div>
     </div>
-  </div>
-
-  <!-- Reports Count -->
-  <div class="reports-count" *ngIf="!loading && !error">
-    <p>Total Reports: {{ totalResults }}</p>
   </div>
 
   <!-- Reports Table -->
@@ -223,7 +217,7 @@
   <!-- Pagination -->
   <div class="pagination-section" *ngIf="filteredReports.length > 0 && !loading && !error">
     <span class="pagination-info">
-      Showing {{ getStartIndex() }} to {{ getEndIndex() }} of {{ totalResults }} results
+      Showing {{ getStartIndex() }} to {{ getEndIndex() }} of {{ filteredReports.length }} results
     </span>
     <div class="pagination-controls">
       <button class="btn btn-light" [disabled]="currentPage === 1" (click)="previousPage()">

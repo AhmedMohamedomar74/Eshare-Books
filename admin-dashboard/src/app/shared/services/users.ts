@@ -58,6 +58,16 @@ export interface UsersStats {
   recentRegistrations: number;
 }
 
+export interface DeleteUserResponse {
+  message: string;
+  data?: {
+    deletedBooks: number;
+    cancelledOperations: number;
+    terminatedBorrows: number;
+    totalCancelled: number;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class UsersService {
   private baseUrl = 'http://localhost:3000/user';
@@ -115,10 +125,10 @@ export class UsersService {
     );
   }
 
-  // Delete user (Admin only)
-  deleteUser(id: string): Observable<void> {
-    return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`).pipe(
-      map(() => undefined),
+  // Delete user (Admin only) - UPDATED
+  deleteUser(id: string): Observable<DeleteUserResponse> {
+    return this.http.delete<ApiResponse<DeleteUserResponse>>(`${this.baseUrl}/${id}`).pipe(
+      map((response) => response.data),
       catchError((error) => {
         console.error('Failed to delete user:', error);
         throw error;
