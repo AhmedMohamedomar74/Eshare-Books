@@ -21,7 +21,10 @@ export const useSocketNotifications = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    socketService.connect();
+    // Only connect if not already connected
+    if (!socketService.socket || !socketService.isConnected) {
+      socketService.connect();
+    }
 
     // Connection events
     const handleConnectionChange = ({ isConnected, reason }) => {
@@ -129,11 +132,19 @@ export const useSocketNotifications = () => {
 
     // Payment & general notifications
     const handleNewNotification = (data) => {
-      addLog(`💰 New notification: ${data.message}`, "info");
+      addLog(`📬 New notification: ${data.message}`, "info");
       setNotifications((prev) => [
         ...prev,
         { ...data, type: "notification", timestamp: new Date().toISOString() },
       ]);
+
+      // Browser notification
+      if (Notification.permission === "granted") {
+        new Notification("New Notification", {
+          body: data.message,
+          icon: "/notification-icon.png",
+        });
+      }
     };
 
     const handlePaymentRequired = (data) => {
@@ -145,36 +156,9 @@ export const useSocketNotifications = () => {
       ]);
     };
 
-    // ✅ NEW: Payment success notification (for buyer)
-    const handlePaymentSuccess = (data) => {
-      addLog(
-        `✅ Payment successful for operation ${data.operationId}`,
-        "success"
-      );
-      setNotifications((prev) => [
-        ...prev,
-        {
-          ...data,
-          type: "payment-success",
-          timestamp: new Date().toISOString(),
-        },
-      ]);
-
-      // Browser notification
-      if (Notification.permission === "granted") {
-        new Notification("Payment Successful", {
-          body: data.message || "Your payment was completed successfully",
-          icon: "/payment-success-icon.png",
-        });
-      }
-    };
-
     // ✅ NEW: Payment received notification (for seller)
     const handlePaymentReceived = (data) => {
-      addLog(
-        `💰 Payment received: ${data.amount} EGP for operation ${data.operationId}`,
-        "success"
-      );
+      addLog(`💰 Payment received: ${data.amount} EGP`, "success");
       setNotifications((prev) => [
         ...prev,
         {
@@ -184,22 +168,53 @@ export const useSocketNotifications = () => {
         },
       ]);
 
-      // Browser notification
+      // Browser notification for seller
       if (Notification.permission === "granted") {
-        new Notification("Payment Received", {
-          body: data.message || `Payment of ${data.amount} EGP received`,
-          icon: "/payment-received-icon.png",
+        new Notification("Payment Received! 💰", {
+          body: data.message,
+          icon: "/notification-icon.png",
         });
       }
     };
 
-    // ✅ BONUS: Operation updated
-    const handleOperationUpdated = (operation) => {
-      addLog(
-        `🔄 Operation ${operation._id} updated: ${operation.status}`,
-        "info"
+    // ✅ NEW: Payment success notification (for buyer)
+    const handlePaymentSuccess = (data) => {
+      addLog(`✅ Payment completed: ${data.amount} EGP`, "success");
+      setNotifications((prev) => [
+        ...prev,
+        {
+          ...data,
+          type: "payment-success",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+
+      // Browser notification for buyer
+      if (Notification.permission === "granted") {
+        new Notification("Payment Successful! ✅", {
+          body: data.message,
+          icon: "/notification-icon.png",
+        });
+      }
+
+      // Remove from payment queue if exists
+      setPaymentQueue((prev) =>
+        prev.filter((p) => p.operationId !== data.operationId)
       );
-      // يمكنك تحديث الـ state هنا لو عايز تتبع الـ operations
+    };
+
+    // ✅ Operation updated handler
+    const handleOperationUpdated = (operation) => {
+      addLog(`🔄 Operation ${operation._id} updated`, "info");
+      setNotifications((prev) => [
+        ...prev,
+        {
+          type: "operation-update",
+          message: `Operation status: ${operation.status}`,
+          operationId: operation._id,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
     };
 
     // Subscribe to events
@@ -215,9 +230,9 @@ export const useSocketNotifications = () => {
     socketService.on("invitation-error", handleInvitationError);
     socketService.on("new-notification", handleNewNotification);
     socketService.on("payment-required", handlePaymentRequired);
-    socketService.on("payment-success", handlePaymentSuccess); // ✅ NEW
     socketService.on("payment-received", handlePaymentReceived); // ✅ NEW
-    socketService.on("operation-updated", handleOperationUpdated); // ✅ BONUS
+    socketService.on("payment-success", handlePaymentSuccess);   // ✅ NEW
+    socketService.on("operation-updated", handleOperationUpdated); // ✅ NEW
 
     // Cleanup on unmount
     return () => {
@@ -233,9 +248,9 @@ export const useSocketNotifications = () => {
       socketService.off("invitation-error", handleInvitationError);
       socketService.off("new-notification", handleNewNotification);
       socketService.off("payment-required", handlePaymentRequired);
-      socketService.off("payment-success", handlePaymentSuccess); // ✅ NEW
       socketService.off("payment-received", handlePaymentReceived); // ✅ NEW
-      socketService.off("operation-updated", handleOperationUpdated); // ✅ BONUS
+      socketService.off("payment-success", handlePaymentSuccess);   // ✅ NEW
+      socketService.off("operation-updated", handleOperationUpdated); // ✅ NEW
       socketService.disconnect();
     };
   }, [addLog]);

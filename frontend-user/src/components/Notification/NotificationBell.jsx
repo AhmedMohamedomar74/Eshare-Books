@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IconButton, Badge, useTheme, useMediaQuery } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import NotificationMenu from "./NotificationMenu";
@@ -12,6 +12,7 @@ const NotificationBell = () => {
     currentUser,
     acceptInvitation,
     refuseInvitation,
+    isConnected, // ✅ مهم
   } = useSocketNotifications();
 
   const { content } = useSelector((state) => state.lang);
@@ -22,11 +23,28 @@ const NotificationBell = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  // ✅ DEBUG: Log notifications whenever they change
+  useEffect(() => {
+    console.log("===========================================");
+    console.log("🔔 NotificationBell State Update:");
+    console.log("   - Socket Connected:", isConnected);
+    console.log("   - Current User:", currentUser);
+    console.log("   - Total Notifications:", notifications.length);
+    console.log("   - Pending Invitations:", pendingInvitations.length);
+    console.log("   - All Notifications:", notifications);
+    console.log("===========================================");
+  }, [notifications, pendingInvitations, isConnected, currentUser]);
+
   const handleClick = (event) => {
     event.stopPropagation();
     event.preventDefault();
     setAnchorEl(event.currentTarget);
+
+    // ✅ DEBUG: Log when menu opens
+    console.log("🔔 Notification menu opened");
+    console.log("   - Showing notifications:", notifications);
   };
+
   const handleClose = () => setAnchorEl(null);
 
   return (

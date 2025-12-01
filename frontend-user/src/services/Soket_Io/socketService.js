@@ -12,16 +12,29 @@ class SocketService {
 
   // Initialize socket connection
   connect() {
+    // Prevent multiple connections
+    if (this.socket && this.socket.connected) {
+      console.log("🔌 Socket already connected, reusing existing connection");
+      return this.socket;
+    }
+
     const SERVER_URL = BaseUrl;
     const AUTH_TOKEN = `${signatureLevelEnum.user} ${localStorage.getItem(
       "accessToken"
     )}`;
+
+    console.log("🔌 Initializing new socket connection...");
+    console.log("   - Server URL:", SERVER_URL);
+    console.log("   - Token exists:", !!AUTH_TOKEN);
 
     this.socket = io(SERVER_URL, {
       auth: {
         authorization: { token: AUTH_TOKEN },
       },
       transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
     });
 
     this.setupConnectionEvents();
@@ -33,20 +46,27 @@ class SocketService {
   // Setup connection events
   setupConnectionEvents() {
     this.socket.on("connect", () => {
+      console.log("✅ Socket connected successfully");
       this.isConnected = true;
       this.emitEvent("connection-change", { isConnected: true });
     });
 
     this.socket.on("disconnect", (reason) => {
+      console.log("🔴 Socket disconnected:", reason);
       this.isConnected = false;
       this.emitEvent("connection-change", { isConnected: false, reason });
     });
 
     this.socket.on("connect_error", (error) => {
+      console.error("❌ Socket connection error:", error.message);
       this.emitEvent("connection-error", { error });
     });
 
     this.socket.on("connected", (data) => {
+      console.log(
+        "👤 User authenticated:",
+        data.user?.firstName || data.user?._id
+      );
       this.emitEvent("user-connected", data);
     });
   }
@@ -63,9 +83,9 @@ class SocketService {
       "invitation-error",
       "new-notification",
       "payment-required",
-      "payment-success",      // ✅ NEW: للمشتري
-      "payment-received",     // ✅ NEW: للبائع
-      "operation-updated",    // ✅ BONUS: لو عايز تعرف لما الـ operation يتحدث
+      "payment-received", // ✅ NEW: للبائع لما يستلم فلوس
+      "payment-success", // ✅ NEW: للمشتري لما الدفع ينجح
+      "operation-updated", // ✅ EXISTING: لما الـ operation يتحدث
     ];
 
     notificationEvents.forEach((event) => {

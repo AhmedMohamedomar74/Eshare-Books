@@ -3,6 +3,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import PendingInvitationItem from "./PendingInvitationItem";
 import NotificationItem from "./NotificationItem";
 import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
 const NotificationMenu = ({
   anchorEl,
@@ -15,6 +16,19 @@ const NotificationMenu = ({
 }) => {
   const { content } = useSelector((state) => state.lang);
 
+  // ✅ DEBUG: Log whenever notifications change
+  useEffect(() => {
+    console.log("📋 ===== NotificationMenu Props Update =====");
+    console.log("📋 Total Notifications:", notifications.length);
+    console.log("📋 Total Pending Invitations:", pendingInvitations.length);
+    console.log("📋 All Notifications:", notifications);
+    console.log(
+      "📋 Notification Types:",
+      notifications.map((n) => n.type)
+    );
+    console.log("==========================================");
+  }, [notifications, pendingInvitations]);
+
   const formatTime = (timestamp) => {
     const now = new Date();
     const time = new Date(timestamp);
@@ -23,6 +37,27 @@ const NotificationMenu = ({
     if (diff < 3600) return `${Math.floor(diff / 60)}${content.minutesAgo}`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}${content.hoursAgo}`;
     return `${Math.floor(diff / 86400)}${content.daysAgo}`;
+  };
+
+  // ✅ DEBUG: Log when rendering notification items
+  const renderNotifications = () => {
+    const items = notifications.slice(0, 5).map((note, i) => {
+      console.log(`📋 Rendering notification ${i}:`, {
+        type: note.type,
+        message: note.message,
+        timestamp: note.timestamp,
+      });
+      return (
+        <NotificationItem
+          key={note.timestamp || note.id || i}
+          notification={note}
+          formatTime={formatTime}
+        />
+      );
+    });
+
+    console.log(`📋 Total notification items to render: ${items.length}`);
+    return items;
   };
 
   return (
@@ -106,15 +141,7 @@ const NotificationMenu = ({
             {content.recentActivity}
           </Typography>
         </Box>,
-        ...notifications
-          .slice(0, 5)
-          .map((note, i) => (
-            <NotificationItem
-              key={i}
-              notification={note}
-              formatTime={formatTime}
-            />
-          )),
+        ...renderNotifications(),
       ]}
     </Menu>
   );
