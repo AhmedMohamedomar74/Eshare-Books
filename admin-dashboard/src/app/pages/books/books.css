@@ -109,28 +109,6 @@
   font-size: 13px;
 }
 
-.category-edit-btn {
-  opacity: 1;
-  transition: opacity 0.2s ease;
-  font-size: 14px;
-}
-
-.category-edit-btn:hover:not(:disabled) {
-  transform: scale(1.1);
-}
-
-/* زر تعديل الفئة المعطل */
-.category-edit-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-.category-edit-btn:disabled:hover {
-  opacity: 0.5;
-  transform: none !important;
-}
-
 /* TABLE */
 .table-responsive {
   background: white;
