@@ -22,14 +22,12 @@ const NotificationItem = ({ notification, formatTime }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [loading, setLoading] = useState(false);
-
   const [paymentUrl, setPaymentUrl] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const { content } = useSelector((state) => state.lang);
 
   const handlePayNow = async () => {
-    console.log("Notification received:", notification);
     if (!notification.operationId || !notification.totalPrice) {
       alert(content.invalidPaymentNotification);
       return;
@@ -61,6 +59,8 @@ const NotificationItem = ({ notification, formatTime }) => {
       case "acceptance":
         return <CheckIcon />;
       case "payment":
+      case "payment-success":
+      case "payment-received":
         return <CreditCardIcon />;
       default:
         return <CloseIcon />;
@@ -73,6 +73,10 @@ const NotificationItem = ({ notification, formatTime }) => {
         return "success.main";
       case "payment":
         return "warning.main";
+      case "payment-success":
+        return "success.light";
+      case "payment-received":
+        return "info.main";
       default:
         return "error.main";
     }
@@ -120,7 +124,7 @@ const NotificationItem = ({ notification, formatTime }) => {
             {formatTime(notification.timestamp || notification.createdAt)}
           </Typography>
 
-          {/* payment */}
+          {/* زر الدفع فقط لنوع payment */}
           {notification.type === "payment" && (
             <Button
               variant="contained"
@@ -133,10 +137,30 @@ const NotificationItem = ({ notification, formatTime }) => {
               {loading ? content.processing : content.payNow}
             </Button>
           )}
+
+          {/* رسالة للمشتري بعد الدفع */}
+          {notification.type === "payment-success" && (
+            <Typography
+              variant="body2"
+              sx={{ mt: 1, fontWeight: "bold", color: "success.main" }}
+            >
+              {content.paymentCompleted || "Payment completed successfully!"}
+            </Typography>
+          )}
+
+          {/* رسالة للبائع عند استقبال الدفع */}
+          {notification.type === "payment-received" && (
+            <Typography
+              variant="body2"
+              sx={{ mt: 1, fontWeight: "bold", color: "info.main" }}
+            >
+              {content.paymentReceived || "Payment has been received!"}
+            </Typography>
+          )}
         </Box>
       </Stack>
 
-      {/* Modal */}
+      {/* Modal الدفع */}
       {showPaymentModal && (
         <Dialog
           open={showPaymentModal}

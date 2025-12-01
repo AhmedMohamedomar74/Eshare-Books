@@ -63,6 +63,9 @@ class SocketService {
       "invitation-error",
       "new-notification",
       "payment-required",
+      "payment-success",      // ✅ NEW: للمشتري
+      "payment-received",     // ✅ NEW: للبائع
+      "operation-updated",    // ✅ BONUS: لو عايز تعرف لما الـ operation يتحدث
     ];
 
     notificationEvents.forEach((event) => {

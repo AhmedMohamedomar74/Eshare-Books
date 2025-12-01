@@ -145,6 +145,63 @@ export const useSocketNotifications = () => {
       ]);
     };
 
+    // ✅ NEW: Payment success notification (for buyer)
+    const handlePaymentSuccess = (data) => {
+      addLog(
+        `✅ Payment successful for operation ${data.operationId}`,
+        "success"
+      );
+      setNotifications((prev) => [
+        ...prev,
+        {
+          ...data,
+          type: "payment-success",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+
+      // Browser notification
+      if (Notification.permission === "granted") {
+        new Notification("Payment Successful", {
+          body: data.message || "Your payment was completed successfully",
+          icon: "/payment-success-icon.png",
+        });
+      }
+    };
+
+    // ✅ NEW: Payment received notification (for seller)
+    const handlePaymentReceived = (data) => {
+      addLog(
+        `💰 Payment received: ${data.amount} EGP for operation ${data.operationId}`,
+        "success"
+      );
+      setNotifications((prev) => [
+        ...prev,
+        {
+          ...data,
+          type: "payment-received",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+
+      // Browser notification
+      if (Notification.permission === "granted") {
+        new Notification("Payment Received", {
+          body: data.message || `Payment of ${data.amount} EGP received`,
+          icon: "/payment-received-icon.png",
+        });
+      }
+    };
+
+    // ✅ BONUS: Operation updated
+    const handleOperationUpdated = (operation) => {
+      addLog(
+        `🔄 Operation ${operation._id} updated: ${operation.status}`,
+        "info"
+      );
+      // يمكنك تحديث الـ state هنا لو عايز تتبع الـ operations
+    };
+
     // Subscribe to events
     socketService.on("connection-change", handleConnectionChange);
     socketService.on("connection-error", handleConnectionError);
@@ -158,6 +215,9 @@ export const useSocketNotifications = () => {
     socketService.on("invitation-error", handleInvitationError);
     socketService.on("new-notification", handleNewNotification);
     socketService.on("payment-required", handlePaymentRequired);
+    socketService.on("payment-success", handlePaymentSuccess); // ✅ NEW
+    socketService.on("payment-received", handlePaymentReceived); // ✅ NEW
+    socketService.on("operation-updated", handleOperationUpdated); // ✅ BONUS
 
     // Cleanup on unmount
     return () => {
@@ -173,6 +233,9 @@ export const useSocketNotifications = () => {
       socketService.off("invitation-error", handleInvitationError);
       socketService.off("new-notification", handleNewNotification);
       socketService.off("payment-required", handlePaymentRequired);
+      socketService.off("payment-success", handlePaymentSuccess); // ✅ NEW
+      socketService.off("payment-received", handlePaymentReceived); // ✅ NEW
+      socketService.off("operation-updated", handleOperationUpdated); // ✅ BONUS
       socketService.disconnect();
     };
   }, [addLog]);
