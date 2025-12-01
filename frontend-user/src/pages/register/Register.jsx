@@ -70,7 +70,6 @@ const BookShareRegister = () => {
       showPopup('success', 'Registration completed! Please check your email to verify your account.');
       
       setTimeout(() => {
-        // window.location.href = '/login'; // Uncomment to redirect
         navigate('/login');
         setLoading(false);
       }, 2000);
@@ -82,8 +81,22 @@ const BookShareRegister = () => {
     }
   };
 
+  const handleGoHome = () => {
+    navigate('/');
+  };
+
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 lg:p-8 bg-[#F7F1E5]">
+      {/* Home Icon Button - Top Left Corner */}
+      <button
+        onClick={handleGoHome}
+        className="absolute top-6 left-6 z-10 flex items-center gap-2 rounded-lg bg-white/90 px-4 py-2 shadow-md transition-all hover:bg-white hover:shadow-lg"
+        aria-label="Go to home page"
+      >
+        <span className="text-xl">🏠</span>
+        <span className="font-medium text-gray-700">Home</span>
+      </button>
+
       {/* Popup Component */}
       {popup.show && (
         <Popup
