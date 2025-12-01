@@ -10,7 +10,7 @@ const ProfileHeader = ({ user }) => {
   const fileInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(user.profilePic);
   const navigate = useNavigate();
-  
+
   // Get translations from Redux
   const { content } = useSelector((state) => state.lang);
 
@@ -51,7 +51,7 @@ const ProfileHeader = ({ user }) => {
     }
   };
 
-  const handleRemoveImage = async() => {
+  const handleRemoveImage = async () => {
     // Set to default image
     setProfileImage(defaultImage);
     await removeImage(user.profilePic, user.id);
@@ -70,7 +70,8 @@ const ProfileHeader = ({ user }) => {
         className="absolute top-3 right-3 text-[#6f7b7b] hover:text-[#e91e63] transition-colors duration-200 cursor-pointer"
         title={content.myReports}
       >
-        <OutlinedFlagIcon sx={{ fontSize: 22 }} />
+        {/* <OutlinedFlagIcon sx={{ fontSize: 22 }} /> */}
+        My reports
       </div>
 
       <div className="flex w-full flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
@@ -93,7 +94,7 @@ const ProfileHeader = ({ user }) => {
               <div className="flex flex-col items-center gap-2">
                 <EditIcon className="text-white" sx={{ fontSize: 32 }} />
                 {profileImage && profileImage !== defaultImage && (
-                  <div 
+                  <div
                     className="text-white text-xs flex items-center gap-1 hover:text-red-300 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -127,7 +128,7 @@ const ProfileHeader = ({ user }) => {
                 {content.memberSince} {new Date(user.createdAt).toLocaleDateString()}
               </span>
             </div>
-            
+
             {/* Remove image button (visible outside hover) */}
             {profileImage && profileImage !== defaultImage && (
               <button
