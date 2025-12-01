@@ -1,20 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import ProfileHeader from './../../components/profile/ProfileHeader.jsx';
-import TabNavigation from './../../components/profile/TabNavigation.jsx';
-import BooksGrid from './../../components/profile/BooksGrid.jsx';
-import { userService } from '../../services/user/userService.js';
-import { bookService } from '../../services/books/bookServices.js';
-import { operationService } from '../../services/operations/operationService.js';
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import ProfileHeader from "./../../components/profile/ProfileHeader.jsx";
+import TabNavigation from "./../../components/profile/TabNavigation.jsx";
+import BooksGrid from "./../../components/profile/BooksGrid.jsx";
+
+import { userService } from "../../services/user/userService.js";
+import { bookService } from "../../services/books/bookServices.js";
+import { operationService } from "../../services/operations/operationService.js";
+import TransactionFilter from "../../components/profile/Filter.jsx";
 
 const BookShareDashboard = () => {
-  const [activeTab, setActiveTab] = useState('my-books');
+  const [activeTab, setActiveTab] = useState("my-books");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [books, setBooks] = useState([]);
   const [booksWithPendingOps, setBooksWithPendingOps] = useState(new Set());
-  
+  const [transactionFilter, setTransactionFilter] = useState("");
+  const [operations, setOperations] = useState([]); // عمليات المستخدم (للاستخدام في إشعارات أو pending)
+
   // Get translations from Redux
   const { content } = useSelector((state) => state.lang);
 
@@ -29,35 +33,42 @@ const BookShareDashboard = () => {
         setUser(userResponse.data);
 
         // Fetch user books
-        const booksResponse = await bookService.getUserBooks(userResponse.data.id);
-        const visibleBooks = booksResponse.books.filter((book) => !book.isDeleted);
+        const booksResponse = await bookService.getUserBooks(
+          userResponse.data.id
+        );
+        const visibleBooks = booksResponse.books.filter(
+          (book) => !book.isDeleted
+        );
         setBooks(visibleBooks);
 
         // Fetch user operations
         try {
           const operationsResponse = await operationService.getUserOperations();
-          const operations = operationsResponse.data || operationsResponse;
+          const ops = operationsResponse.data || operationsResponse;
+          setOperations(ops);
 
           // Find books with pending operations
           const pendingBookIds = new Set();
-          operations.forEach((op) => {
-            if (op.status === 'pending' && op.book_dest_id) {
+          ops.forEach((op) => {
+            if (op.status === "pending" && op.book_dest_id) {
               const bookId = op.book_dest_id._id || op.book_dest_id;
               pendingBookIds.add(bookId.toString());
             }
           });
 
           setBooksWithPendingOps(pendingBookIds);
-          console.log('📦 Books with pending operations:', Array.from(pendingBookIds));
+          console.log(
+            "📦 Books with pending operations:",
+            Array.from(pendingBookIds)
+          );
         } catch (opError) {
-          console.error('Error fetching operations:', opError);
-          // Don't fail the whole page if operations fail
+          console.error("Error fetching operations:", opError);
         }
 
         setError(null);
       } catch (err) {
         setError(err.message);
-        console.error('Error fetching user profile:', err);
+        console.error("Error fetching user profile:", err);
       } finally {
         setLoading(false);
       }
@@ -88,19 +99,33 @@ const BookShareDashboard = () => {
     }
   };
 
+  // ✅ فلترة الكتب حسب TransactionType الموجود في الـ DB
+  const filteredBooks = books.filter((book) => {
+    if (!transactionFilter) return true;
+    return book.TransactionType === transactionFilter;
+  });
+
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'my-books':
+      case "my-books":
         return (
-          <BooksGrid
-            books={books}
-            isOwner={true}
-            userId={user?.id}
-            booksWithPendingOps={booksWithPendingOps}
-            onDelete={(deletedBookId) =>
-              setBooks((prevBooks) => prevBooks.filter((b) => b._id !== deletedBookId))
-            }
-          />
+          <>
+            <TransactionFilter
+              filterType={transactionFilter}
+              onFilterChange={setTransactionFilter}
+            />
+            <BooksGrid
+              books={filteredBooks}
+              isOwner={true}
+              userId={user?.id}
+              booksWithPendingOps={booksWithPendingOps}
+              onDelete={(deletedBookId) =>
+                setBooks((prevBooks) =>
+                  prevBooks.filter((b) => b._id !== deletedBookId)
+                )
+              }
+            />
+          </>
         );
       default:
         return <BooksGrid books={books} />;
@@ -128,7 +153,9 @@ const BookShareDashboard = () => {
         <main className="px-4 sm:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
           <div className="flex flex-col max-w-screen-xl flex-1 w-full items-center justify-center">
             <div className="text-red-500 text-center">
-              <p className="text-lg font-semibold">{content.errorLoadingProfile}</p>
+              <p className="text-lg font-semibold">
+                {content.errorLoadingProfile}
+              </p>
               <p className="text-sm mt-2">{error}</p>
               <button
                 onClick={() => window.location.reload()}

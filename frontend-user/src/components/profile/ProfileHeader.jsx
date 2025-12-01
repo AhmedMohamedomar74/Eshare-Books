@@ -1,10 +1,10 @@
-import React, { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { removeImage, uploadImage } from '../../services/auth/auth.service.js';
+import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import OutlinedFlagIcon from "@mui/icons-material/OutlinedFlag";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { removeImage, uploadImage } from "../../services/auth/auth.service.js";
 
 const ProfileHeader = ({ user }) => {
   const fileInputRef = useRef(null);
@@ -14,11 +14,10 @@ const ProfileHeader = ({ user }) => {
   // Get translations from Redux
   const { content } = useSelector((state) => state.lang);
 
-  const defaultImage = 'https://cdn-icons-png.flaticon.com/512/3177/3177440.png';
+  const defaultImage =
+    "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
 
   const handleImageClick = () => {
-    console.log('Profile image clicked! Opening file browser...');
-    console.log({ user });
     fileInputRef.current?.click();
   };
 
@@ -26,57 +25,37 @@ const ProfileHeader = ({ user }) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    console.log('File selected:', file.name);
-
-    // Create temporary URL for immediate preview
     const tempUrl = URL.createObjectURL(file);
     setProfileImage(tempUrl);
 
     try {
-      console.log('Starting image upload...');
       const response = await uploadImage(file, user.id);
-      console.log(content.profilePictureUploadSuccess, response);
-
-      // If the API returns the new image URL, use it instead of the temporary one
       if (response.data && response.data.imageUrl) {
         setProfileImage(response.data.imageUrl);
       }
     } catch (error) {
-      console.error(content.profilePictureUploadError, error);
-      // Revert to original image if upload fails
       setProfileImage(user.profilePic || defaultImage);
     } finally {
-      // Reset the file input
-      event.target.value = '';
+      event.target.value = "";
     }
   };
 
   const handleRemoveImage = async () => {
-    // Set to default image
     setProfileImage(defaultImage);
     await removeImage(user.profilePic, user.id);
-    console.log(content.profilePictureRemoved);
   };
 
   const handleFlagClick = () => {
-    navigate('/myreports');
+    navigate("/myreports");
   };
 
   return (
-    <div className="flex p-4 bg-white rounded-xl shadow-sm border border-[#dfe2e2] mb-6 relative">
-      {/* Flag Icon */}
-      <div
-        onClick={handleFlagClick}
-        className="absolute top-3 right-3 text-[#6f7b7b] hover:text-[#e91e63] transition-colors duration-200 cursor-pointer"
-        title={content.myReports}
-      >
-        {/* <OutlinedFlagIcon sx={{ fontSize: 22 }} /> */}
-        My reports
-      </div>
-
-      <div className="flex w-full flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+    <div className="flex p-4 bg-white rounded-xl shadow-sm border border-[#dfe2e2] mb-6">
+      {/* ✅ نخلي الهيدر كله flex بين الصورة و My reports */}
+      <div className="flex w-full justify-between items-start">
+        {/* Profile Image + معلومات */}
         <div className="flex gap-4">
-          {/* Profile Image with click handler and edit icon on hover */}
+          {/* Profile Image */}
           <div
             className="relative rounded-full min-h-24 w-24 sm:min-h-32 sm:w-32 bg-cover bg-center cursor-pointer group"
             onClick={handleImageClick}
@@ -89,7 +68,7 @@ const ProfileHeader = ({ user }) => {
               }}
             />
 
-            {/* Hover overlay with edit and delete icons */}
+            {/* Hover overlay */}
             <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <div className="flex flex-col items-center gap-2">
                 <EditIcon className="text-white" sx={{ fontSize: 32 }} />
@@ -119,17 +98,20 @@ const ProfileHeader = ({ user }) => {
             className="hidden"
           />
 
+          {/* User Info */}
           <div className="flex flex-col justify-center">
             <p className="text-xl sm:text-2xl font-bold">{user.fullName}</p>
             <p className="text-[#6f7b7b] text-sm sm:text-base">{user.email}</p>
-            <p className="text-[#6f7b7b] text-sm sm:text-base">{user.address}</p>
+            <p className="text-[#6f7b7b] text-sm sm:text-base">
+              {user.address}
+            </p>
             <div className="flex gap-4 mt-2">
               <span className="text-[#6f7b7b] text-sm">
-                {content.memberSince} {new Date(user.createdAt).toLocaleDateString()}
+                {content.memberSince}{" "}
+                {new Date(user.createdAt).toLocaleDateString()}
               </span>
             </div>
 
-            {/* Remove image button (visible outside hover) */}
             {profileImage && profileImage !== defaultImage && (
               <button
                 onClick={handleRemoveImage}
@@ -140,6 +122,16 @@ const ProfileHeader = ({ user }) => {
               </button>
             )}
           </div>
+        </div>
+
+        {/* ✅ My Reports على اليمين */}
+        <div
+          onClick={handleFlagClick}
+          className="text-[#6f7b7b] hover:text-[#e91e63] transition-colors duration-200 cursor-pointer flex items-center gap-1"
+          title={content.myReports}
+        >
+          <OutlinedFlagIcon sx={{ fontSize: 22 }} />
+          {content.myReports}
         </div>
       </div>
     </div>

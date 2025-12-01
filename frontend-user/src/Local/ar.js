@@ -230,15 +230,16 @@ const ar = {
   myReports: "تقاريري",
   editProfilePicture: "تعديل صورة الملف الشخصي",
   remove: "إزالة",
-  profilePictureRemoved: "تم إزالة صورة الملف الشخصي، استخدام الصورة الافتراضية",
+  profilePictureRemoved:
+    "تم إزالة صورة الملف الشخصي، استخدام الصورة الافتراضية",
   profilePictureUploadSuccess: "تم رفع الصورة بنجاح",
   profilePictureUploadError: "خطأ في رفع الصورة",
-  
+
   // Public Profile Page
   usersBooks: "كتب المستخدم",
   reportUser: "الإبلاغ عن المستخدم",
   friends: "الأصدقاء",
-  
+
   // Book Card
   confirmDelete: "تأكيد الحذف",
   deleteBookConfirmation: "هل أنت متأكد أنك تريد حذف هذا الكتاب؟",
@@ -246,16 +247,16 @@ const ar = {
   deleteBook: "حذف الكتاب",
   pendingOrder: "طلب قيد الانتظار",
   bookCoverOf: "غلاف كتاب",
-  
+
   // Books Grid
   noBooksFound: "لم يتم العثور على كتب",
-  
+
   // Profile Header
   profileImage: "صورة الملف الشخصي",
-  
+
   // Tab Navigation
   myBooksTab: "كتبي",
-  
+
   // Add Book Form
   addNewBook: "إضافة كتاب جديد",
   author: "المؤلف",
@@ -288,7 +289,8 @@ const ar = {
   category: "الفئة",
   currency: "جنيه",
   noReportsFound: "لا توجد تقارير",
-  noReportsDescription: "لم تقم بإرسال أي تقارير بعد. استكشف الكتب وقم بالإبلاغ عن أي مشاكل تجدها.",
+  noReportsDescription:
+    "لم تقم بإرسال أي تقارير بعد. استكشف الكتب وقم بالإبلاغ عن أي مشاكل تجدها.",
   browseBooks: "تصفح الكتب",
   targetType: "نوع الهدف",
   all: "الكل",
@@ -307,7 +309,8 @@ const ar = {
   userNotFound: "المستخدم غير موجود",
   bookNotFound: "الكتاب غير موجود",
   confirmCancelReport: "تأكيد إلغاء التقرير",
-  cancelReportConfirmation: "هل أنت متأكد أنك تريد إلغاء هذا التقرير؟ لا يمكن التراجع عن هذا الإجراء.",
+  cancelReportConfirmation:
+    "هل أنت متأكد أنك تريد إلغاء هذا التقرير؟ لا يمكن التراجع عن هذا الإجراء.",
   no: "لا",
   yesCancel: "نعم، إلغاء",
   cancel: "إلغاء",
@@ -324,7 +327,8 @@ const ar = {
   targetNotFoundError: "الكتاب أو المستخدم غير موجود.",
   serverError: "خطأ في الخادم. يرجى المحاولة مرة أخرى لاحقاً.",
   reportTitle: "الإبلاغ عن محتوى غير لائق",
-  reportDescription: "يرجى اختيار سبب وتقديم التفاصيل أدناه. ملاحظاتك تساعد في الحفاظ على مجتمعنا آمناً.",
+  reportDescription:
+    "يرجى اختيار سبب وتقديم التفاصيل أدناه. ملاحظاتك تساعد في الحفاظ على مجتمعنا آمناً.",
   reasonForReporting: "سبب الإبلاغ",
   selectReason: "اختر سبباً",
   inappropriateContent: "محتوى غير لائق",
@@ -351,11 +355,13 @@ const ar = {
   maxCharactersError: "يجب ألا يتجاوز اسم الفئة 50 حرف",
   viewDetails: "عرض التفاصيل",
   confirmBookRemoval: "تأكيد إزالة الكتاب",
-  removeBookConfirmation: "هل أنت متأكد أنك تريد إزالة هذا الكتاب من قائمة المفضلة؟ لا يمكن التراجع عن هذا الإجراء.",
+  removeBookConfirmation:
+    "هل أنت متأكد أنك تريد إزالة هذا الكتاب من قائمة المفضلة؟ لا يمكن التراجع عن هذا الإجراء.",
   yesRemove: "نعم، إزالة",
   clearWishlist: "مسح قائمة المفضلة",
   confirmClearWishlist: "تأكيد مسح قائمة المفضلة",
-  clearWishlistConfirmation: "هل أنت متأكد أنك تريد إزالة جميع العناصر من قائمة المفضلة؟ لا يمكن التراجع عن هذا الإجراء.",
+  clearWishlistConfirmation:
+    "هل أنت متأكد أنك تريد إزالة جميع العناصر من قائمة المفضلة؟ لا يمكن التراجع عن هذا الإجراء.",
   yesClear: "نعم، مسح",
   wishlistCleared: "تم مسح قائمة المفضلة بنجاح!",
   emptyWishlistTitle: "قائمة المفضلة فارغة",
@@ -518,6 +524,12 @@ const ar = {
   pricePerDayMustBePositive: "يجب أن يكون سعر اليوم أكبر من صفر",
   priceMaxSale: "السعر كبير جداً",
   priceMaxBorrow: "سعر اليوم كبير جداً",
+
+  all: "الكل",
+  sale: "بيع",
+  borrow: "استعارة",
+  donate: "تبرع",
+  label: "نوع العملية:",
 };
 
 export default ar;

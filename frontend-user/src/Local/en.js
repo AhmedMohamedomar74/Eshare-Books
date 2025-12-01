@@ -195,14 +195,14 @@ const en = {
   noNotifications: "No notifications",
   accept: "Accept",
   refuse: "Refuse",
-invalidPaymentNotification: "Invalid payment notification.",
+  invalidPaymentNotification: "Invalid payment notification.",
   paymentFailed: "Payment failed",
   paymentFailedTryAgain: "Payment failed. Please try again.",
   processing: "Processing...",
   payNow: "Pay Now",
   completePayment: "Complete Your Payment",
   close: "Close",
-notifications: "Notifications",
+  notifications: "Notifications",
   noNotificationsYet: "No notifications yet",
   actionRequired: "ACTION REQUIRED",
   recentActivity: "Recent Activity",
@@ -210,14 +210,14 @@ notifications: "Notifications",
   minutesAgo: "m ago",
   hoursAgo: "h ago",
   daysAgo: "d ago",
-request: "Request",
+  request: "Request",
   accept: "Accept",
   refuse: "Refuse",
   writeReasonForRefusal: "Write the reason for refusal",
   reason: "Reason",
   cancel: "Cancel",
   sendRefusal: "Send Refusal",
-switchToArabic: "Switch to Arabic",
+  switchToArabic: "Switch to Arabic",
   switchToEnglish: "Switch to English",
 
   // Profile Page
@@ -234,12 +234,16 @@ switchToArabic: "Switch to Arabic",
   profilePictureRemoved: "Profile image removed, using default image",
   profilePictureUploadSuccess: "Image upload successful",
   profilePictureUploadError: "Error uploading image",
-  
+  all: "All",
+  sale: "Sale",
+  borrow: "Borrow",
+  donate: "Donate",
+  label: "Transaction Type:",
   // Public Profile Page
   usersBooks: "User's Books",
   reportUser: "Report User",
   friends: "Friends",
-  
+
   // Book Card
   confirmDelete: "Confirm Delete",
   deleteBookConfirmation: "Are you sure you want to delete this book?",
@@ -247,16 +251,16 @@ switchToArabic: "Switch to Arabic",
   deleteBook: "Delete Book",
   pendingOrder: "Pending Order",
   bookCoverOf: "Book cover of",
-  
+
   // Books Grid
   noBooksFound: "No books found",
-  
+
   // Profile Header
   profileImage: "Profile Image",
-  
+
   // Tab Navigation
   myBooksTab: "My Books",
-  
+
   // Add Book Form
   addNewBook: "Add New Book",
   author: "Author",
@@ -289,7 +293,8 @@ switchToArabic: "Switch to Arabic",
   category: "Category",
   currency: "EGP",
   noReportsFound: "No Reports Found",
-  noReportsDescription: "You haven't submitted any reports yet. Explore books and report any issues you find.",
+  noReportsDescription:
+    "You haven't submitted any reports yet. Explore books and report any issues you find.",
   browseBooks: "Browse Books",
   targetType: "Target Type",
   all: "All",
@@ -307,7 +312,8 @@ switchToArabic: "Switch to Arabic",
   action: "Action",
   userNotFound: "User Not Found",
   confirmCancelReport: "Confirm Cancel Report",
-  cancelReportConfirmation: "Are you sure you want to cancel this report? This action cannot be undone.",
+  cancelReportConfirmation:
+    "Are you sure you want to cancel this report? This action cannot be undone.",
   no: "No",
   yesCancel: "Yes, Cancel",
   cancel: "Cancel",
@@ -324,7 +330,8 @@ switchToArabic: "Switch to Arabic",
   targetNotFoundError: "Book or user not found.",
   serverError: "Server error. Please try again later.",
   reportTitle: "Report Inappropriate Content",
-  reportDescription: "Please select a reason and provide details below. Your feedback helps keep our community safe.",
+  reportDescription:
+    "Please select a reason and provide details below. Your feedback helps keep our community safe.",
   reasonForReporting: "Reason for Reporting",
   selectReason: "Select a reason",
   inappropriateContent: "Inappropriate Content",
@@ -336,7 +343,8 @@ switchToArabic: "Switch to Arabic",
   invalidReportTarget: "Invalid report target.",
   suggest: "Suggest",
   suggestCategoryTitle: "Suggest a Category",
-  suggestCategoryDescription: "Help us improve by suggesting a new book category",
+  suggestCategoryDescription:
+    "Help us improve by suggesting a new book category",
   categoryName: "Category Name",
   categoryPlaceholder: "e.g., Science Fiction, History...",
   characters: "characters",
@@ -351,11 +359,13 @@ switchToArabic: "Switch to Arabic",
   maxCharactersError: "Category name must not exceed 50 characters",
   viewDetails: "View Details",
   confirmBookRemoval: "Confirm Book Removal",
-  removeBookConfirmation: "Are you sure you want to remove this book from your wishlist? This action cannot be undone.",
+  removeBookConfirmation:
+    "Are you sure you want to remove this book from your wishlist? This action cannot be undone.",
   yesRemove: "Yes, Remove",
   clearWishlist: "Clear Wishlist",
   confirmClearWishlist: "Confirm Clear Wishlist",
-  clearWishlistConfirmation: "Are you sure you want to remove all items from your wishlist? This action cannot be undone.",
+  clearWishlistConfirmation:
+    "Are you sure you want to remove all items from your wishlist? This action cannot be undone.",
   yesClear: "Yes, Clear",
   wishlistCleared: "Wishlist cleared successfully!",
   emptyWishlistTitle: "Your wishlist is empty",
@@ -452,7 +462,7 @@ switchToArabic: "Switch to Arabic",
   switchToArabic: "Switch to Arabic",
   switchToEnglish: "Switch to English",
   //Home page////////////////////////////////////////
-    filters: "Filters",
+  filters: "Filters",
   clearFilters: "Clear Filters",
   category: "Category",
   allCategories: "All Categories",
@@ -476,8 +486,7 @@ switchToArabic: "Switch to Arabic",
   noBooksTitle: "No books found 📚",
   noBooksWithFilters:
     "Try changing your search or filters to see more results.",
-  noBooksNoFilters:
-    "There are no books available right now. Check back later!",
+  noBooksNoFilters: "There are no books available right now. Check back later!",
   clearSearchFilters: "Clear Search & Filters",
 
   untitled: "Untitled",
