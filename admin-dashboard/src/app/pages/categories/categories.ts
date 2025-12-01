@@ -8,6 +8,8 @@ import { SuggestCategoryService } from '../../shared/services/suggest-category';
 interface Category {
   _id?: string;
   name: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -79,6 +81,14 @@ export class Categories implements OnInit {
   categoryToDelete: Category | null = null;
   suggestedCategoryToDelete: SuggestedCategory | null = null;
 
+  // Restore Modal
+  showRestoreModal: boolean = false;
+  categoryToRestore: Category | null = null;
+
+  // Filters
+  selectedStatus = '';
+  statusDropdownOpen = false;
+
   constructor(
     private categoriesService: CategoriesService,
     private suggestCategoryService: SuggestCategoryService,
@@ -94,6 +104,8 @@ export class Categories implements OnInit {
   switchTab(tab: 'categories' | 'suggested'): void {
     this.activeTab = tab;
     this.error = '';
+    this.selectedStatus = '';
+    this.statusDropdownOpen = false;
   }
 
   // ---------- Load Data ----------
@@ -101,7 +113,7 @@ export class Categories implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.categoriesService.getAllCategories().subscribe({
+    this.categoriesService.getAllCategoriesForAdmin().subscribe({
       next: (res) => {
         const payload = res?.data ?? res;
         this.categories = Array.isArray(payload) ? payload : [];
@@ -136,12 +148,57 @@ export class Categories implements OnInit {
     });
   }
 
+  // ---------- Filters ----------
+  toggleStatusDropdown(): void {
+    this.statusDropdownOpen = !this.statusDropdownOpen;
+  }
+
+  closeStatusDropdown(): void {
+    this.statusDropdownOpen = false;
+  }
+
+  onStatusFilter(status: string): void {
+    this.selectedStatus = status;
+    this.currentPageCategories = 1;
+    this.closeStatusDropdown();
+    this.applyFilterAndPagination();
+  }
+
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.selectedStatus = '';
+    this.currentPageCategories = 1;
+    this.closeStatusDropdown();
+    this.applyFilterAndPagination();
+  }
+
+  getSelectedStatusName(): string {
+    const map: any = {
+      '': 'All Status',
+      active: 'Active',
+      deleted: 'Deleted',
+    };
+    return map[this.selectedStatus] || 'Status';
+  }
+
   // ---------- Pagination & Filtering ----------
   applyFilterAndPagination(): void {
+    let filtered = [...this.categories];
+
+    // Apply search filter
     const query = this.searchQuery.trim().toLowerCase();
-    const filtered = query
-      ? this.categories.filter((c) => (c.name ?? '').toLowerCase().includes(query))
-      : [...this.categories];
+    if (query) {
+      filtered = filtered.filter((c) => (c.name ?? '').toLowerCase().includes(query));
+    }
+
+    // Apply status filter
+    if (this.selectedStatus) {
+      if (this.selectedStatus === 'active') {
+        filtered = filtered.filter((c) => !c.isDeleted);
+      } else if (this.selectedStatus === 'deleted') {
+        filtered = filtered.filter((c) => c.isDeleted);
+      }
+    }
 
     this.totalResultsCategories = filtered.length;
     const totalPages = Math.max(
@@ -217,11 +274,11 @@ export class Categories implements OnInit {
   }
 
   // ---------- Toast ----------
-  private showToast(message: string, type: 'success' | 'error' = 'success'): void {
+  showToast(message: string, type: 'success' | 'error' = 'success'): void {
     this.toastMessage = message;
     this.toastType = type;
     this.showToastMessage = true;
-    setTimeout(() => (this.showToastMessage = false), 3000);
+    setTimeout(() => (this.showToastMessage = false), 4000);
   }
 
   // ---------- Retry ----------
@@ -255,12 +312,6 @@ export class Categories implements OnInit {
       return;
     }
 
-    // Check if category already exists (case insensitive)
-    if (this.checkCategoryExists(name)) {
-      this.addCategoryError = 'Category already exists!';
-      return;
-    }
-
     this.modalLoading = true;
 
     this.categoriesService.createCategory({ name }).subscribe({
@@ -276,8 +327,10 @@ export class Categories implements OnInit {
       },
       error: (err) => {
         this.modalLoading = false;
-        // If backend returns conflict error, show appropriate message
-        if (err.status === 409 || err.error?.message?.includes('exists')) {
+        // Handle specific error messages from backend
+        if (err.error?.message?.includes('deleted')) {
+          this.addCategoryError = 'Category already exists but is deleted. You can restore it.';
+        } else if (err.status === 400 || err.error?.message?.includes('exists')) {
           this.addCategoryError = 'Category already exists!';
         } else {
           this.showToast('Failed to add category', 'error');
@@ -290,6 +343,10 @@ export class Categories implements OnInit {
   openEditModal(category: Category): void {
     if (!this.authService.isAdmin()) {
       this.showToast('Unauthorized — Admin role required', 'error');
+      return;
+    }
+    if (category.isDeleted) {
+      this.showToast('Cannot edit a deleted category', 'error');
       return;
     }
     this.categoryToEdit = category;
@@ -338,6 +395,7 @@ export class Categories implements OnInit {
         // If backend returns conflict error, show appropriate message
         if (err.status === 409 || err.error?.message?.includes('exists')) {
           this.editCategoryError = 'Category with this name already exists!';
+          this.showToast('Category with this name already exists!', 'error');
         } else {
           this.showToast('Failed to update category', 'error');
         }
@@ -349,6 +407,10 @@ export class Categories implements OnInit {
   openDeleteCategoryModal(category: Category): void {
     if (!this.authService.isAdmin()) {
       this.showToast('Unauthorized — Admin role required', 'error');
+      return;
+    }
+    if (category.isDeleted) {
+      this.showToast('Category is already deleted', 'error');
       return;
     }
     this.categoryToDelete = category;
@@ -381,15 +443,25 @@ export class Categories implements OnInit {
 
     this.categoriesService.deleteCategory(this.categoryToDelete._id!).subscribe({
       next: () => {
-        this.categories = this.categories.filter((c) => c._id !== this.categoryToDelete!._id);
+        // Update the category locally to mark as deleted
+        const categoryIndex = this.categories.findIndex(
+          (c) => c._id === this.categoryToDelete!._id
+        );
+        if (categoryIndex !== -1) {
+          this.categories[categoryIndex].isDeleted = true;
+        }
         this.applyFilterAndPagination();
         this.showDeleteModal = false;
         this.modalLoading = false;
         this.showToast('Category deleted successfully!', 'success');
       },
-      error: () => {
+      error: (err) => {
         this.modalLoading = false;
-        this.showToast('Failed to delete category', 'error');
+        if (err.error?.message?.includes('active books')) {
+          this.showToast('Cannot delete category that contains active books', 'error');
+        } else {
+          this.showToast('Failed to delete category', 'error');
+        }
       },
     });
   }
@@ -424,6 +496,52 @@ export class Categories implements OnInit {
           this.showToast(err.error?.message || 'Failed to delete suggested category', 'error');
         },
       });
+  }
+
+  // ---------- Restore Category ----------
+  openRestoreModal(category: Category): void {
+    if (!this.authService.isAdmin()) {
+      this.showToast('Unauthorized — Admin role required', 'error');
+      return;
+    }
+    if (!category.isDeleted) {
+      this.showToast('Category is not deleted', 'error');
+      return;
+    }
+    this.categoryToRestore = category;
+    this.showRestoreModal = true;
+  }
+
+  closeRestoreModal(): void {
+    this.showRestoreModal = false;
+    this.categoryToRestore = null;
+  }
+
+  confirmRestoreCategory(): void {
+    if (!this.categoryToRestore) return;
+
+    this.modalLoading = true;
+
+    this.categoriesService.restoreCategory(this.categoryToRestore._id!).subscribe({
+      next: () => {
+        // Update the category locally to mark as restored
+        const categoryIndex = this.categories.findIndex(
+          (c) => c._id === this.categoryToRestore!._id
+        );
+        if (categoryIndex !== -1) {
+          this.categories[categoryIndex].isDeleted = false;
+          this.categories[categoryIndex].deletedAt = undefined;
+        }
+        this.applyFilterAndPagination();
+        this.closeRestoreModal();
+        this.modalLoading = false;
+        this.showToast('Category restored successfully!', 'success');
+      },
+      error: (err) => {
+        this.modalLoading = false;
+        this.showToast(err.error?.message || 'Failed to restore category', 'error');
+      },
+    });
   }
 
   // ---------- Pagination ----------
@@ -470,5 +588,17 @@ export class Categories implements OnInit {
 
   isLastPage(): boolean {
     return this.getCurrentPage() === this.getTotalPages();
+  }
+
+  // Helper to get status badge class
+  getStatusBadgeClass(category: Category): string {
+    if (category.isDeleted) {
+      return 'bg-secondary-light text-secondary';
+    }
+    return 'bg-success-light text-success';
+  }
+
+  getStatusText(category: Category): string {
+    return category.isDeleted ? 'Deleted' : 'Active';
   }
 }

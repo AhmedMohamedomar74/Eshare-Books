@@ -46,12 +46,12 @@ export class Books implements OnInit, OnDestroy {
   // Modals
   showDeleteModal = false;
   showRestoreModal = false;
+  showRestoreWithCategoryModal = false;
   showModerationModal = false;
-  showEditCategoryModal = false;
   bookToDelete: Book | null = null;
   bookToRestore: Book | null = null;
+  bookToRestoreWithCategory: Book | null = null;
   bookToModerate: Book | null = null;
-  bookToEditCategory: Book | null = null;
   selectedNewCategory = '';
   moderationAction: 'approve' | 'unapprove' = 'approve';
   modalLoading = false;
@@ -79,10 +79,6 @@ export class Books implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.searchSubject.complete();
-  }
-
-  canEditBook(book: Book): boolean {
-    return !book.isDeleted && !book.isSold && !book.isDonated;
   }
 
   loadCategories(): void {
@@ -328,6 +324,12 @@ export class Books implements OnInit, OnDestroy {
     return 'bg-light text-dark';
   }
 
+  // Check if book's original category still exists
+  isOriginalCategoryMissing(book: Book): boolean {
+    if (!book.categoryId?._id) return true;
+    return !this.categories.some((cat) => cat._id === book.categoryId._id);
+  }
+
   // Actions
   openDeleteModal(book: Book): void {
     this.bookToDelete = book;
@@ -362,13 +364,26 @@ export class Books implements OnInit, OnDestroy {
   }
 
   openRestoreModal(book: Book): void {
-    this.bookToRestore = book;
-    this.showRestoreModal = true;
+    // Check if the original category is missing
+    if (this.isOriginalCategoryMissing(book)) {
+      this.bookToRestoreWithCategory = book;
+      this.selectedNewCategory = '';
+      this.showRestoreWithCategoryModal = true;
+    } else {
+      this.bookToRestore = book;
+      this.showRestoreModal = true;
+    }
   }
 
   closeRestoreModal(): void {
     this.showRestoreModal = false;
     this.bookToRestore = null;
+  }
+
+  closeRestoreWithCategoryModal(): void {
+    this.showRestoreWithCategoryModal = false;
+    this.bookToRestoreWithCategory = null;
+    this.selectedNewCategory = '';
   }
 
   confirmRestoreBook(): void {
@@ -389,6 +404,46 @@ export class Books implements OnInit, OnDestroy {
         },
       })
       .add(() => (this.modalLoading = false));
+  }
+
+  confirmRestoreWithCategory(): void {
+    if (!this.bookToRestoreWithCategory || !this.selectedNewCategory) {
+      this.showToast('Please select a category', 'error');
+      return;
+    }
+
+    this.modalLoading = true;
+    const token = this.authService.getAccessToken()!;
+
+    // First update the category, then restore
+    this.booksService
+      .adminUpdateBookCategory(this.bookToRestoreWithCategory._id, this.selectedNewCategory, token)
+      .subscribe({
+        next: () => {
+          // Now restore the book
+          this.booksService
+            .adminRestoreBook(this.bookToRestoreWithCategory!._id, token)
+            .subscribe({
+              next: () => {
+                this.showToast('Book restored with new category successfully', 'success');
+                this.loadBooks();
+                this.closeRestoreWithCategoryModal();
+              },
+              error: (err) => {
+                this.showToast(err.error?.message || 'Cannot restore book', 'error');
+              },
+            })
+            .add(() => (this.modalLoading = false));
+        },
+        error: (err) => {
+          this.showToast(err.error?.message || 'Failed to update category', 'error');
+          this.modalLoading = false;
+        },
+      });
+  }
+
+  onCategorySelect(categoryId: string): void {
+    this.selectedNewCategory = categoryId;
   }
 
   openModerationModal(book: Book): void {
@@ -418,50 +473,6 @@ export class Books implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.showToast(err.error?.message || 'Failed to update moderation', 'error');
-        },
-      })
-      .add(() => (this.modalLoading = false));
-  }
-
-  // Category Edit Modal
-  openEditCategoryModal(book: Book): void {
-    if (!this.canEditBook(book)) {
-      return;
-    }
-    this.bookToEditCategory = book;
-    this.selectedNewCategory = book.categoryId?._id || '';
-    this.showEditCategoryModal = true;
-  }
-
-  closeEditCategoryModal(): void {
-    this.showEditCategoryModal = false;
-    this.bookToEditCategory = null;
-    this.selectedNewCategory = '';
-  }
-
-  onCategorySelect(categoryId: string): void {
-    this.selectedNewCategory = categoryId;
-  }
-
-  confirmCategoryUpdate(): void {
-    if (!this.bookToEditCategory || !this.selectedNewCategory) {
-      this.showToast('Please select a category', 'error');
-      return;
-    }
-
-    this.modalLoading = true;
-    const token = this.authService.getAccessToken()!;
-
-    this.booksService
-      .adminUpdateBookCategory(this.bookToEditCategory._id, this.selectedNewCategory, token)
-      .subscribe({
-        next: () => {
-          this.showToast('Category updated successfully', 'success');
-          this.loadBooks();
-          this.closeEditCategoryModal();
-        },
-        error: (err) => {
-          this.showToast(err.error?.message || 'Failed to update category', 'error');
         },
       })
       .add(() => (this.modalLoading = false));

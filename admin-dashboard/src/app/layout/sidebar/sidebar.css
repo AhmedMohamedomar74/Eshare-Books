@@ -10,6 +10,27 @@
   overflow-y: auto;
   top: 0;
   left: 0;
+  transition: filter 0.3s ease;
+  z-index: 100;
+}
+
+/* عندما يكون هناك modal مفتوح */
+.sidebar.modal-open {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* تأثير blur على main-content */
+.sidebar.modal-open + .main-content {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* لمنع التمرير عند فتح المودال */
+body.modal-open {
+  overflow: hidden;
 }
 
 .sidebar-header {
@@ -137,7 +158,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 1001; /* أعلى من الـ sidebar */
+  backdrop-filter: blur(2px);
 }
 
 .modal-content {
@@ -148,6 +170,7 @@
   max-width: 400px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   animation: modalSlideIn 0.2s ease-out;
+  z-index: 1002;
 }
 
 @keyframes modalSlideIn {

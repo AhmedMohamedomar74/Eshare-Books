@@ -35,4 +35,17 @@ export class CategoriesService {
   deleteCategory(id: string): Observable<any> {
     return this.http.delete(`${this.baseUrl}/${id}`, this.getHeadersOptions());
   }
+  // Get all categories for admin (including deleted)
+  getAllCategoriesForAdmin(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/admin`, this.getHeadersOptions());
+  }
+
+  // Restore deleted category
+  restoreCategory(id: string): Observable<any> {
+    return this.http.patch(
+      `${this.baseUrl}/admin/categories/${id}/restore`,
+      {},
+      this.getHeadersOptions()
+    );
+  }
 }

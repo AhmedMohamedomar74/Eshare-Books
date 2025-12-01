@@ -46,7 +46,6 @@ export class Reports implements OnInit {
   targetTypeFilter: string = 'All';
   currentPage: number = 1;
   itemsPerPage: number = 10;
-  totalResults: number = 0;
 
   loading: boolean = false;
   error: string = '';
@@ -103,7 +102,6 @@ export class Reports implements OnInit {
           if (response && response.data && Array.isArray(response.data)) {
             this.reports = response.data;
             this.filteredReports = [...this.reports];
-            this.totalResults = this.reports.length;
             this.applyFilters();
           } else {
             this.error = 'Failed to load reports: Invalid response format';
@@ -175,7 +173,6 @@ export class Reports implements OnInit {
     }
 
     this.filteredReports = filtered;
-    this.totalResults = filtered.length;
   }
 
   openStatusDropdown(report: Report): void {
@@ -301,7 +298,7 @@ export class Reports implements OnInit {
   }
 
   get totalPages(): number {
-    return Math.ceil(this.totalResults / this.itemsPerPage);
+    return Math.ceil(this.filteredReports.length / this.itemsPerPage);
   }
 
   getStartIndex(): number {
@@ -309,7 +306,7 @@ export class Reports implements OnInit {
   }
 
   getEndIndex(): number {
-    return Math.min(this.currentPage * this.itemsPerPage, this.totalResults);
+    return Math.min(this.currentPage * this.itemsPerPage, this.filteredReports.length);
   }
 
   previousPage(): void {

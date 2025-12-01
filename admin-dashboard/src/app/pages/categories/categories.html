@@ -35,28 +35,94 @@
 
   <!-- Loading State -->
   <div
-    *ngIf="loading && !showAddModal && !showEditModal && !showDeleteModal"
+    *ngIf="loading && !showAddModal && !showEditModal && !showDeleteModal && !showRestoreModal"
     class="alert alert-info"
   >
+    <i class="bi bi-hourglass-split"></i>
     Loading {{ activeTab === 'categories' ? 'categories' : 'suggested categories' }}...
   </div>
 
   <!-- Error Message -->
-  <div *ngIf="error" class="alert alert-danger">
-    {{ error }}
-    <button class="btn btn-sm btn-outline-secondary ms-2" (click)="retryLoad()">Retry</button>
+  <div *ngIf="error && !loading" class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle"></i> {{ error }}
+    <button class="btn btn-sm btn-outline-secondary ms-2" (click)="retryLoad()">
+      <i class="bi bi-arrow-clockwise"></i> Retry
+    </button>
   </div>
 
-  <!-- Search (Only for Categories tab) -->
-  <div *ngIf="activeTab === 'categories'" class="search-bar">
-    <i class="bi bi-search"></i>
-    <input
-      type="text"
-      placeholder="Search categories..."
-      (input)="onSearch($event)"
-      [value]="searchQuery"
-      [disabled]="loading"
-    />
+  <!-- Search & Filters (Only for Categories tab) -->
+  <div *ngIf="activeTab === 'categories'" class="filters-section mb-4">
+    <div class="row g-3">
+      <!-- Search Input -->
+      <div class="col-lg-6">
+        <div class="input-group position-relative">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control border-start-0"
+            placeholder="Search categories..."
+            [value]="searchQuery"
+            (input)="onSearch($event)"
+            [disabled]="loading"
+          />
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="col-lg-6">
+        <div class="d-flex gap-2 flex-wrap">
+          <!-- Status Filter -->
+          <div class="dropdown" [class.show]="statusDropdownOpen">
+            <button
+              class="btn btn-outline-secondary dropdown-toggle"
+              type="button"
+              (click)="toggleStatusDropdown()"
+              [disabled]="loading"
+            >
+              <i class="bi bi-circle-fill status-icon"></i> {{ getSelectedStatusName() }}
+            </button>
+            <ul class="dropdown-menu" [class.show]="statusDropdownOpen">
+              <li>
+                <a class="dropdown-item" href="javascript:void(0)" (click)="onStatusFilter('')">
+                  All Status
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onStatusFilter('active')"
+                  [class.active]="selectedStatus === 'active'"
+                >
+                  Active
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  (click)="onStatusFilter('deleted')"
+                  [class.active]="selectedStatus === 'deleted'"
+                >
+                  Deleted
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Clear Filters -->
+          <button
+            class="btn btn-outline-danger"
+            (click)="clearFilters()"
+            [disabled]="loading || (!searchQuery && !selectedStatus)"
+          >
+            <i class="bi bi-x-circle"></i> Clear
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Categories Table -->
@@ -65,27 +131,66 @@
       <thead>
         <tr>
           <th class="name-column">Name</th>
+          <th class="status-column">Status</th>
           <th class="actions-column">Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let category of displayedCategories">
-          <td class="name-column">{{ category.name }}</td>
+        <tr *ngFor="let category of displayedCategories" [class.deleted-row]="category.isDeleted">
+          <td class="name-column">
+            <div class="category-name-wrapper">
+              <i
+                class="bi"
+                [class.bi-folder]="!category.isDeleted"
+                [class.bi-folder-x]="category.isDeleted"
+              ></i>
+              {{ category.name }}
+            </div>
+          </td>
+          <td class="status-column">
+            <span class="badge" [ngClass]="getStatusBadgeClass(category)">
+              {{ getStatusText(category) }}
+            </span>
+          </td>
           <td class="actions-column">
-            <button class="btn-action edit" (click)="openEditModal(category)" [disabled]="loading">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button
-              class="btn-action delete"
-              (click)="openDeleteCategoryModal(category)"
-              [disabled]="loading"
-            >
-              <i class="bi bi-trash"></i>
-            </button>
+            <!-- Active Category Actions -->
+            <div *ngIf="!category.isDeleted" class="action-buttons">
+              <button
+                class="btn-action edit"
+                (click)="openEditModal(category)"
+                [disabled]="loading"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button
+                class="btn-action delete"
+                (click)="openDeleteCategoryModal(category)"
+                [disabled]="loading"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+
+            <!-- Deleted Category Actions -->
+            <div *ngIf="category.isDeleted" class="action-buttons">
+              <button
+                class="btn-action restore"
+                (click)="openRestoreModal(category)"
+                [disabled]="loading"
+              >
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+            </div>
           </td>
         </tr>
         <tr *ngIf="!loading && displayedCategories.length === 0">
-          <td colspan="2" style="text-align: center">No categories found</td>
+          <td colspan="3" class="text-center py-5">
+            <div class="empty-state">
+              <i class="bi bi-folder display-1 text-muted d-block mb-3"></i>
+              <h5 class="text-muted">No categories found</h5>
+              <p class="text-muted small">Try adjusting your filters or search query</p>
+            </div>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -118,7 +223,12 @@
           </td>
         </tr>
         <tr *ngIf="!loading && displayedSuggestedCategories.length === 0">
-          <td colspan="4" style="text-align: center">No suggested categories found</td>
+          <td colspan="4" class="text-center py-5">
+            <div class="empty-state">
+              <i class="bi bi-lightbulb display-1 text-muted d-block mb-3"></i>
+              <h5 class="text-muted">No suggested categories found</h5>
+            </div>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -141,12 +251,17 @@
     </div>
   </div>
 
-  <!-- Toast -->
+  <!-- Toast Notification -->
   <div
     *ngIf="showToastMessage"
-    class="toast message-toast"
-    [ngClass]="toastType === 'success' ? 'alert-success' : 'alert-danger'"
+    class="toast-notification"
+    [ngClass]="toastType === 'success' ? 'toast-success' : 'toast-error'"
   >
+    <i
+      class="bi"
+      [class.bi-check-circle-fill]="toastType === 'success'"
+      [class.bi-exclamation-circle-fill]="toastType === 'error'"
+    ></i>
     {{ toastMessage }}
   </div>
 
@@ -286,6 +401,52 @@
             Deleting...
           </span>
           <span *ngIf="!modalLoading">Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restore Modal -->
+  <div
+    *ngIf="showRestoreModal"
+    class="modal-overlay"
+    (click)="!modalLoading && closeRestoreModal()"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>
+          <i class="bi bi-arrow-clockwise text-success"></i>
+          Restore Category
+        </h5>
+        <button class="btn-close" (click)="closeRestoreModal()" [disabled]="modalLoading"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to restore the category
+          <strong>"{{ categoryToRestore?.name }}"</strong>?
+        </p>
+        <p class="text-muted small">
+          <i class="bi bi-info-circle"></i>
+          This will make the category available again in the system.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeRestoreModal()" [disabled]="modalLoading">
+          Cancel
+        </button>
+        <button
+          class="btn btn-success"
+          (click)="confirmRestoreCategory()"
+          [disabled]="modalLoading"
+        >
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Restoring...
+          </span>
+          <span *ngIf="!modalLoading">
+            <i class="bi bi-arrow-clockwise"></i>
+            Restore
+          </span>
         </button>
       </div>
     </div>

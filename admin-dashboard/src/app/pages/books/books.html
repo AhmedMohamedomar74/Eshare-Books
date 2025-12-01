@@ -282,21 +282,14 @@
               <span class="category-badge">
                 <i class="bi bi-tag-fill"></i>
                 {{ book.categoryId?.name || 'N/A' }}
+                <span
+                  *ngIf="book.isDeleted && isOriginalCategoryMissing(book)"
+                  class="text-warning ms-1"
+                  title="Original category no longer exists"
+                >
+                  <i class="bi bi-exclamation-triangle"></i>
+                </span>
               </span>
-              <button
-                class="btn btn-sm btn-link p-0 ms-2 category-edit-btn"
-                [class.text-primary]="canEditBook(book)"
-                [class.text-muted]="!canEditBook(book)"
-                (click)="openEditCategoryModal(book)"
-                [disabled]="loading || !canEditBook(book)"
-                [title]="
-                  !canEditBook(book)
-                    ? 'Cannot edit category for deleted, sold or donated books'
-                    : 'Edit Category'
-                "
-              >
-                <i class="bi bi-pencil-square"></i>
-              </button>
             </div>
           </td>
 
@@ -333,7 +326,9 @@
                 class="btn btn-sm btn-link text-success p-0"
                 (click)="openRestoreModal(book)"
                 [disabled]="loading"
-                title="Restore Book"
+                [title]="
+                  isOriginalCategoryMissing(book) ? 'Restore with new category' : 'Restore Book'
+                "
               >
                 <i class="bi bi-arrow-clockwise"></i>
               </button>
@@ -478,7 +473,7 @@
     </div>
   </div>
 
-  <!-- RESTORE MODAL -->
+  <!-- RESTORE MODAL (Normal) -->
   <div
     *ngIf="showRestoreModal"
     class="modal-overlay"
@@ -514,6 +509,84 @@
           <span *ngIf="!modalLoading">
             <i class="bi bi-arrow-clockwise"></i>
             Restore
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESTORE WITH CATEGORY MODAL -->
+  <div
+    *ngIf="showRestoreWithCategoryModal"
+    class="modal-overlay"
+    (click)="!modalLoading && closeRestoreWithCategoryModal()"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>
+          <i class="bi bi-arrow-clockwise text-warning"></i>
+          Restore Book - Category Missing
+        </h5>
+        <button
+          class="btn-close"
+          (click)="closeRestoreWithCategoryModal()"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          The book <strong>"{{ bookToRestoreWithCategory?.Title }}"</strong> was originally in the
+          category <strong>"{{ bookToRestoreWithCategory?.categoryId?.name }}"</strong> which no
+          longer exists.
+        </p>
+        <p class="mb-3">Please select a new category to restore this book:</p>
+
+        <div class="category-list">
+          <div
+            *ngFor="let category of categories"
+            class="category-item"
+            [class.selected]="selectedNewCategory === category._id"
+            (click)="onCategorySelect(category._id)"
+          >
+            <div class="category-radio">
+              <i
+                class="bi"
+                [class.bi-circle]="selectedNewCategory !== category._id"
+                [class.bi-check-circle-fill]="selectedNewCategory === category._id"
+              ></i>
+            </div>
+            <div class="category-name">
+              <i class="bi bi-tag-fill"></i>
+              {{ category.name }}
+            </div>
+          </div>
+        </div>
+
+        <p class="text-muted small mt-3 mb-0">
+          <i class="bi bi-info-circle"></i>
+          You must select a new category to restore this book.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          (click)="closeRestoreWithCategoryModal()"
+          [disabled]="modalLoading"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn btn-warning"
+          (click)="confirmRestoreWithCategory()"
+          [disabled]="modalLoading || !selectedNewCategory"
+        >
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Restoring...
+          </span>
+          <span *ngIf="!modalLoading">
+            <i class="bi bi-arrow-clockwise"></i>
+            Restore with New Category
           </span>
         </button>
       </div>
@@ -587,82 +660,6 @@
               [class.bi-x-circle]="moderationAction === 'unapprove'"
             ></i>
             {{ moderationAction === 'approve' ? 'Approve' : 'Unapprove' }}
-          </span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- EDIT CATEGORY MODAL -->
-  <div
-    *ngIf="showEditCategoryModal"
-    class="modal-overlay"
-    (click)="!modalLoading && closeEditCategoryModal()"
-  >
-    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
-      <div class="modal-header">
-        <h5>
-          <i class="bi bi-pencil-square text-primary"></i>
-          Edit Book Category
-        </h5>
-        <button
-          class="btn-close"
-          (click)="closeEditCategoryModal()"
-          [disabled]="modalLoading"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <p class="mb-3">
-          Select a new category for the book
-          <strong>"{{ bookToEditCategory?.Title }}"</strong>:
-        </p>
-
-        <div class="category-list">
-          <div
-            *ngFor="let category of categories"
-            class="category-item"
-            [class.selected]="selectedNewCategory === category._id"
-            (click)="onCategorySelect(category._id)"
-          >
-            <div class="category-radio">
-              <i
-                class="bi"
-                [class.bi-circle]="selectedNewCategory !== category._id"
-                [class.bi-check-circle-fill]="selectedNewCategory === category._id"
-              ></i>
-            </div>
-            <div class="category-name">
-              <i class="bi bi-tag-fill"></i>
-              {{ category.name }}
-            </div>
-          </div>
-        </div>
-
-        <p class="text-muted small mt-3 mb-0">
-          <i class="bi bi-info-circle"></i>
-          Current category: <strong>{{ bookToEditCategory?.categoryId?.name || 'N/A' }}</strong>
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button
-          class="btn btn-secondary"
-          (click)="closeEditCategoryModal()"
-          [disabled]="modalLoading"
-        >
-          Cancel
-        </button>
-        <button
-          class="btn btn-primary"
-          (click)="confirmCategoryUpdate()"
-          [disabled]="modalLoading || !selectedNewCategory"
-        >
-          <span *ngIf="modalLoading" class="loading-spinner">
-            <span class="spinner-border spinner-border-sm"></span>
-            Updating...
-          </span>
-          <span *ngIf="!modalLoading">
-            <i class="bi bi-check-circle"></i>
-            Confirm
           </span>
         </button>
       </div>

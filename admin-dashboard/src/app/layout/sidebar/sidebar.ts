@@ -16,6 +16,7 @@ export class Sidebar implements OnInit, OnDestroy {
   isLoggedIn = false;
   isLoading = true;
   showLogoutModal = false;
+  hasModalOpen = false;
 
   private authSubscription?: Subscription;
   private userSubscription?: Subscription;
