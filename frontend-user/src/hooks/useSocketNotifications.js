@@ -79,7 +79,7 @@ export const useSocketNotifications = () => {
         ...prev,
         {
           type: "acceptance",
-          message: `Your invitation was accepted`,
+          message: `Your Order was accepted`,
           timestamp: new Date().toISOString(),
           ...data,
         },
@@ -95,7 +95,7 @@ export const useSocketNotifications = () => {
         ...prev,
         {
           type: "refusal",
-          message: `Your invitation was refused${
+          message: `Your Order was refused${
             data.reason ? `: ${data.reason}` : ""
           }`,
           timestamp: new Date().toISOString(),

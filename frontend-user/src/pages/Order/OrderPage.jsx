@@ -1,15 +1,19 @@
-import { Box, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { createOperation, fetchBookId, checkReportWarning } from '../../redux/slices/OrderSlice';
-import Spinner from '../../components/Spinner';
-import { useParams } from 'react-router-dom';
-import OperationForm from '../../components/Order/OperationForm';
-import BookInfo from '../../components/Order/BookInfo';
-import { useSnackbar } from 'notistack';
-import ConfirmDialog from '../../components/Order/ConfirmDialog';
-import dayjs from 'dayjs';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import { Box, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  createOperation,
+  fetchBookId,
+  checkReportWarning,
+} from "../../redux/slices/OrderSlice";
+import Spinner from "../../components/Spinner";
+import { useParams, useNavigate } from "react-router-dom"; // ✅ ضيف useNavigate
+import OperationForm from "../../components/Order/OperationForm";
+import BookInfo from "../../components/Order/BookInfo";
+import { useSnackbar } from "notistack";
+import ConfirmDialog from "../../components/Order/ConfirmDialog";
+import dayjs from "dayjs";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 dayjs.extend(isSameOrBefore);
 
 const OrderPage = () => {
@@ -17,8 +21,9 @@ const OrderPage = () => {
   const dispatch = useDispatch();
   const { enqueueSnackbar } = useSnackbar();
   const { content } = useSelector((state) => state.lang);
-
   const { book, loading } = useSelector((state) => state.orders);
+
+  const navigate = useNavigate(); // ✅ هنا
 
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -40,48 +45,47 @@ const OrderPage = () => {
     );
 
   const operationType =
-    book.TransactionType === 'toSale'
-      ? 'buy'
-      : book.TransactionType === 'toBorrow'
-      ? 'borrow'
-      : book.TransactionType === 'toExchange'
-      ? 'exchange'
-      : 'donate';
+    book.TransactionType === "toSale"
+      ? "buy"
+      : book.TransactionType === "toBorrow"
+      ? "borrow"
+      : book.TransactionType === "toExchange"
+      ? "exchange"
+      : "donate";
 
   const reservedBorrows = book?.reservedBorrows || [];
 
   const getBorrowDays = () => {
-    if (operationType !== 'borrow' || !startDate || !endDate) return 0;
-    const diff = endDate.startOf('day').diff(startDate.startOf('day'), 'day');
+    if (operationType !== "borrow" || !startDate || !endDate) return 0;
+    const diff = endDate.startOf("day").diff(startDate.startOf("day"), "day");
     return diff > 0 ? diff : 0;
   };
 
   const borrowDays = getBorrowDays();
 
   const totalPrice =
-    operationType === 'borrow'
+    operationType === "borrow"
       ? (book.PricePerDay || 0) * borrowDays
-      : operationType === 'buy'
+      : operationType === "buy"
       ? book.Price || 0
       : 0;
 
-  // ✅ NEW: Check for reports BEFORE showing confirmation dialog
+  // ✅ Check for reports BEFORE showing confirmation dialog
   const handleCompleteClick = async (e) => {
     e.preventDefault();
 
-    if (operationType === 'borrow') {
+    if (operationType === "borrow") {
       if (!startDate || !endDate) {
-        enqueueSnackbar(content.selectDates, { variant: 'warning' });
+        enqueueSnackbar(content.selectDates, { variant: "warning" });
         return;
       }
 
-      if (endDate.isSameOrBefore(startDate, 'day')) {
-        enqueueSnackbar(content.endDateAfterStart, { variant: 'warning' });
+      if (endDate.isSameOrBefore(startDate, "day")) {
+        enqueueSnackbar(content.endDateAfterStart, { variant: "warning" });
         return;
       }
     }
 
-    // ✅ Check for reports first
     setCheckingReport(true);
     try {
       const result = await dispatch(
@@ -100,18 +104,17 @@ const OrderPage = () => {
 
         setConfirmOpen(true);
       } else {
-        // If check failed (e.g., book reported)
         const errorMsg = result.payload?.message || content.errorMessage;
-        enqueueSnackbar(errorMsg, { variant: 'error' });
+        enqueueSnackbar(errorMsg, { variant: "error" });
       }
     } catch (error) {
-      enqueueSnackbar(content.errorMessage, { variant: 'error' });
+      enqueueSnackbar(content.errorMessage, { variant: "error" });
     } finally {
       setCheckingReport(false);
     }
   };
 
-  // ✅ This now only executes if user confirms (with or without warning)
+  // ✅ بعد التأكيد وتنفيذ العملية، يعمل redirect للـ home
   const handleConfirmOperation = async () => {
     const operationData = {
       user_dest: book.UserID?._id,
@@ -119,7 +122,7 @@ const OrderPage = () => {
       operationType,
     };
 
-    if (operationType === 'borrow') {
+    if (operationType === "borrow") {
       operationData.startDate = startDate.toISOString();
       operationData.endDate = endDate.toISOString();
     }
@@ -127,12 +130,18 @@ const OrderPage = () => {
     const result = await dispatch(createOperation(operationData));
 
     if (createOperation.fulfilled.match(result)) {
-      enqueueSnackbar(content.requestSuccess, { variant: 'success' });
+      enqueueSnackbar(content.requestSuccess, { variant: "success" });
       setConfirmOpen(false);
       setWarningMessage(null);
+
+      // ✅ هنا يعمل redirect للـ home
+      navigate("/");
     } else {
-      const backendMsg = result.payload?.message || result.error?.message || content.errorMessage;
-      enqueueSnackbar(backendMsg, { variant: 'error' });
+      const backendMsg =
+        result.payload?.message ||
+        result.error?.message ||
+        content.errorMessage;
+      enqueueSnackbar(backendMsg, { variant: "error" });
       setConfirmOpen(false);
       setWarningMessage(null);
     }
@@ -141,8 +150,8 @@ const OrderPage = () => {
   const handleCancelOperation = () => {
     setConfirmOpen(false);
     setWarningMessage(null);
-    enqueueSnackbar(content.operationCancelled || 'تم إلغاء العملية', {
-      variant: 'info',
+    enqueueSnackbar(content.operationCancelled || "تم إلغاء العملية", {
+      variant: "info",
     });
   };
 
@@ -151,12 +160,12 @@ const OrderPage = () => {
       sx={{
         px: { xs: 2, md: 5 },
         py: { xs: 2, md: 4 },
-        bgcolor: '#fafafa',
-        minHeight: '100vh',
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: '1.25fr 0.75fr' },
+        bgcolor: "#fafafa",
+        minHeight: "100vh",
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", md: "1.25fr 0.75fr" },
         gap: 3,
-        alignItems: 'start',
+        alignItems: "start",
       }}
     >
       <BookInfo book={book} />
