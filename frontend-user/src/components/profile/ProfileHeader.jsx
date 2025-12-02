@@ -1,10 +1,10 @@
-import React, { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import OutlinedFlagIcon from "@mui/icons-material/OutlinedFlag";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { removeImage, uploadImage } from "../../services/auth/auth.service.js";
+import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { removeImage, uploadImage } from '../../services/auth/auth.service.js';
 
 const ProfileHeader = ({ user }) => {
   const fileInputRef = useRef(null);
@@ -14,8 +14,7 @@ const ProfileHeader = ({ user }) => {
   // Get translations from Redux
   const { content } = useSelector((state) => state.lang);
 
-  const defaultImage =
-    "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
+  const defaultImage = 'https://cdn-icons-png.flaticon.com/512/3177/3177440.png';
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -36,7 +35,7 @@ const ProfileHeader = ({ user }) => {
     } catch (error) {
       setProfileImage(user.profilePic || defaultImage);
     } finally {
-      event.target.value = "";
+      event.target.value = '';
     }
   };
 
@@ -46,7 +45,7 @@ const ProfileHeader = ({ user }) => {
   };
 
   const handleFlagClick = () => {
-    navigate("/myreports");
+    navigate('/myreports');
   };
 
   return (
@@ -102,13 +101,10 @@ const ProfileHeader = ({ user }) => {
           <div className="flex flex-col justify-center">
             <p className="text-xl sm:text-2xl font-bold">{user.fullName}</p>
             <p className="text-[#6f7b7b] text-sm sm:text-base">{user.email}</p>
-            <p className="text-[#6f7b7b] text-sm sm:text-base">
-              {user.address}
-            </p>
+            <p className="text-[#6f7b7b] text-sm sm:text-base">{user.address}</p>
             <div className="flex gap-4 mt-2">
               <span className="text-[#6f7b7b] text-sm">
-                {content.memberSince}{" "}
-                {new Date(user.createdAt).toLocaleDateString()}
+                {content.memberSince} {new Date(user.createdAt).toLocaleDateString()}
               </span>
             </div>
 
@@ -130,7 +126,7 @@ const ProfileHeader = ({ user }) => {
           className="text-[#6f7b7b] hover:text-[#e91e63] transition-colors duration-200 cursor-pointer flex items-center gap-1"
           title={content.myReports}
         >
-          <OutlinedFlagIcon sx={{ fontSize: 22 }} />
+          {/* <OutlinedFlagIcon sx={{ fontSize: 22 }} /> */}
           {content.myReports}
         </div>
       </div>
