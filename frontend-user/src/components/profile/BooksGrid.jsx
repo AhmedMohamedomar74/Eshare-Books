@@ -1,5 +1,5 @@
 import React from "react";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import BookCard from "./BookCard";
 
 const BooksGrid = ({
@@ -11,7 +11,7 @@ const BooksGrid = ({
 }) => {
   // Get translations from Redux
   const { content } = useSelector((state) => state.lang);
-  
+
   if (!books || books.length === 0) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -21,7 +21,7 @@ const BooksGrid = ({
   }
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 p-4">
+    <div className="grid grid-cols-[repeat(auto-fill,260px)] gap-6 p-4 justify-center">
       {books.map((book) => {
         const hasPendingOperation = booksWithPendingOps?.has(
           book._id.toString()
