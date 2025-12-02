@@ -1,53 +1,66 @@
-import api from "../../axiosInstance/axiosInstance.js";
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from '../../axiosInstance/axiosInstance.js';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 export const fetchBookId = createAsyncThunk(
-  "orders/fetchBookById",
+  'orders/fetchBookById',
   async (bookId, { rejectWithValue }) => {
     try {
       const res = await api.get(`/books/${bookId}`);
       return res.data.book;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Error fetching book");
+      return rejectWithValue(error.response?.data || 'Error fetching book');
+    }
+  }
+);
+
+// ✅ NEW: Check for report warnings before creating operation
+export const checkReportWarning = createAsyncThunk(
+  'orders/checkReportWarning',
+  async ({ user_dest, book_dest_id }, { rejectWithValue }) => {
+    try {
+      const res = await api.post(`/operations/check-report`, {
+        user_dest,
+        book_dest_id,
+      });
+      return res.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Error checking reports');
     }
   }
 );
 
 export const createOperation = createAsyncThunk(
-  "orders/createOperation",
+  'orders/createOperation',
   async (operationData, { rejectWithValue }) => {
     try {
       const res = await api.post(`/operations`, operationData);
+      // ✅ Return just the operation data
       return res.data.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error creating operation"
-      );
+      return rejectWithValue(error.response?.data || 'Error creating operation');
     }
   }
 );
 
 export const completeOperation = createAsyncThunk(
-  "orders/completeOperation",
+  'orders/completeOperation',
   async (operationId, { rejectWithValue }) => {
     try {
       const res = await api.put(`/operations/${operationId}`, {
-        status: "completed",
+        status: 'completed',
       });
       return res.data.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Error completing operation"
-      );
+      return rejectWithValue(error.response?.data || 'Error completing operation');
     }
   }
 );
 
 const orderSlice = createSlice({
-  name: "orders",
+  name: 'orders',
   initialState: {
     book: null,
-    selectedOption: "purchase",
+    selectedOption: 'purchase',
     loading: false,
     error: null,
     successMessage: null,
@@ -73,6 +86,18 @@ const orderSlice = createSlice({
         state.error = action.payload;
       })
 
+      // ✅ Check Report Warning
+      .addCase(checkReportWarning.pending, (state) => {
+        state.loading = false; // Don't show full page loading
+      })
+      .addCase(checkReportWarning.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(checkReportWarning.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       // Create Operation
       .addCase(createOperation.pending, (state) => {
         state.loading = true;
@@ -94,7 +119,7 @@ const orderSlice = createSlice({
       })
       .addCase(completeOperation.fulfilled, (state) => {
         state.loading = false;
-        state.successMessage = "Operation completed successfully!";
+        state.successMessage = 'Operation completed successfully!';
       })
       .addCase(completeOperation.rejected, (state, action) => {
         state.loading = false;
