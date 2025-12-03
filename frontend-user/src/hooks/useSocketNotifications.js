@@ -305,6 +305,44 @@ export const useSocketNotifications = () => {
       }
     };
 
+    // في الـ useEffect، أضف هذه الدالة:
+    const handleCategorySuggestionUpdated = (data) => {
+      console.log('📝 Category suggestion notification:', data);
+
+      let logMessage = '';
+      let type = 'info';
+
+      switch (data.type) {
+        case 'category_suggestion_accepted':
+          logMessage = `Your category suggestion "${data.data?.categoryName}" has been accepted`;
+          type = 'success';
+          break;
+        case 'category_suggestion_rejected':
+          logMessage = `Your category suggestion "${data.data?.categoryName}" has been rejected`;
+          type = 'error';
+          break;
+        default:
+          logMessage = 'Category suggestion updated';
+      }
+
+      addLog(logMessage, type);
+
+      const notification = {
+        ...data,
+        id: `category-suggestion-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+      };
+
+      setNotifications((prev) => [notification, ...prev]);
+
+      // عرض إشعار فوري للمستخدم
+      if (Notification.permission === 'granted') {
+        new Notification(data.title || 'Category Suggestion Updated', {
+          body: data.message,
+          icon: '/notification-icon.png',
+        });
+      }
+    };
     // Subscribe to events
     socketService.on('connection-change', handleConnectionChange);
     socketService.on('connection-error', handleConnectionError);
@@ -325,6 +363,7 @@ export const useSocketNotifications = () => {
     socketService.on('book_rejected', handleBookRejected);
     socketService.on('report-status-updated', handleReportStatusUpdated);
     socketService.on('role-updated', handleRoleUpdated);
+    socketService.on('category-suggestion-updated', handleCategorySuggestionUpdated);
 
     // Cleanup on unmount
     return () => {
@@ -335,6 +374,7 @@ export const useSocketNotifications = () => {
       socketService.off('book_rejected', handleBookRejected);
       socketService.off('report-status-updated', handleReportStatusUpdated);
       socketService.off('role-updated', handleRoleUpdated);
+      socketService.off('category-suggestion-updated', handleCategorySuggestionUpdated);
       socketService.off('connection-change', handleConnectionChange);
       socketService.off('connection-error', handleConnectionError);
       socketService.off('user-connected', handleUserConnected);

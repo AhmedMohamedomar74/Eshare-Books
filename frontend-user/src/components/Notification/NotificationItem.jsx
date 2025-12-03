@@ -80,6 +80,10 @@ const NotificationItem = ({ notification, formatTime }) => {
         return <span style={{ fontSize: '20px' }}>📖</span>;
       case 'role_promoted':
         return <span style={{ fontSize: '20px' }}>👑</span>;
+      case 'category_suggestion_accepted':
+        return <span style={{ fontSize: '20px' }}>✅</span>;
+      case 'category_suggestion_rejected':
+        return <span style={{ fontSize: '20px' }}>❌</span>;
       default:
         return <CloseIcon />;
     }
@@ -111,6 +115,10 @@ const NotificationItem = ({ notification, formatTime }) => {
         return 'warning.main';
       case 'role_promoted':
         return 'success.main';
+      case 'category_suggestion_accepted':
+        return 'success.main';
+      case 'category_suggestion_rejected':
+        return 'error.main';
       default:
         return 'error.main';
     }

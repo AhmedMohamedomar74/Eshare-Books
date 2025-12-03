@@ -288,15 +288,19 @@
 
 /* Column widths for suggested categories */
 .categories-table.suggested-table .name-column {
-  width: 30%;
+  width: 25%;
 }
 
 .categories-table.suggested-table .suggested-by-column {
-  width: 25%;
+  width: 20%;
+}
+
+.categories-table.suggested-table .status-column {
+  width: 15%;
 }
 
 .categories-table.suggested-table .date-column {
-  width: 25%;
+  width: 20%;
 }
 
 .categories-table.suggested-table .actions-column {
@@ -361,9 +365,10 @@
 /* Action Buttons */
 .action-buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .btn-action {
@@ -371,14 +376,16 @@
   border: none;
   cursor: pointer;
   color: #a0aec0;
-  padding: 8px;
-  margin: 0 4px;
+  padding: 6px;
+  margin: 0 2px;
   transition: all 0.3s ease;
   font-size: 16px;
   border-radius: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 32px;
 }
 
 .btn-action:hover {
@@ -400,6 +407,21 @@
   background-color: #f0fff4;
 }
 
+.btn-action.details:hover {
+  color: #3182ce;
+  background-color: #ebf8ff;
+}
+
+.btn-action.accept:hover {
+  color: #38a169;
+  background-color: #f0fff4;
+}
+
+.btn-action.reject:hover {
+  color: #e53e3e;
+  background-color: #fed7d7;
+}
+
 /* Status Badges */
 .badge {
   padding: 6px 12px;
@@ -417,6 +439,22 @@
 
 .text-success {
   color: #065f46;
+}
+
+.bg-warning-light {
+  background-color: #fef3c7;
+}
+
+.text-warning {
+  color: #92400e;
+}
+
+.bg-danger-light {
+  background-color: #fed7d7;
+}
+
+.text-danger {
+  color: #991b1b;
 }
 
 .bg-secondary-light {
@@ -609,6 +647,11 @@
   box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
 }
 
+.modal-body textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+}
+
 /* Pagination */
 .pagination-section {
   display: flex;
@@ -651,6 +694,12 @@
   background-color: #dbeafe;
   color: #1e40af;
   border-color: #93c5fd;
+}
+
+.alert-warning {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fbbf24;
 }
 
 .alert-danger {
@@ -700,6 +749,19 @@
 
 .text-primary {
   color: #3182ce !important;
+}
+
+.form-text {
+  color: #718096;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
 /* Invalid input styling */
@@ -773,8 +835,15 @@
   }
 
   .action-buttons {
-    flex-direction: column;
+    flex-direction: row;
     gap: 4px;
+  }
+
+  .btn-action {
+    width: 28px;
+    height: 28px;
+    padding: 4px;
+    font-size: 14px;
   }
 
   /* Adjust column widths for mobile */
@@ -795,15 +864,19 @@
   }
 
   .categories-table.suggested-table .suggested-by-column {
-    width: 25%;
+    width: 20%;
+  }
+
+  .categories-table.suggested-table .status-column {
+    width: 15%;
   }
 
   .categories-table.suggested-table .date-column {
-    width: 25%;
+    width: 20%;
   }
 
   .categories-table.suggested-table .actions-column {
-    width: 25%;
+    width: 20%;
   }
 }
 
@@ -858,14 +931,31 @@
   }
 
   .categories-table.suggested-table .suggested-by-column {
-    width: 25%;
+    width: 20%;
+  }
+
+  .categories-table.suggested-table .status-column {
+    width: 15%;
   }
 
   .categories-table.suggested-table .date-column {
-    width: 25%;
+    width: 20%;
   }
 
   .categories-table.suggested-table .actions-column {
-    width: 20%;
+    width: 15%;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .btn-action {
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+    font-size: 12px;
+    margin: 0;
   }
 }
