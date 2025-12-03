@@ -72,6 +72,13 @@ const NotificationItem = ({ notification, formatTime }) => {
         return <CheckIcon />;
       case 'book_rejected': // ✅ جديد
         return <CloseIcon />;
+      case 'report_reviewed': // ✅ جديد
+      case 'report_against_you_reviewed': // ✅ جديد
+      case 'report_dismissed': // ✅ جديد
+        return <span style={{ fontSize: '20px' }}>📋</span>;
+      case 'book_report_reviewed': // ✅ جديد
+        return <span style={{ fontSize: '20px' }}>📖</span>;
+
       default:
         return <CloseIcon />;
     }
@@ -93,6 +100,14 @@ const NotificationItem = ({ notification, formatTime }) => {
         return 'success.main';
       case 'book_rejected': // ✅ جديد
         return 'error.main';
+      case 'report_reviewed': // ✅ جديد
+        return 'success.main';
+      case 'report_against_you_reviewed': // ✅ جديد
+        return 'warning.main';
+      case 'report_dismissed': // ✅ جديد
+        return 'error.main';
+      case 'book_report_reviewed': // ✅ جديد
+        return 'warning.main';
       default:
         return 'error.main';
     }

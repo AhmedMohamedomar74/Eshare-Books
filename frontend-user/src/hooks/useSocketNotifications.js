@@ -243,6 +243,47 @@ export const useSocketNotifications = () => {
       }
     };
 
+    const handleReportStatusUpdated = (data) => {
+      console.log('📋 Report status updated notification:', data);
+
+      let logMessage = '';
+      let type = 'info';
+
+      switch (data.type) {
+        case 'report_reviewed':
+          logMessage = `Your report has been reviewed: ${data.data?.targetName}`;
+          type = 'success';
+          break;
+        case 'report_against_you_reviewed':
+          logMessage = `A report against you has been reviewed`;
+          type = 'warning';
+          break;
+        case 'report_dismissed':
+          logMessage = `Your report has been dismissed: ${data.data?.targetName}`;
+          type = 'error';
+          break;
+        default:
+          logMessage = 'Report status updated';
+      }
+
+      addLog(logMessage, type);
+
+      const notification = {
+        ...data,
+        id: `report-status-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+      };
+
+      setNotifications((prev) => [notification, ...prev]);
+
+      if (Notification.permission === 'granted') {
+        new Notification(data.title || 'Report Status Updated', {
+          body: data.message,
+          icon: '/notification-icon.png',
+        });
+      }
+    };
+
     // Subscribe to events
     socketService.on('connection-change', handleConnectionChange);
     socketService.on('connection-error', handleConnectionError);
@@ -262,6 +303,7 @@ export const useSocketNotifications = () => {
     socketService.on('book-restored', handleBookRestored);
     socketService.on('book_approved', handleBookApproved);
     socketService.on('book_rejected', handleBookRejected);
+    socketService.on('report-status-updated', handleReportStatusUpdated);
 
     // Cleanup on unmount
     return () => {
@@ -270,6 +312,7 @@ export const useSocketNotifications = () => {
       socketService.off('operation-cancelled', handleOperationCancelled);
       socketService.off('book_approved', handleBookApproved);
       socketService.off('book_rejected', handleBookRejected);
+      socketService.off('report-status-updated', handleReportStatusUpdated);
       socketService.off('connection-change', handleConnectionChange);
       socketService.off('connection-error', handleConnectionError);
       socketService.off('user-connected', handleUserConnected);

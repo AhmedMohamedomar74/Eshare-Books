@@ -67,6 +67,7 @@ class SocketService {
       'book-restored',
       'book_approved',
       'book_rejected',
+      'report-status-updated',
     ];
 
     notificationEvents.forEach((event) => {
