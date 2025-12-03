@@ -79,7 +79,7 @@ export const useSocketNotifications = () => {
         ...prev,
         {
           type: "acceptance",
-          message: `Your Order was accepted`,
+          message: `Your invitation was accepted`,
           timestamp: new Date().toISOString(),
           ...data,
         },
@@ -95,9 +95,8 @@ export const useSocketNotifications = () => {
         ...prev,
         {
           type: "refusal",
-          message: `Your Order was refused${
-            data.reason ? `: ${data.reason}` : ""
-          }`,
+          message: `Your invitation was refused${data.reason ? `: ${data.reason}` : ""
+            }`,
           timestamp: new Date().toISOString(),
           ...data,
         },
@@ -145,6 +144,65 @@ export const useSocketNotifications = () => {
       ]);
     };
 
+    const handleNewReportNotification = (notification) => {
+      console.log('📋 New report notification:', notification);
+
+      addLog(`📋 Report: ${notification.message}`, "info");
+
+      setNotifications((prev) => [
+        ...prev,
+        {
+          ...notification,
+          type: "report",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+
+      // Show different UI based on notification type
+      switch (notification.subType) {
+        case 'report-accepted':
+          showToast('success', '✅ Your report was accepted!');
+          break;
+
+        case 'report-refused':
+          showToast('warning', '⚠️ Your report was refused.');
+          break;
+
+        case 'warning':
+        case 'warning-1':
+        case 'warning-2':
+          showAlert('Warning', notification.message);
+          break;
+
+        case 'account-suspended':
+          showAlert('Account Suspended', notification.message);
+          // Force logout if current user is suspended
+          if (currentUser?._id === notification.metadata?.userId) {
+            logoutUser();
+          }
+          break;
+
+        case 'book-reported':
+          showToast('info', '📚 ' + notification.message);
+          break;
+
+        case 'book-deleted':
+          showAlert('Book Removed', notification.message);
+          break;
+      }
+
+      // Optional: Send browser notification
+      if (Notification.permission === "granted") {
+        new Notification("Report Update", {
+          body: notification.message,
+          icon: "/notification-icon.png",
+        });
+      }
+    };
+
+
+
+
     // Subscribe to events
     socketService.on("connection-change", handleConnectionChange);
     socketService.on("connection-error", handleConnectionError);
@@ -158,6 +216,7 @@ export const useSocketNotifications = () => {
     socketService.on("invitation-error", handleInvitationError);
     socketService.on("new-notification", handleNewNotification);
     socketService.on("payment-required", handlePaymentRequired);
+    socketService.on("new-report-notification", handleNewReportNotification);
 
     // Cleanup on unmount
     return () => {
@@ -173,9 +232,14 @@ export const useSocketNotifications = () => {
       socketService.off("invitation-error", handleInvitationError);
       socketService.off("new-notification", handleNewNotification);
       socketService.off("payment-required", handlePaymentRequired);
+      socketService.off("new-report-notification", handleNewReportNotification);
       socketService.disconnect();
     };
   }, [addLog]);
+
+  useEffect(() => {
+    console.log('Registered socket events:', socketService.eventCallbacks);
+  }, []);
 
   // Action methods
   const sendInvitation = useCallback((invitationData) => {

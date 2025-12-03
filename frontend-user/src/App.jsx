@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound/NotFound.jsx";
 import EditBook from "./pages/Edit Book/EditBook.jsx";
 import PaymentSuccess from "./pages/payment-success/payment-success.jsx";
 import VerifyEmail from "./pages/VerificationPage/VerifyEmail.jsx";
+import { SocketDebugPanel } from "./pages/depug_panel/SocketDebugPanel.jsx";
 function App() {
   const { direction } = useSelector((state) => state.lang);
   const { mode } = useSelector((state) => state.theme);
@@ -68,6 +69,7 @@ function App() {
           <Route path="/register" element={<BookShareRegister />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/soket" element = {<SocketDebugPanel/>}/>
           <Route path="*" element={<NotFound />} />
 
         </Routes>
