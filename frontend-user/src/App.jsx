@@ -24,7 +24,10 @@ import NotFound from "./pages/NotFound/NotFound.jsx";
 import EditBook from "./pages/Edit Book/EditBook.jsx";
 import PaymentSuccess from "./pages/payment-success/payment-success.jsx";
 import VerifyEmail from "./pages/VerificationPage/VerifyEmail.jsx";
-function App() {
+import LandingPage from "./pages/Home/LandingPage.jsx";
+import CategoryPage from "./pages/CategoryPage/CategoryPage.jsx";
+import AllCategoriesPage from "./pages/CategoryPage/AllCategoriesPage.jsx";
+ function App() {
   const { direction } = useSelector((state) => state.lang);
   const { mode } = useSelector((state) => state.theme);
   const theme = getMuiTheme({ mode, direction });
@@ -47,7 +50,10 @@ function App() {
         <Route path="/myreports" element={<MyReports />} /> */}
           <Route element={<UserLayout />}>
             <Route path="/details/:id" element={<BookDetails />} />
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/categories" element={<AllCategoriesPage />} />
+
+            <Route path="/category/:catId" element={<CategoryPage />} />
             <Route path="/home" element={<Home />} />
             <Route path="/public-profile/:userId" element={<PublicProfile />} />
             <Route element={<ProtectedRoute />}>
