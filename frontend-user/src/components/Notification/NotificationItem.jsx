@@ -62,23 +62,24 @@ const NotificationItem = ({ notification, formatTime }) => {
         return <CheckIcon />;
       case 'payment':
         return <CreditCardIcon />;
-      case 'book_deletion': // ✅ جديد
+      case 'book_deletion':
         return <span style={{ fontSize: '20px' }}>📘</span>;
-      case 'book_restored': // ✅ أضف هذا السطر
+      case 'book_restored':
         return <span style={{ fontSize: '20px' }}>🔄</span>;
-      case 'operation_cancellation': // ✅ جديد
+      case 'operation_cancellation':
         return <span style={{ fontSize: '20px' }}>🔄</span>;
-      case 'book_approved': // ✅ جديد
+      case 'book_approved':
         return <CheckIcon />;
-      case 'book_rejected': // ✅ جديد
+      case 'book_rejected':
         return <CloseIcon />;
-      case 'report_reviewed': // ✅ جديد
-      case 'report_against_you_reviewed': // ✅ جديد
-      case 'report_dismissed': // ✅ جديد
+      case 'report_reviewed':
+      case 'report_against_you_reviewed':
+      case 'report_dismissed':
         return <span style={{ fontSize: '20px' }}>📋</span>;
-      case 'book_report_reviewed': // ✅ جديد
+      case 'book_report_reviewed':
         return <span style={{ fontSize: '20px' }}>📖</span>;
-
+      case 'role_promoted':
+        return <span style={{ fontSize: '20px' }}>👑</span>;
       default:
         return <CloseIcon />;
     }
@@ -90,24 +91,26 @@ const NotificationItem = ({ notification, formatTime }) => {
         return 'success.main';
       case 'payment':
         return 'warning.main';
-      case 'book_deletion': // ✅ جديد
+      case 'book_deletion':
         return 'error.main';
-      case 'book_restored': // ✅ أضف هذا السطر
+      case 'book_restored':
         return 'success.main';
-      case 'operation_cancellation': // ✅ جديد
+      case 'operation_cancellation':
         return 'info.main';
-      case 'book_approved': // ✅ جديد
+      case 'book_approved':
         return 'success.main';
-      case 'book_rejected': // ✅ جديد
+      case 'book_rejected':
         return 'error.main';
-      case 'report_reviewed': // ✅ جديد
+      case 'report_reviewed':
         return 'success.main';
-      case 'report_against_you_reviewed': // ✅ جديد
+      case 'report_against_you_reviewed':
         return 'warning.main';
-      case 'report_dismissed': // ✅ جديد
+      case 'report_dismissed':
         return 'error.main';
-      case 'book_report_reviewed': // ✅ جديد
+      case 'book_report_reviewed':
         return 'warning.main';
+      case 'role_promoted':
+        return 'success.main';
       default:
         return 'error.main';
     }

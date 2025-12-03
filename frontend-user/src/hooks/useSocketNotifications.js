@@ -284,6 +284,27 @@ export const useSocketNotifications = () => {
       }
     };
 
+    const handleRoleUpdated = (data) => {
+      console.log('👑 Role updated notification:', data);
+
+      addLog(`🎉 Congratulations! You have been promoted to ${data.data?.newRole}`, 'success');
+
+      const notification = {
+        ...data,
+        id: `role-updated-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+      };
+
+      setNotifications((prev) => [notification, ...prev]);
+
+      if (Notification.permission === 'granted') {
+        new Notification('Role Updated', {
+          body: data.message,
+          icon: '/notification-icon.png',
+        });
+      }
+    };
+
     // Subscribe to events
     socketService.on('connection-change', handleConnectionChange);
     socketService.on('connection-error', handleConnectionError);
@@ -297,13 +318,13 @@ export const useSocketNotifications = () => {
     socketService.on('invitation-error', handleInvitationError);
     socketService.on('new-notification', handleNewNotification);
     socketService.on('payment-required', handlePaymentRequired);
-    // ✅ استمع للإشعارات الجديدة
     socketService.on('book-deleted', handleBookDeleted);
     socketService.on('operation-cancelled', handleOperationCancelled);
     socketService.on('book-restored', handleBookRestored);
     socketService.on('book_approved', handleBookApproved);
     socketService.on('book_rejected', handleBookRejected);
     socketService.on('report-status-updated', handleReportStatusUpdated);
+    socketService.on('role-updated', handleRoleUpdated);
 
     // Cleanup on unmount
     return () => {
@@ -313,6 +334,7 @@ export const useSocketNotifications = () => {
       socketService.off('book_approved', handleBookApproved);
       socketService.off('book_rejected', handleBookRejected);
       socketService.off('report-status-updated', handleReportStatusUpdated);
+      socketService.off('role-updated', handleRoleUpdated);
       socketService.off('connection-change', handleConnectionChange);
       socketService.off('connection-error', handleConnectionError);
       socketService.off('user-connected', handleUserConnected);
