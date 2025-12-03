@@ -61,7 +61,6 @@ class SocketService {
       'invitation-error',
       'new-notification',
       'payment-required',
-      // ✅ أضف الأحداث الجديدة
       'book-deleted',
       'operation-cancelled',
       'book-restored',
@@ -69,6 +68,7 @@ class SocketService {
       'book_rejected',
       'report-status-updated',
       'role-updated',
+      'category-suggestion-updated',
     ];
 
     notificationEvents.forEach((event) => {
