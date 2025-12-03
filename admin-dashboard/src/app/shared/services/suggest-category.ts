@@ -30,4 +30,19 @@ export class SuggestCategoryService {
   deleteSuggestCategory(id: string): Observable<any> {
     return this.http.delete(`${this.baseUrl}/${id}`, this.getHeadersOptions());
   }
+
+  // ✅ Accept suggested category (Add to main categories - Admin only)
+  acceptSuggestedCategory(id: string): Observable<any> {
+    return this.http.patch(
+      `${this.baseUrl}/${id}/accept`,
+      {}, // يمكن أن يكون فارغاً أو يحتوي على بيانات إضافية
+      this.getHeadersOptions()
+    );
+  }
+
+  // ✅ Reject suggested category (Admin only)
+  rejectSuggestedCategory(id: string, rejectionReason?: string): Observable<any> {
+    const body = rejectionReason ? { rejectionReason } : {};
+    return this.http.patch(`${this.baseUrl}/${id}/reject`, body, this.getHeadersOptions());
+  }
 }

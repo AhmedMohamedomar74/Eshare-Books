@@ -75,7 +75,7 @@ export default function ReportForm({ targetType, targetId }) {
       const timer = setTimeout(() => {
         dispatch(clearReportMessage());
         navigate(-1);
-      }, 2500);
+      }, 1500);
 
       return () => clearTimeout(timer);
     } else if (error) {
@@ -99,7 +99,7 @@ export default function ReportForm({ targetType, targetId }) {
       setSnackbarType('error');
       setSnackbarMsg(userFriendlyError);
       setOpenSnackbar(true);
-      setTimeout(() => dispatch(clearReportMessage()), 2500);
+      setTimeout(() => dispatch(clearReportMessage()), 1500);
     }
   }, [successMessage, error, dispatch, navigate, content]);
 

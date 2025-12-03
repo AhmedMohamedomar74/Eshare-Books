@@ -25,8 +25,12 @@ interface SuggestedCategory {
     fullName: string;
   };
   isDeleted: boolean;
+  status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
   updatedAt: string;
+  acceptedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
   __v: number;
 }
 
@@ -85,9 +89,25 @@ export class Categories implements OnInit {
   showRestoreModal: boolean = false;
   categoryToRestore: Category | null = null;
 
+  // Accept/Reject Modals
+  showAcceptModal: boolean = false;
+  suggestedCategoryToAccept: SuggestedCategory | null = null;
+
+  showRejectModal: boolean = false;
+  suggestedCategoryToReject: SuggestedCategory | null = null;
+  rejectionReason: string = '';
+
+  // Details Modal
+  showDetailsModal: boolean = false;
+  suggestedCategoryDetails: SuggestedCategory | null = null;
+
   // Filters
   selectedStatus = '';
   statusDropdownOpen = false;
+
+  // Suggested Categories Filter - تغيير القيمة الافتراضية إلى '' بدلاً من 'pending'
+  selectedSuggestedStatus = '';
+  suggestedStatusDropdownOpen = false;
 
   constructor(
     private categoriesService: CategoriesService,
@@ -106,6 +126,10 @@ export class Categories implements OnInit {
     this.error = '';
     this.selectedStatus = '';
     this.statusDropdownOpen = false;
+    // تغيير القيمة الافتراضية إلى '' (All) بدلاً من 'pending'
+    this.selectedSuggestedStatus = '';
+    this.suggestedStatusDropdownOpen = false;
+    this.applySuggestedPagination();
   }
 
   // ---------- Load Data ----------
@@ -153,8 +177,16 @@ export class Categories implements OnInit {
     this.statusDropdownOpen = !this.statusDropdownOpen;
   }
 
+  toggleSuggestedStatusDropdown(): void {
+    this.suggestedStatusDropdownOpen = !this.suggestedStatusDropdownOpen;
+  }
+
   closeStatusDropdown(): void {
     this.statusDropdownOpen = false;
+  }
+
+  closeSuggestedStatusDropdown(): void {
+    this.suggestedStatusDropdownOpen = false;
   }
 
   onStatusFilter(status: string): void {
@@ -162,6 +194,13 @@ export class Categories implements OnInit {
     this.currentPageCategories = 1;
     this.closeStatusDropdown();
     this.applyFilterAndPagination();
+  }
+
+  onSuggestedStatusFilter(status: string): void {
+    this.selectedSuggestedStatus = status;
+    this.currentPageSuggested = 1;
+    this.closeSuggestedStatusDropdown();
+    this.applySuggestedPagination();
   }
 
   clearFilters(): void {
@@ -172,6 +211,14 @@ export class Categories implements OnInit {
     this.applyFilterAndPagination();
   }
 
+  clearSuggestedFilters(): void {
+    // تغيير إلى '' (All) بدلاً من 'pending'
+    this.selectedSuggestedStatus = '';
+    this.currentPageSuggested = 1;
+    this.closeSuggestedStatusDropdown();
+    this.applySuggestedPagination();
+  }
+
   getSelectedStatusName(): string {
     const map: any = {
       '': 'All Status',
@@ -179,6 +226,16 @@ export class Categories implements OnInit {
       deleted: 'Deleted',
     };
     return map[this.selectedStatus] || 'Status';
+  }
+
+  getSelectedSuggestedStatusName(): string {
+    const map: any = {
+      '': 'All',
+      pending: 'Pending',
+      accepted: 'Accepted',
+      rejected: 'Rejected',
+    };
+    return map[this.selectedSuggestedStatus] || 'Status';
   }
 
   // ---------- Pagination & Filtering ----------
@@ -213,7 +270,14 @@ export class Categories implements OnInit {
   }
 
   applySuggestedPagination(): void {
-    this.totalResultsSuggested = this.suggestedCategories.length;
+    let filtered = [...this.suggestedCategories];
+
+    // Apply status filter for suggested categories
+    if (this.selectedSuggestedStatus) {
+      filtered = filtered.filter((c) => c.status === this.selectedSuggestedStatus);
+    }
+
+    this.totalResultsSuggested = filtered.length;
     const totalPages = Math.max(
       1,
       Math.ceil(this.totalResultsSuggested / this.itemsPerPageSuggested)
@@ -222,7 +286,7 @@ export class Categories implements OnInit {
 
     const start = (this.currentPageSuggested - 1) * this.itemsPerPageSuggested;
     const end = start + this.itemsPerPageSuggested;
-    this.displayedSuggestedCategories = this.suggestedCategories.slice(start, end);
+    this.displayedSuggestedCategories = filtered.slice(start, end);
   }
 
   onSearch(event: any): void {
@@ -544,6 +608,122 @@ export class Categories implements OnInit {
     });
   }
 
+  // ---------- Accept Suggested Category ----------
+  openAcceptModal(category: SuggestedCategory): void {
+    if (!this.authService.isAdmin()) {
+      this.showToast('Unauthorized — Admin role required', 'error');
+      return;
+    }
+    if (category.status !== 'pending') {
+      this.showToast('This suggestion is already processed', 'error');
+      return;
+    }
+    this.suggestedCategoryToAccept = category;
+    this.showAcceptModal = true;
+  }
+
+  confirmAcceptCategory(): void {
+    if (!this.suggestedCategoryToAccept) return;
+
+    this.modalLoading = true;
+
+    this.suggestCategoryService
+      .acceptSuggestedCategory(this.suggestedCategoryToAccept._id!)
+      .subscribe({
+        next: (res) => {
+          // Update the suggested category locally
+          const categoryIndex = this.suggestedCategories.findIndex(
+            (c) => c._id === this.suggestedCategoryToAccept!._id
+          );
+          if (categoryIndex !== -1) {
+            this.suggestedCategories[categoryIndex].status = 'accepted';
+            this.suggestedCategories[categoryIndex].acceptedAt = res.data?.suggestion?.acceptedAt;
+            this.suggestedCategories[categoryIndex].isDeleted = true;
+          }
+
+          // Add the new category to the main categories list
+          if (res.data?.category) {
+            const newCategory = {
+              _id: res.data.category.id,
+              name: res.data.category.name,
+              isDeleted: false,
+            };
+            this.categories.push(newCategory);
+            this.applyFilterAndPagination();
+          }
+
+          this.applySuggestedPagination();
+          this.showAcceptModal = false;
+          this.modalLoading = false;
+          this.showToast('Category suggestion accepted successfully!', 'success');
+        },
+        error: (err) => {
+          this.modalLoading = false;
+          this.showToast(err.error?.message || 'Failed to accept category suggestion', 'error');
+        },
+      });
+  }
+
+  // ---------- Reject Suggested Category ----------
+  openRejectModal(category: SuggestedCategory): void {
+    if (!this.authService.isAdmin()) {
+      this.showToast('Unauthorized — Admin role required', 'error');
+      return;
+    }
+    if (category.status !== 'pending') {
+      this.showToast('This suggestion is already processed', 'error');
+      return;
+    }
+    this.suggestedCategoryToReject = category;
+    this.rejectionReason = '';
+    this.showRejectModal = true;
+  }
+
+  confirmRejectCategory(): void {
+    if (!this.suggestedCategoryToReject) return;
+
+    this.modalLoading = true;
+
+    const rejectionReason = this.rejectionReason.trim();
+
+    this.suggestCategoryService
+      .rejectSuggestedCategory(this.suggestedCategoryToReject._id!, rejectionReason || undefined)
+      .subscribe({
+        next: (res) => {
+          // Update the suggested category locally
+          const categoryIndex = this.suggestedCategories.findIndex(
+            (c) => c._id === this.suggestedCategoryToReject!._id
+          );
+          if (categoryIndex !== -1) {
+            this.suggestedCategories[categoryIndex].status = 'rejected';
+            this.suggestedCategories[categoryIndex].rejectedAt = res.data?.rejectedAt;
+            this.suggestedCategories[categoryIndex].rejectionReason = res.data?.rejectionReason;
+            this.suggestedCategories[categoryIndex].isDeleted = true;
+          }
+
+          this.applySuggestedPagination();
+          this.showRejectModal = false;
+          this.modalLoading = false;
+          this.showToast('Category suggestion rejected successfully!', 'success');
+        },
+        error: (err) => {
+          this.modalLoading = false;
+          this.showToast(err.error?.message || 'Failed to reject category suggestion', 'error');
+        },
+      });
+  }
+
+  // ---------- View Details ----------
+  openDetailsModal(category: SuggestedCategory): void {
+    this.suggestedCategoryDetails = category;
+    this.showDetailsModal = true;
+  }
+
+  closeDetailsModal(): void {
+    this.showDetailsModal = false;
+    this.suggestedCategoryDetails = null;
+  }
+
   // ---------- Pagination ----------
   previousPage(): void {
     if (this.activeTab === 'categories') {
@@ -598,7 +778,76 @@ export class Categories implements OnInit {
     return 'bg-success-light text-success';
   }
 
+  getSuggestedStatusBadgeClass(category: SuggestedCategory): string {
+    switch (category.status) {
+      case 'pending':
+        return 'bg-warning-light text-warning';
+      case 'accepted':
+        return 'bg-success-light text-success';
+      case 'rejected':
+        return 'bg-danger-light text-danger';
+      default:
+        return 'bg-secondary-light text-secondary';
+    }
+  }
+
   getStatusText(category: Category): string {
     return category.isDeleted ? 'Deleted' : 'Active';
+  }
+
+  getSuggestedStatusText(category: SuggestedCategory): string {
+    return category.status.charAt(0).toUpperCase() + category.status.slice(1);
+  }
+
+  // Format date for display
+  formatDate(dateString?: string): string {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return 'Invalid Date';
+    }
+  }
+
+  // Safe getter for full name
+  getFullName(category: SuggestedCategory): string {
+    return category.suggestedBy?.fullName || 'Unknown';
+  }
+
+  // Safe getter for category name
+  getCategoryName(category: Category | null): string {
+    return category?.name || '';
+  }
+
+  // Safe getter for suggested category name
+  getSuggestedCategoryName(category: SuggestedCategory | null): string {
+    return category?.name || '';
+  }
+
+  // Safe getter for suggested by name
+  getSuggestedByName(category: SuggestedCategory | null): string {
+    return category?.suggestedBy?.fullName || 'Unknown';
+  }
+
+  // Safe getter for creation date
+  getCreationDate(category: SuggestedCategory | null): string {
+    return category?.createdAt ? this.formatDate(category.createdAt) : 'N/A';
+  }
+
+  // Safe getter for accepted date
+  getAcceptedDate(category: SuggestedCategory | null): string {
+    return category?.acceptedAt ? this.formatDate(category.acceptedAt) : 'N/A';
+  }
+
+  // Safe getter for rejected date
+  getRejectedDate(category: SuggestedCategory | null): string {
+    return category?.rejectedAt ? this.formatDate(category.rejectedAt) : 'N/A';
   }
 }
