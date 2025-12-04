@@ -18,7 +18,12 @@ const BookShareDashboard = () => {
   const [books, setBooks] = useState([]);
   const [booksWithPendingOps, setBooksWithPendingOps] = useState(new Set());
   const [transactionFilter, setTransactionFilter] = useState("");
-  const [operations, setOperations] = useState([]); // عمليات المستخدم (للاستخدام في إشعارات أو pending)
+  const [operations, setOperations] = useState([]);
+  
+  // ✅ NEW: States for history books
+  const [booksAsSource, setBooksAsSource] = useState([]);
+  const [booksAsDest, setBooksAsDest] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   // Get translations from Redux
   const { content } = useSelector((state) => state.lang);
@@ -58,10 +63,6 @@ const BookShareDashboard = () => {
           });
 
           setBooksWithPendingOps(pendingBookIds);
-          console.log(
-            "📦 Books with pending operations:",
-            Array.from(pendingBookIds)
-          );
         } catch (opError) {
           console.error("Error fetching operations:", opError);
         }
@@ -77,6 +78,35 @@ const BookShareDashboard = () => {
 
     fetchUserProfile();
   }, []);
+
+  // ✅ NEW: Fetch history books when tabs change
+  useEffect(() => {
+    const fetchHistoryBooks = async () => {
+      if (activeTab === "requested-books" && booksAsSource.length === 0) {
+        setLoadingHistory(true);
+        try {
+          const response = await operationService.getMyBooksAsSource();
+          setBooksAsSource(response.data || []);
+        } catch (err) {
+          console.error("Error fetching books as source:", err);
+        } finally {
+          setLoadingHistory(false);
+        }
+      } else if (activeTab === "received-requests" && booksAsDest.length === 0) {
+        setLoadingHistory(true);
+        try {
+          const response = await operationService.getMyBooksAsDest();
+          setBooksAsDest(response.data || []);
+        } catch (err) {
+          console.error("Error fetching books as dest:", err);
+        } finally {
+          setLoadingHistory(false);
+        }
+      }
+    };
+
+    fetchHistoryBooks();
+  }, [activeTab, booksAsSource.length, booksAsDest.length]);
 
   // Handle profile update
   const handleUpdateProfile = async (updatedData) => {
@@ -100,42 +130,98 @@ const BookShareDashboard = () => {
     }
   };
 
-  
   const filteredBooks = books.filter((book) => {
     if (!transactionFilter) return true;
     return book.TransactionType === transactionFilter;
   });
 
   const renderTabContent = () => {
-  switch (activeTab) {
-    case "my-books":
-      return (
-        <>
-          <TransactionFilter
-            filterType={transactionFilter}
-            onFilterChange={setTransactionFilter}
-          />
-          {filteredBooks.length === 0 ? (
-            <EmptyBooksMessage />
-          ) : (
-            <BooksGrid
-              books={filteredBooks}
-              isOwner={true}
-              userId={user?.id}
-              booksWithPendingOps={booksWithPendingOps}
-              onDelete={(deletedBookId) =>
-                setBooks((prevBooks) =>
-                  prevBooks.filter((b) => b._id !== deletedBookId)
-                )
-              }
+    switch (activeTab) {
+      case "my-books":
+        return (
+          <>
+            <TransactionFilter
+              filterType={transactionFilter}
+              onFilterChange={setTransactionFilter}
             />
-          )}
-        </>
-      );
-    default:
-      return <BooksGrid books={books} />;
-  }
-};
+            {filteredBooks.length === 0 ? (
+              <EmptyBooksMessage />
+            ) : (
+              <BooksGrid
+                books={filteredBooks}
+                isOwner={true}
+                userId={user?.id}
+                booksWithPendingOps={booksWithPendingOps}
+                onDelete={(deletedBookId) =>
+                  setBooks((prevBooks) =>
+                    prevBooks.filter((b) => b._id !== deletedBookId)
+                  )
+                }
+              />
+            )}
+          </>
+        );
+
+      // ✅ NEW: Books I requested/offered
+      case "requested-books":
+        if (loadingHistory) {
+          return (
+            <div className="flex justify-center items-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4c7b7b]"></div>
+            </div>
+          );
+        }
+        return (
+          <>
+            {booksAsSource.length === 0 ? (
+              <div className="flex justify-center items-center p-8">
+                <p className="text-gray-500 text-lg">
+                  {content.noRequestedBooks || "No books requested yet"}
+                </p>
+              </div>
+            ) : (
+              <BooksGrid
+                books={booksAsSource}
+                isOwner={false}
+                userId={user?.id}
+                onDelete={() => {}}
+              />
+            )}
+          </>
+        );
+
+      // ✅ NEW: Books where others requested from me
+      case "received-requests":
+        if (loadingHistory) {
+          return (
+            <div className="flex justify-center items-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4c7b7b]"></div>
+            </div>
+          );
+        }
+        return (
+          <>
+            {booksAsDest.length === 0 ? (
+              <div className="flex justify-center items-center p-8">
+                <p className="text-gray-500 text-lg">
+                  {content.noReceivedRequests || "No received requests yet"}
+                </p>
+              </div>
+            ) : (
+              <BooksGrid
+                books={booksAsDest}
+                isOwner={false}
+                userId={user?.id}
+                onDelete={() => {}}
+              />
+            )}
+          </>
+        );
+
+      default:
+        return <BooksGrid books={books} />;
+    }
+  };
 
   // Loading state
   if (loading) {
