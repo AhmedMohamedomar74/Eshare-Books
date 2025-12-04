@@ -147,6 +147,13 @@
   color: #718096;
 }
 
+/* Actions Container */
+.actions-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 /* Status Container */
 .status-container {
   display: flex;
@@ -202,19 +209,40 @@
   cursor: pointer;
   color: #a0aec0;
   padding: 4px 8px;
-  margin: 0 4px;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
   font-size: 16px;
   border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
 }
 
 .btn-action:hover {
-  color: #2d3748;
-  background-color: #f7fafc;
+  transform: translateY(-2px);
+}
+
+.btn-action.view {
+  color: #4a5568;
+}
+
+.btn-action.view:hover {
+  color: #38a169;
+  background-color: #c6f6d5;
+}
+
+.btn-action.edit {
+  color: #4a5568;
 }
 
 .btn-action.edit:hover {
   color: #3182ce;
+  background-color: #bee3f8;
+}
+
+.btn-action.delete {
+  color: #4a5568;
 }
 
 .btn-action.delete:hover {
@@ -371,6 +399,60 @@
 .btn-primary:disabled {
   background-color: #a0aec0;
   cursor: not-allowed;
+}
+
+/* Details Modal */
+.details-modal {
+  max-width: 600px;
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+.details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detail-label {
+  min-width: 140px;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 14px;
+  padding-right: 16px;
+}
+
+.detail-value {
+  flex: 1;
+  color: #2d3748;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.detail-value .badge {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.description-full {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background-color: #f7fafc;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 4px;
+  border-left: 3px solid #3182ce;
 }
 
 /* Delete Modal */
@@ -575,9 +657,27 @@
     align-items: flex-start;
   }
 
+  .actions-container {
+    flex-direction: column;
+    gap: 4px;
+  }
+
   .btn-action {
-    margin: 2px;
-    padding: 2px 6px;
+    margin: 0;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .detail-label {
+    min-width: auto;
+    width: 100%;
+    padding-right: 0;
   }
 }
 
@@ -594,7 +694,8 @@
     font-size: 14px;
   }
 
-  .status-modal {
+  .status-modal,
+  .details-modal {
     width: 95%;
     margin: 20px;
   }
@@ -616,6 +717,11 @@
   .reports-table {
     display: block;
     overflow-x: auto;
+  }
+
+  .detail-value .badge {
+    font-size: 11px;
+    padding: 3px 8px;
   }
 }
 
