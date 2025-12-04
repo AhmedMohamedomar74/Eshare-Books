@@ -129,17 +129,6 @@
           <td>{{ user.createdAt | date : 'mediumDate' }}</td>
           <td class="text-center">
             <div class="action-buttons">
-              <!-- Promote to Admin Button (only for non-admin users) -->
-              <button
-                *ngIf="user.role !== 'admin'"
-                class="btn btn-sm btn-link text-primary p-0"
-                (click)="openRoleModal(user)"
-                [disabled]="loading"
-                title="Promote to Admin"
-              >
-                <i class="bi bi-arrow-up"></i>
-              </button>
-
               <!-- Confirm User Button (only for unconfirmed users) -->
               <button
                 *ngIf="!user.isConfirmed"
@@ -235,45 +224,6 @@
       [class.bi-exclamation-circle-fill]="toastType === 'error'"
     ></i>
     {{ toastMessage }}
-  </div>
-
-  <!-- PROMOTE TO ADMIN MODAL -->
-  <div *ngIf="showRoleModal" class="modal-overlay" (click)="!modalLoading && closeRoleModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
-      <div class="modal-header">
-        <h5>
-          <i class="bi bi-arrow-up-circle text-primary"></i>
-          Promote to Admin
-        </h5>
-        <button class="btn-close" (click)="closeRoleModal()" [disabled]="modalLoading"></button>
-      </div>
-      <div class="modal-body">
-        <p>
-          Are you sure you want to promote
-          <strong>{{ userForRoleChange?.firstName }} {{ userForRoleChange?.secondName }}</strong>
-          to <strong class="text-primary">Admin</strong>?
-        </p>
-        <p class="text-muted small">
-          <i class="bi bi-info-circle"></i>
-          This will grant the user full administrative privileges.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeRoleModal()" [disabled]="modalLoading">
-          Cancel
-        </button>
-        <button class="btn btn-primary" (click)="confirmRoleChange()" [disabled]="modalLoading">
-          <span *ngIf="modalLoading" class="loading-spinner">
-            <span class="spinner-border spinner-border-sm"></span>
-            Promoting...
-          </span>
-          <span *ngIf="!modalLoading">
-            <i class="bi bi-arrow-up"></i>
-            Promote
-          </span>
-        </button>
-      </div>
-    </div>
   </div>
 
   <!-- CONFIRM USER MODAL -->

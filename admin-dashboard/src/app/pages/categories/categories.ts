@@ -445,7 +445,7 @@ export class Categories implements OnInit {
 
     // Check if category with new name already exists (excluding current category) - case-insensitive
     if (this.checkCategoryExists(name, this.categoryToEdit)) {
-      this.editCategoryError = 'Category with this name already exists (case-insensitive check)!';
+      this.editCategoryError = 'Category with this name already exists.';
       return;
     }
 
@@ -468,8 +468,7 @@ export class Categories implements OnInit {
           (err.error?.message?.includes('already exists') ||
             err.error?.message?.includes('Category with this name'))
         ) {
-          this.editCategoryError =
-            'Category with this name already exists (case-insensitive check).';
+          this.editCategoryError = 'Category with this name already exists.';
           this.showToast('Category with this name already exists!', 'error');
         } else {
           this.showToast(err.error?.message || 'Failed to update category', 'error');

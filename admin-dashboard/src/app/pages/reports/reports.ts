@@ -62,6 +62,10 @@ export class Reports implements OnInit {
   showSuccessMessage: boolean = false;
   successMessage: string = '';
 
+  // متغيرات جديدة لعرض التفاصيل
+  showDetailsModal: boolean = false;
+  reportDetails: Report | null = null;
+
   constructor(private reportsService: ReportsService, private authService: AuthService) {}
 
   ngOnInit(): void {
@@ -233,6 +237,18 @@ export class Reports implements OnInit {
     this.showStatusDropdown = false;
   }
 
+  // دالة جديدة لفتح نافذة التفاصيل
+  openDetailsModal(report: Report): void {
+    this.reportDetails = report;
+    this.showDetailsModal = true;
+  }
+
+  // دالة جديدة لإغلاق نافذة التفاصيل
+  closeDetailsModal(): void {
+    this.showDetailsModal = false;
+    this.reportDetails = null;
+  }
+
   confirmDelete(report: Report): void {
     this.reportToDelete = report;
     this.showDeleteModal = true;
@@ -352,6 +368,19 @@ export class Reports implements OnInit {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+    });
+  }
+
+  formatDateTime(dateString: string | null | undefined): string {
+    if (!dateString) {
+      return 'Unknown date';
+    }
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   }
 
