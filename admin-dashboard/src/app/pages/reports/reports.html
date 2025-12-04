@@ -122,9 +122,18 @@
           </td>
           <td>{{ formatDate(report.createdAt) }}</td>
           <td>
-            <button class="btn-action delete" title="Delete" (click)="confirmDelete(report)">
-              <i class="bi bi-trash"></i>
-            </button>
+            <div class="actions-container">
+              <button
+                class="btn-action view"
+                title="View Details"
+                (click)="openDetailsModal(report)"
+              >
+                <i class="bi bi-eye"></i>
+              </button>
+              <button class="btn-action delete" title="Delete" (click)="confirmDelete(report)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -173,6 +182,83 @@
         >
           {{ loading ? 'Updating...' : 'Update Status' }}
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Details Modal -->
+  <div *ngIf="showDetailsModal" class="modal-overlay" (click)="closeDetailsModal()">
+    <div class="modal-content details-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h5>Report Details</h5>
+        <button type="button" class="btn-close" (click)="closeDetailsModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="details-grid">
+          <div class="detail-row">
+            <span class="detail-label">Report ID:</span>
+            <span class="detail-value">{{ reportDetails?._id }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Reporter:</span>
+            <span class="detail-value">{{ getReporterName(reportDetails!) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Reporter ID:</span>
+            <span class="detail-value">{{ reportDetails?.reporterId?._id || 'N/A' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Target Type:</span>
+            <span class="detail-value">
+              <span [ngClass]="'badge type-' + reportDetails?.targetType?.toLowerCase()">
+                {{ reportDetails?.targetType }}
+              </span>
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Target:</span>
+            <span class="detail-value">{{ getTargetName(reportDetails!) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Target ID:</span>
+            <span class="detail-value">{{ reportDetails?.targetId?._id || 'Deleted Target' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Reason:</span>
+            <span class="detail-value">{{ reportDetails?.reason }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Description:</span>
+            <div class="detail-value description-full">
+              {{ reportDetails?.description || 'No description provided' }}
+            </div>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value">
+              <span [ngClass]="'badge status-' + reportDetails?.status?.toLowerCase()">
+                {{ reportDetails?.status }}
+              </span>
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Created At:</span>
+            <span class="detail-value">{{ formatDateTime(reportDetails?.createdAt || '') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Last Updated:</span>
+            <span class="detail-value">{{ formatDateTime(reportDetails?.updatedAt || '') }}</span>
+          </div>
+          <div class="detail-row" *ngIf="reportDetails?.isDeleted">
+            <span class="detail-label">Deleted:</span>
+            <span class="detail-value text-danger">
+              Yes ({{ formatDateTime(reportDetails?.deletedAt) }})
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDetailsModal()">Close</button>
       </div>
     </div>
   </div>
