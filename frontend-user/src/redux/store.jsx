@@ -6,6 +6,7 @@ import bookReducer from "./slices/bookSlice.js";
 import suggestCategoryReducer from "./slices/suggestCategory.slice.js";
 import LangReducer from "./slices/LangReducer.js";
 import ThemeReducer from "./slices/ThemeReducer.js";
+import authReducer from "./slices/authReducer.js";
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     suggestCategory: suggestCategoryReducer,
     lang: LangReducer,
     theme: ThemeReducer,
+    auth: authReducer,
   },
 });
 

@@ -3,8 +3,17 @@ import { OutlinedFlag } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-const BookActions = ({ bookId }) => {
+const BookActions = ({ bookId, bookOwnerId }) => {
   const { content } = useSelector((state) => state.lang);
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+
+  // If the current user is the book owner, show nothing
+  const isOwner = isAuthenticated && user?.id === bookOwnerId;
+
+  if (isOwner) {
+    return null;
+  }
+
   return (
     <>
       {/* Buttons section */}
@@ -15,7 +24,7 @@ const BookActions = ({ bookId }) => {
           mt: 4,
         }}
       >
-        {/*  Proceed to Order  */}
+        {/* Proceed to Order */}
         <Button
           component={Link}
           to={`/order/${bookId}`}
