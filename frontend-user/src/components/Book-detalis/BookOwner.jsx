@@ -4,6 +4,13 @@ import { useSelector } from "react-redux";
 
 const BookOwner = ({ avatar, name, userId }) => {
   const { content } = useSelector((state) => state.lang);
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+
+  // Check if this is the current user's profile
+  const isCurrentUser = isAuthenticated && user?.id === userId;
+
+  // Determine the correct profile link
+  const profileLink = isCurrentUser ? "/profile" : `/public-profile/${userId}`;
 
   return (
     <>
@@ -15,7 +22,7 @@ const BookOwner = ({ avatar, name, userId }) => {
         <Box>
           <Typography
             component={Link}
-            to={`/public-profile/${userId}`}
+            to={profileLink}
             sx={{
               fontWeight: "bold",
               textDecoration: "none",
@@ -32,4 +39,3 @@ const BookOwner = ({ avatar, name, userId }) => {
 };
 
 export default BookOwner;
-

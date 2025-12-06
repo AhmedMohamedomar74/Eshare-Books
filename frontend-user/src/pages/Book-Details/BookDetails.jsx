@@ -147,7 +147,7 @@ const BookDetails = () => {
               userId={book.UserID?._id}
             />
 
-            {/* ✅ تنبيه فقط لو Borrow شغالة */}
+            {/*✅ تنبيه فقط لو Borrow شغالة */}
             {/* {book.TransactionType === "toBorrow" && book.isBorrowedNow && (
               <Box
                 sx={{
@@ -177,8 +177,11 @@ const BookDetails = () => {
               </Box>
             )} */}
 
-            {/* ✅ BookActions دايمًا شغال */}
-            <BookActions bookId={book._id} />
+            {/* BookActions */}
+            <BookActions
+              bookId={book._id}
+              bookOwnerId={book.UserID?._id}
+            />
           </Box>
         </Box>
       </Box>

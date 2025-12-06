@@ -30,12 +30,10 @@ export class Users implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();
 
   // Modals
-  showRoleModal: boolean = false;
   showConfirmModal: boolean = false;
   showDeleteModal: boolean = false;
 
   // Selected users for modals
-  userForRoleChange: User | null = null;
   userForConfirmation: User | null = null;
   userForDeletion: User | null = null;
 
@@ -191,43 +189,6 @@ export class Users implements OnInit, OnDestroy {
     this.toastType = type;
     this.showToastMessage = true;
     setTimeout(() => (this.showToastMessage = false), 4000);
-  }
-
-  // ---------- Role Change Modal ----------
-  openRoleModal(user: User): void {
-    if (user.role === 'admin') {
-      this.showToast('User is already an admin', 'error');
-      return;
-    }
-    this.userForRoleChange = user;
-    this.showRoleModal = true;
-  }
-
-  closeRoleModal(): void {
-    this.showRoleModal = false;
-    this.userForRoleChange = null;
-  }
-
-  confirmRoleChange(): void {
-    if (!this.userForRoleChange) return;
-
-    this.modalLoading = true;
-
-    this.usersService
-      .promoteToAdmin(this.userForRoleChange._id)
-      .subscribe({
-        next: (updatedUser) => {
-          this.userForRoleChange!.role = 'admin';
-          this.showToast('User promoted to admin successfully!', 'success');
-          this.loadUsers();
-          this.closeRoleModal();
-        },
-        error: (error) => {
-          this.showToast(error.error?.message || 'Failed to promote user', 'error');
-          this.modalLoading = false;
-        },
-      })
-      .add(() => (this.modalLoading = false));
   }
 
   // ---------- Confirmation Modal ----------

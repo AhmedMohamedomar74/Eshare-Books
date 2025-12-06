@@ -69,6 +69,7 @@ class SocketService {
       'report-status-updated',
       'role-updated',
       'category-suggestion-updated',
+      'category-updated',
     ];
 
     notificationEvents.forEach((event) => {

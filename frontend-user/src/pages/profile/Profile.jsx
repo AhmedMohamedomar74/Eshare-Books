@@ -18,7 +18,14 @@ const BookShareDashboard = () => {
   const [books, setBooks] = useState([]);
   const [booksWithPendingOps, setBooksWithPendingOps] = useState(new Set());
   const [transactionFilter, setTransactionFilter] = useState("");
-  const [operations, setOperations] = useState([]); // عمليات المستخدم (للاستخدام في إشعارات أو pending)
+  const [operations, setOperations] = useState([]);
+  
+  // States for history books
+  const [booksAsSource, setBooksAsSource] = useState([]);
+  const [booksAsDest, setBooksAsDest] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [sourceSummary, setSourceSummary] = useState(null);
+  const [destSummary, setDestSummary] = useState(null);
 
   // Get translations from Redux
   const { content } = useSelector((state) => state.lang);
@@ -58,10 +65,6 @@ const BookShareDashboard = () => {
           });
 
           setBooksWithPendingOps(pendingBookIds);
-          console.log(
-            "📦 Books with pending operations:",
-            Array.from(pendingBookIds)
-          );
         } catch (opError) {
           console.error("Error fetching operations:", opError);
         }
@@ -77,6 +80,42 @@ const BookShareDashboard = () => {
 
     fetchUserProfile();
   }, []);
+
+  // Fetch history books when tabs change
+  useEffect(() => {
+    const fetchHistoryBooks = async () => {
+      // "Books I Requested" = I am DESTINATION (receiving books)
+      if (activeTab === "requested-books" && booksAsDest.length === 0) {
+        setLoadingHistory(true);
+        try {
+          const response = await operationService.getMyBooksAsDest();
+          // Handle the new response structure with books and summary
+          setBooksAsDest(response.data?.books || response.data || []);
+          setDestSummary(response.data?.summary || null);
+        } catch (err) {
+          console.error("Error fetching books as dest:", err);
+        } finally {
+          setLoadingHistory(false);
+        }
+      } 
+      // "Requests to My Books" = I am SOURCE (others requesting my books)
+      else if (activeTab === "received-requests" && booksAsSource.length === 0) {
+        setLoadingHistory(true);
+        try {
+          const response = await operationService.getMyBooksAsSource();
+          // Handle the new response structure with books and summary
+          setBooksAsSource(response.data?.books || response.data || []);
+          setSourceSummary(response.data?.summary || null);
+        } catch (err) {
+          console.error("Error fetching books as source:", err);
+        } finally {
+          setLoadingHistory(false);
+        }
+      }
+    };
+
+    fetchHistoryBooks();
+  }, [activeTab, booksAsSource.length, booksAsDest.length]);
 
   // Handle profile update
   const handleUpdateProfile = async (updatedData) => {
@@ -100,42 +139,168 @@ const BookShareDashboard = () => {
     }
   };
 
-  
   const filteredBooks = books.filter((book) => {
     if (!transactionFilter) return true;
     return book.TransactionType === transactionFilter;
   });
 
   const renderTabContent = () => {
-  switch (activeTab) {
-    case "my-books":
-      return (
-        <>
-          <TransactionFilter
-            filterType={transactionFilter}
-            onFilterChange={setTransactionFilter}
-          />
-          {filteredBooks.length === 0 ? (
-            <EmptyBooksMessage />
-          ) : (
-            <BooksGrid
-              books={filteredBooks}
-              isOwner={true}
-              userId={user?.id}
-              booksWithPendingOps={booksWithPendingOps}
-              onDelete={(deletedBookId) =>
-                setBooks((prevBooks) =>
-                  prevBooks.filter((b) => b._id !== deletedBookId)
-                )
-              }
+    switch (activeTab) {
+      case "my-books":
+        return (
+          <>
+            <TransactionFilter
+              filterType={transactionFilter}
+              onFilterChange={setTransactionFilter}
             />
-          )}
-        </>
-      );
-    default:
-      return <BooksGrid books={books} />;
-  }
-};
+            {filteredBooks.length === 0 ? (
+              <EmptyBooksMessage />
+            ) : (
+              <BooksGrid
+                books={filteredBooks}
+                isOwner={true}
+                userId={user?.id}
+                booksWithPendingOps={booksWithPendingOps}
+                showOperationDetails={false}
+                onDelete={(deletedBookId) =>
+                  setBooks((prevBooks) =>
+                    prevBooks.filter((b) => b._id !== deletedBookId)
+                  )
+                }
+              />
+            )}
+          </>
+        );
+
+      // Books I requested (I am DESTINATION - receiving books from others)
+      case "requested-books":
+        if (loadingHistory) {
+          return (
+            <div className="flex justify-center items-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4c7b7b]"></div>
+            </div>
+          );
+        }
+        return (
+          <>
+            {/* Summary Statistics */}
+            {destSummary && (
+              <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold mb-3 text-gray-800">
+                  {content.summary || "Summary"}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600">{content.totalBooks || "Total Books"}</p>
+                    <p className="text-2xl font-bold text-blue-600">{destSummary.totalBooks}</p>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600">{content.totalOperations || "Total Operations"}</p>
+                    <p className="text-2xl font-bold text-green-600">{destSummary.totalOperations}</p>
+                  </div>
+                  <div className="bg-orange-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600">{content.totalSpent || "Total Revnue"}</p>
+                    <p className="text-2xl font-bold text-orange-600">{destSummary.totalSpent} EGP</p>
+                  </div>
+                  <div className="bg-purple-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600">{content.operations || "Operations"}</p>
+                    <div className="mt-1 space-y-1">
+                      {destSummary.byOperationType && (
+                        <>
+                          <p className="text-xs text-gray-600">
+                            <span className="font-medium">Bought:</span> {destSummary.byOperationType.purchased}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            <span className="font-medium">Borrowed:</span> {destSummary.byOperationType.borrowed}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            <span className="font-medium">Donated:</span> {destSummary.byOperationType.donated}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            <span className="font-medium">Exchanged:</span> {destSummary.byOperationType.exchanged}
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {booksAsDest.length === 0 ? (
+              <div className="flex justify-center items-center p-8">
+                <p className="text-gray-500 text-lg">
+                  {content.noRequestedBooks || "No books requested yet"}
+                </p>
+              </div>
+            ) : (
+              <BooksGrid
+                books={booksAsDest}
+                isOwner={false}
+                userId={user?.id}
+                showOperationDetails={true}
+                onDelete={() => {}}
+              />
+            )}
+          </>
+        );
+
+      // Requests to My Books (I am SOURCE - others requesting my books)
+      case "received-requests":
+        if (loadingHistory) {
+          return (
+            <div className="flex justify-center items-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4c7b7b]"></div>
+            </div>
+          );
+        }
+        return (
+          <>
+            {/* Summary Statistics */}
+            {sourceSummary && (
+              <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold mb-3 text-gray-800">
+                  {content.summary || "Summary"}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600">{content.totalBooks || "Total Books"}</p>
+                    <p className="text-2xl font-bold text-blue-600">{sourceSummary.totalBooks}</p>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600">{content.totalOperations || "Total Operations"}</p>
+                    <p className="text-2xl font-bold text-green-600">{sourceSummary.totalOperations}</p>
+                  </div>
+                  <div className="bg-purple-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-600">{content.totalRevenue || "Total Spent"}</p>
+                    <p className="text-2xl font-bold text-purple-600">{sourceSummary.totalRevenue} EGP</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {booksAsSource.length === 0 ? (
+              <div className="flex justify-center items-center p-8">
+                <p className="text-gray-500 text-lg">
+                  {content.noReceivedRequests || "No received requests yet"}
+                </p>
+              </div>
+            ) : (
+              <BooksGrid
+                books={booksAsSource}
+                isOwner={false}
+                userId={user?.id}
+                showOperationDetails={true}
+                onDelete={() => {}}
+              />
+            )}
+          </>
+        );
+
+      default:
+        return <BooksGrid books={books} />;
+    }
+  };
 
   // Loading state
   if (loading) {

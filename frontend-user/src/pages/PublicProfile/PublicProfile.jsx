@@ -1,121 +1,93 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import PublicProfileHeader from './../../components/publicProfile/PublicProfileHeader.jsx';
-import TabNavigation from './../../components/publicProfile/TabNavigation.jsx';
-import BooksGrid from './../../components/profile/BooksGrid.jsx';
-import { userService } from '../../services/user/userService.js';
-import { bookService } from '../../services/books/bookServices.js';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import PublicProfileHeader from "./../../components/publicProfile/PublicProfileHeader.jsx";
+import TabNavigation from "./../../components/publicProfile/TabNavigation.jsx";
+import BooksGrid from "./../../components/profile/BooksGrid.jsx";
+import { userService } from "../../services/user/userService.js";
+import { bookService } from "../../services/books/bookServices.js";
+import TransactionFilter from "../../components/profile/Filter.jsx";
 
 const PublicProfile = () => {
-  const [activeTab, setActiveTab] = useState('user-books');
+  const [activeTab, setActiveTab] = useState("user-books");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [books, setBooks] = useState([]);
+  const [filterType, setFilterType] = useState("");
   const { userId } = useParams();
   const navigate = useNavigate();
-  
-  // Get translations from Redux
+
   const { content } = useSelector((state) => state.lang);
 
-  // Fetch public user profile data
+  // Fetch user data
   useEffect(() => {
     const fetchPublicProfile = async () => {
       try {
         setLoading(true);
         const response = await userService.getPublicProfile(userId);
-        console.log(response.data);
         setUser(response.data);
         setError(null);
       } catch (err) {
         setError(err.message);
-        console.error('Error fetching public profile:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (userId) {
-      fetchPublicProfile();
-    }
+    if (userId) fetchPublicProfile();
   }, [userId]);
 
+  // Fetch user books
   useEffect(() => {
     const fetchUserBooks = async () => {
       try {
         const response = await bookService.getUserBooks(userId);
         setBooks(response.books || []);
-      } catch (error) {
-        console.error('Error fetching user books:', error);
+      } catch {
         setBooks([]);
       }
     };
 
-    if (userId) {
-      fetchUserBooks();
-    }
+    if (userId) fetchUserBooks();
   }, [userId]);
 
-  // Handle report user
-  const handleReportUser = () => {
-    try {
-      navigate(`/reports/user/${userId}`);
-    } catch (error) {
-      console.error('Error in handleReportUser:', error);
-    }
+  // Filter handler
+  const handleFilterChange = (value) => {
+    setFilterType(value);
   };
+
+  // Apply filter
+  const filteredBooks =
+    filterType === ""
+      ? books
+      : books.filter((book) => book.TransactionType === filterType);
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'user-books':
-        return <BooksGrid books={books} />;
+      case "user-books":
+        return (
+          <>
+            <TransactionFilter
+              filterType={filterType}
+              onFilterChange={handleFilterChange}
+            />
+            <BooksGrid books={filteredBooks} />
+          </>
+        );
       default:
-        return <BooksGrid books={books} />;
+        return <BooksGrid books={filteredBooks} />;
     }
   };
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="relative flex min-h-screen w-full flex-col bg-[#f6f7f7]">
-        <main className="px-4 sm:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
-          <div className="flex flex-col max-w-screen-xl flex-1 w-full items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c7b7b]"></div>
-            <p className="mt-4 text-[#6f7b7b]">{content.loadingProfile}</p>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="relative flex min-h-screen w-full flex-col bg-[#f6f7f7]">
-        <main className="px-4 sm:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
-          <div className="flex flex-col max-w-screen-xl flex-1 w-full items-center justify-center">
-            <div className="text-red-500 text-center">
-              <p className="text-lg font-semibold">{content.errorLoadingProfile}</p>
-              <p className="text-sm mt-2">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 px-4 py-2 bg-[#4c7b7b] text-white rounded-lg hover:bg-[#3a5f5f] transition-colors"
-              >
-                {content.retry}
-              </button>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-[#f6f7f7]">
       <main className="px-4 sm:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
         <div className="flex flex-col max-w-screen-xl flex-1 w-full">
-          <PublicProfileHeader user={user} onReportUser={handleReportUser} />
+          <PublicProfileHeader
+            user={user}
+            onReportUser={() => navigate(`/reports/user/${userId}`)}
+          />
           <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
           {renderTabContent()}
         </div>

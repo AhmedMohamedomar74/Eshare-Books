@@ -8,6 +8,7 @@ const BooksGrid = ({
   userId,
   isOwner,
   booksWithPendingOps,
+  showOperationDetails = false, // New prop to show operation details
 }) => {
   // Get translations from Redux
   const { content } = useSelector((state) => state.lang);
@@ -23,17 +24,18 @@ const BooksGrid = ({
   return (
     <div className="grid grid-cols-[repeat(auto-fill,260px)] gap-6 p-4 justify-center">
       {books.map((book) => {
-        const hasPendingOperation = booksWithPendingOps?.has(
-          book._id.toString()
-        );
+        // Handle both book structures (direct book or book with operations)
+        const bookId = book._id || book.book?._id;
+        const hasPendingOperation = booksWithPendingOps?.has(bookId?.toString());
 
         return (
           <BookCard
-            key={book._id}
+            key={bookId}
             book={book}
             isOwner={isOwner}
             hasPendingOperation={hasPendingOperation}
             onDelete={onDelete}
+            showOperationDetails={showOperationDetails}
           />
         );
       })}

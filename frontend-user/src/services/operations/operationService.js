@@ -60,6 +60,30 @@ export const operationService = {
       );
     }
   },
+
+  // ✅ NEW: Get books where user is source (books user requested/offered)
+  getMyBooksAsSource: async () => {
+    try {
+      const response = await api.get("/operations/my-books-as-source");
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch requested books"
+      );
+    }
+  },
+
+  // ✅ NEW: Get books where user is destination (requests to user's books)
+  getMyBooksAsDest: async () => {
+    try {
+      const response = await api.get("/operations/my-books-as-dest");
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch received requests"
+      );
+    }
+  },
 };
 
 export default operationService;

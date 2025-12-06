@@ -18,7 +18,6 @@ const TransactionFilter = ({ filterType, onFilterChange }) => {
         {t("transactionType", "Transaction Type:")}
       </span>
 
-      {/* ✅ للأجهزة الكبيرة: أزرار */}
       <div className="hidden sm:flex gap-2">
         {options.map((option) => (
           <button
@@ -36,7 +35,6 @@ const TransactionFilter = ({ filterType, onFilterChange }) => {
         ))}
       </div>
 
-      {/* ✅ للأجهزة الصغيرة: Dropdown */}
       <select
         value={filterType}
         onChange={(e) => onFilterChange(e.target.value)}

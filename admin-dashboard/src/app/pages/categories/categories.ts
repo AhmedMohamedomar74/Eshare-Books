@@ -105,7 +105,6 @@ export class Categories implements OnInit {
   selectedStatus = '';
   statusDropdownOpen = false;
 
-  // Suggested Categories Filter - تغيير القيمة الافتراضية إلى '' بدلاً من 'pending'
   selectedSuggestedStatus = '';
   suggestedStatusDropdownOpen = false;
 
@@ -212,7 +211,6 @@ export class Categories implements OnInit {
   }
 
   clearSuggestedFilters(): void {
-    // تغيير إلى '' (All) بدلاً من 'pending'
     this.selectedSuggestedStatus = '';
     this.currentPageSuggested = 1;
     this.closeSuggestedStatusDropdown();
@@ -325,7 +323,7 @@ export class Categories implements OnInit {
     return '';
   }
 
-  // ---------- Check if category exists ----------
+  // ---------- Check if category exists (case-insensitive) ----------
   private checkCategoryExists(name: string, excludeCategory?: Category): boolean {
     const trimmedName = name.trim().toLowerCase();
     return this.categories.some((category) => {
@@ -333,6 +331,7 @@ export class Categories implements OnInit {
       if (excludeCategory && category._id === excludeCategory._id) {
         return false;
       }
+      // التحقق غير الحساس لحالة الأحرف
       return category.name.toLowerCase() === trimmedName;
     });
   }
@@ -391,13 +390,20 @@ export class Categories implements OnInit {
       },
       error: (err) => {
         this.modalLoading = false;
-        // Handle specific error messages from backend
-        if (err.error?.message?.includes('deleted')) {
-          this.addCategoryError = 'Category already exists but is deleted. You can restore it.';
-        } else if (err.status === 400 || err.error?.message?.includes('exists')) {
-          this.addCategoryError = 'Category already exists!';
+        // Handle specific error messages from backend - case-insensitive check
+        if (err.error?.message?.includes('already exists but is deleted')) {
+          this.addCategoryError =
+            'Category already exists but is deleted. You can restore it from the deleted section.';
+        } else if (
+          err.status === 400 &&
+          (err.error?.message?.includes('already exists') ||
+            err.error?.message?.includes('Category already exists') ||
+            err.error?.message?.includes('Category with this name'))
+        ) {
+          // تحسين رسالة الخطأ لتوضيح أنها case-insensitive
+          this.addCategoryError = 'Category with this name already exists.';
         } else {
-          this.showToast('Failed to add category', 'error');
+          this.showToast(err.error?.message || 'Failed to add category', 'error');
         }
       },
     });
@@ -431,15 +437,15 @@ export class Categories implements OnInit {
       return;
     }
 
-    // Check if the name actually changed
+    // Check if the name actually changed (case-insensitive)
     if (this.categoryToEdit.name.toLowerCase() === name.toLowerCase()) {
       this.showEditModal = false;
       return;
     }
 
-    // Check if category with new name already exists (excluding current category)
+    // Check if category with new name already exists (excluding current category) - case-insensitive
     if (this.checkCategoryExists(name, this.categoryToEdit)) {
-      this.editCategoryError = 'Category with this name already exists!';
+      this.editCategoryError = 'Category with this name already exists.';
       return;
     }
 
@@ -457,11 +463,15 @@ export class Categories implements OnInit {
       error: (err) => {
         this.modalLoading = false;
         // If backend returns conflict error, show appropriate message
-        if (err.status === 409 || err.error?.message?.includes('exists')) {
-          this.editCategoryError = 'Category with this name already exists!';
+        if (
+          err.status === 400 &&
+          (err.error?.message?.includes('already exists') ||
+            err.error?.message?.includes('Category with this name'))
+        ) {
+          this.editCategoryError = 'Category with this name already exists.';
           this.showToast('Category with this name already exists!', 'error');
         } else {
-          this.showToast('Failed to update category', 'error');
+          this.showToast(err.error?.message || 'Failed to update category', 'error');
         }
       },
     });

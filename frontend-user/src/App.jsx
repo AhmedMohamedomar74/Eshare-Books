@@ -1,9 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { ThemeProvider, CssBaseline } from "@mui/material";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react";
+
 import { getMuiTheme } from "./theme/muiTheme";
+
 import BookDetails from "./pages/Book-Details/BookDetails";
-import Navbar from "./components/Navbar";
 import BookCycleLogin from "./pages/login/Login.jsx";
 import BookShareRegister from "./pages/register/Register.jsx";
 import BookShareDashboard from "./pages/profile/Profile.jsx";
@@ -24,6 +26,8 @@ import NotFound from "./pages/NotFound/NotFound.jsx";
 import EditBook from "./pages/Edit Book/EditBook.jsx";
 import PaymentSuccess from "./pages/payment-success/payment-success.jsx";
 import VerifyEmail from "./pages/VerificationPage/VerifyEmail.jsx";
+
+// ✅ صفحات اللاندنج والكاتيجوريز (من HEAD)
 import LandingPage from "./pages/Home/LandingPage.jsx";
 import CategoryPage from "./pages/CategoryPage/CategoryPage.jsx";
 import AllCategoriesPage from "./pages/CategoryPage/AllCategoriesPage.jsx";
@@ -31,70 +35,99 @@ import AllCategoriesPage from "./pages/CategoryPage/AllCategoriesPage.jsx";
 // ✅ Footer
 import Footer from "./components/LandingPage/Footer.jsx";
 
-function App() {
+// ✅ auth helpers (من bf08)
+import { checkAuth } from "./redux/slices/authAction.js";
+import { setNavigationCallback } from "./axiosInstance/axiosInstance.js";
+
+function AppContent() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const { direction } = useSelector((state) => state.lang);
   const { mode } = useSelector((state) => state.theme);
   const theme = getMuiTheme({ mode, direction });
+
+  useEffect(() => {
+    // axios instance redirect helper
+    setNavigationCallback(navigate);
+
+    // Check if user is already logged in
+    dispatch(checkAuth());
+  }, [dispatch, navigate]);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
 
-      <BrowserRouter>
-        <NavigationProvider>
-          {/* <Navbar /> */}
-          <Routes>
-            {/* <Route path="/" element={<Home />} />
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/add-book" element={<AddBook />} />
-        <Route path="/details/:id" element={<BookDetails />} />
-        <Route path="/login" element={<BookCycleLogin />} />
-        <Route path="/register" element={<BookShareRegister />} />
-        <Route path="/profile" element={<BookShareDashboard />} />
-        <Route path="/order/:id" element={<OrderPage />} />
-        <Route path="/wishlist" element={<Wishlist />} />
-        <Route path="/reports/:type/:targetId" element={<Report />} />
-        <Route path="/myreports" element={<MyReports />} /> */}
+      <NavigationProvider>
+        {/* <Navbar /> */}
+        <Routes>
+          {/* <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/add-book" element={<AddBook />} />
+          <Route path="/details/:id" element={<BookDetails />} />
+          <Route path="/login" element={<BookCycleLogin />} />
+          <Route path="/register" element={<BookShareRegister />} />
+          <Route path="/profile" element={<BookShareDashboard />} />
+          <Route path="/order/:id" element={<OrderPage />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/reports/:type/:targetId" element={<Report />} />
+          <Route path="/myreports" element={<MyReports />} /> */}
 
-            <Route element={<UserLayout />}>
-              <Route path="/details/:id" element={<BookDetails />} />
-              <Route path="/landingpage" element={<LandingPage />} />
-              <Route path="/categories" element={<AllCategoriesPage />} />
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/category/:catId" element={<CategoryPage />} />
-              <Route path="/home" element={<Home />} />
-              <Route
-                path="/public-profile/:userId"
-                element={<PublicProfile />}
-              />
-              <Route element={<ProtectedRoute />}>
-                <Route path="/notification" element={<NotificationPage />} />
-                <Route path="/profile" element={<BookShareDashboard />} />
-                <Route path="/order/:id" element={<OrderPage />} />
+          <Route element={<UserLayout />}>
+            <Route path="/details/:id" element={<BookDetails />} />
 
-                {/* <Route path="/order/:userId" element={<OrderPage />} /> */}
-                <Route path="/wishlist" element={<Wishlist />} />
-                <Route path="/reports/:type/:targetId" element={<Report />} />
-                <Route path="/myreports" element={<MyReports />} />
-                <Route path="/add-book" element={<AddBook />} />
-                <Route path="/edit-book/:id" element={<EditBook />} />
-              </Route>
+            {/* ✅ Landing as home */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/landingpage" element={<LandingPage />} />
+
+            {/* ✅ Categories */}
+            <Route path="/categories" element={<AllCategoriesPage />} />
+            <Route path="/category/:catId" element={<CategoryPage />} />
+
+            {/* ✅ Main app home */}
+            <Route path="/home" element={<Home />} />
+
+            <Route
+              path="/public-profile/:userId"
+              element={<PublicProfile />}
+            />
+
+            <Route element={<ProtectedRoute />}>
+              <Route path="/notification" element={<NotificationPage />} />
+              <Route path="/profile" element={<BookShareDashboard />} />
+              <Route path="/order/:id" element={<OrderPage />} />
+
+              {/* <Route path="/order/:userId" element={<OrderPage />} /> */}
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/reports/:type/:targetId" element={<Report />} />
+              <Route path="/myreports" element={<MyReports />} />
+              <Route path="/add-book" element={<AddBook />} />
+              <Route path="/edit-book/:id" element={<EditBook />} />
             </Route>
+          </Route>
 
-            <Route path="/login" element={<BookCycleLogin />} />
-            <Route path="/forget-password" element={<ForgotPassword />} />
-            <Route path="/register" element={<BookShareRegister />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Route path="/login" element={<BookCycleLogin />} />
+          <Route path="/forget-password" element={<ForgotPassword />} />
+          <Route path="/register" element={<BookShareRegister />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
 
-          {/* ✅ Footer يظهر في كل الصفحات */}
-          <Footer />
-        </NavigationProvider>
-      </BrowserRouter>
+        {/* ✅ Footer يظهر في كل الصفحات */}
+        <Footer />
+      </NavigationProvider>
     </ThemeProvider>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }
 

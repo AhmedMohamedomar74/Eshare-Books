@@ -11,9 +11,14 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip,
+  Collapse,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import CategoryIcon from '@mui/icons-material/Category';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import api from '../../axiosInstance/axiosInstance';
 import { useSelector } from 'react-redux';
@@ -22,6 +27,7 @@ const NotificationItem = ({ notification, formatTime }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const [paymentUrl, setPaymentUrl] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -84,6 +90,8 @@ const NotificationItem = ({ notification, formatTime }) => {
         return <span style={{ fontSize: '20px' }}>✅</span>;
       case 'category_suggestion_rejected':
         return <span style={{ fontSize: '20px' }}>❌</span>;
+      case 'category_update':
+        return <CategoryIcon />;
       default:
         return <CloseIcon />;
     }
@@ -119,6 +127,8 @@ const NotificationItem = ({ notification, formatTime }) => {
         return 'success.main';
       case 'category_suggestion_rejected':
         return 'error.main';
+      case 'category_update':
+        return 'info.main';
       default:
         return 'error.main';
     }
@@ -190,6 +200,73 @@ const NotificationItem = ({ notification, formatTime }) => {
               <Typography variant="caption" color="text.secondary">
                 Operation Type: {notification.operationType}
               </Typography>
+            </Box>
+          )}
+
+          {/* ✅ Category Update Notification (NEW) */}
+          {notification.type === 'category_update' && notification.data && (
+            <Box sx={{ mt: 1.5 }}>
+              <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+                <Chip
+                  label={notification.data.oldCategoryName}
+                  size="small"
+                  color="default"
+                  sx={{ textDecoration: 'line-through' }}
+                />
+                <Typography variant="caption">→</Typography>
+                <Chip
+                  label={notification.data.newCategoryName}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+              </Stack>
+
+              {notification.data.affectedBooksCount > 0 && (
+                <>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    Affected Books: {notification.data.affectedBooksCount}
+                  </Typography>
+
+                  {notification.data.affectedBooks &&
+                    notification.data.affectedBooks.length > 0 && (
+                      <>
+                        <Button
+                          size="small"
+                          onClick={() => setExpanded(!expanded)}
+                          endIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                          sx={{ mt: 0.5, textTransform: 'none', fontSize: '0.75rem' }}
+                        >
+                          {expanded ? 'Hide Books' : 'Show Books'}
+                        </Button>
+
+                        <Collapse in={expanded}>
+                          <Box
+                            sx={{
+                              mt: 1,
+                              pl: 2,
+                              borderLeft: 2,
+                              borderColor: 'primary.main',
+                              maxHeight: 150,
+                              overflowY: 'auto',
+                            }}
+                          >
+                            {notification.data.affectedBooks.map((book, index) => (
+                              <Typography
+                                key={book.id || index}
+                                variant="caption"
+                                display="block"
+                                sx={{ py: 0.5 }}
+                              >
+                                • {book.title}
+                              </Typography>
+                            ))}
+                          </Box>
+                        </Collapse>
+                      </>
+                    )}
+                </>
+              )}
             </Box>
           )}
         </Box>

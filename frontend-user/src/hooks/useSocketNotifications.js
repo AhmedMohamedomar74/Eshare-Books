@@ -343,6 +343,34 @@ export const useSocketNotifications = () => {
         });
       }
     };
+
+    // ✅ إشعارات تحديث اسم الفئة (NEW)
+    const handleCategoryUpdated = (data) => {
+      console.log('🏷️ Category updated notification:', data);
+
+      addLog(
+        `📝 Category "${data.data?.oldCategoryName}" has been renamed to "${data.data?.newCategoryName}"`,
+        'info'
+      );
+
+      const notification = {
+        ...data,
+        id: `category-updated-${Date.now()}`,
+        type: 'category_update',
+        timestamp: new Date().toISOString(),
+      };
+
+      setNotifications((prev) => [notification, ...prev]);
+
+      // عرض إشعار فوري للمستخدم
+      if (Notification.permission === 'granted') {
+        new Notification(data.title || 'Category Name Updated', {
+          body: data.message,
+          icon: '/notification-icon.png',
+        });
+      }
+    };
+
     // Subscribe to events
     socketService.on('connection-change', handleConnectionChange);
     socketService.on('connection-error', handleConnectionError);
@@ -364,6 +392,7 @@ export const useSocketNotifications = () => {
     socketService.on('report-status-updated', handleReportStatusUpdated);
     socketService.on('role-updated', handleRoleUpdated);
     socketService.on('category-suggestion-updated', handleCategorySuggestionUpdated);
+    socketService.on('category-updated', handleCategoryUpdated);
 
     // Cleanup on unmount
     return () => {
@@ -375,6 +404,7 @@ export const useSocketNotifications = () => {
       socketService.off('report-status-updated', handleReportStatusUpdated);
       socketService.off('role-updated', handleRoleUpdated);
       socketService.off('category-suggestion-updated', handleCategorySuggestionUpdated);
+      socketService.off('category-updated', handleCategoryUpdated);
       socketService.off('connection-change', handleConnectionChange);
       socketService.off('connection-error', handleConnectionError);
       socketService.off('user-connected', handleUserConnected);
