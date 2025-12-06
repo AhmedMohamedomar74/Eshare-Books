@@ -135,7 +135,7 @@ const OrderPage = () => {
       setWarningMessage(null);
 
       // ✅ هنا يعمل redirect للـ home
-      navigate("/");
+      navigate("/home");
     } else {
       const backendMsg =
         result.payload?.message ||

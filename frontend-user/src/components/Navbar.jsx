@@ -25,13 +25,14 @@ import { fetchWishlist } from "../redux/slices/wishlist.slice";
 import UserAvatar from "./common/UserAvatar";
 import { logout } from "../services/auth/auth.service";
 import NotificationBell from "./Notification/NotificationBell";
+import LangButton from "./LangButton";
 
 const MAIN_COLOR = "#22a699";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
-  const { content, lang } = useSelector((state) => state.lang);
+  const { content } = useSelector((state) => state.lang);
   const openMenu = Boolean(anchorEl);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -306,27 +307,8 @@ const Navbar = () => {
             ))}
 
             {/* Language Button */}
-            <Tooltip
-              title={
-                lang === "en"
-                  ? content.switchToArabic || "Switch to Arabic"
-                  : content.switchToEnglish || "Switch to English"
-              }
-            >
-              <IconButton
-                onClick={handleLanguageToggle}
-                sx={{
-                  color: MAIN_COLOR,
-                  width: 40,
-                  height: 40,
-                  "&:hover": {
-                    backgroundColor: `${MAIN_COLOR}12`,
-                    color: MAIN_COLOR,
-                  },
-                }}
-              >
-                <LanguageIcon />
-              </IconButton>
+            <Tooltip>
+              <LangButton />
             </Tooltip>
 
             {/* Avatar */}

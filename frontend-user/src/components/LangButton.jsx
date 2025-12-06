@@ -3,6 +3,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
 import LanguageIcon from "@mui/icons-material/Language";
 
+// Define your main color (or import it from theme/constants)
+const MAIN_COLOR = "#22a699";
+
 const LangButton = () => {
   const dispatch = useDispatch();
   const { lang } = useSelector((state) => state.lang);
@@ -25,14 +28,16 @@ const LangButton = () => {
 
   return (
     <>
-      <Tooltip title="Change Language">
+      <Tooltip title={lang === "en" ? "Switch to Arabic" : "Switch to English"}>
         <IconButton
           onClick={handleClick}
           sx={{
-            color: "gray",
+            color: MAIN_COLOR,
+            width: 40,
+            height: 40,
             "&:hover": {
-              backgroundColor: "transparent !important",
-              color: "black",
+              backgroundColor: `${MAIN_COLOR}12`,
+              color: MAIN_COLOR,
             },
             "&:focus": {
               backgroundColor: "transparent !important",
