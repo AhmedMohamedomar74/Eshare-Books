@@ -1,230 +1,408 @@
-import React, { useEffect, useState } from "react";
-import { Box, Container, Pagination } from "@mui/material";
-
-import HeroSection from "../../components/Home/HeroSection";
-import BookGrid from "../../components/LandingPage/BookGridLandingpage";
-import Spinner from "../../components/Spinner";
-import EmptyBooksState from "../../components/Home/EmptyBooksState";
-import bookService from "../../services/book.service";
+import React from "react";
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Stack,
+  Card,
+  CardContent,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import useTranslate from "../../hooks/useTranslate";
+import LocalLibraryIcon from "@mui/icons-material/LocalLibrary";
+import ShoppingBasketIcon from "@mui/icons-material/ShoppingBasket";
+import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 
-import CategoryCarousel from "../../components/LandingPage/CategoryCarousel";
-import Footer from "../../components/LandingPage/Footer";
+const MAIN_COLOR = "#22a699";
+const BG = "#f6f7f9";
 
-// ✅ new filters
-import TopTypeTabs from "../../components/LandingPage/TopTypeTabs";
-import SideCategoryFilter from "../../components/LandingPage/SideCategoryFilter";
-
-export default function LandingPage() {
+export default function Landing() {
   const { t } = useTranslate();
-
-  const [books, setBooks] = useState([]);
-  const [categories, setCategories] = useState([]);
-
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const [activeFilter, setActiveFilter] = useState({
-    type: null,
-    categoryId: null,
-  });
-
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  const limit = 12;
-  const SEARCH_FETCH_LIMIT = 5000;
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    fetchBooks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, searchTerm, activeFilter]);
-
-  const fetchBooks = async () => {
-    try {
-      setLoading(true);
-      const { type, categoryId } = activeFilter;
-      let list = [];
-
-      // ✅ Search priority
-      if (searchTerm.trim()) {
-        const data = await bookService.getAllBooks(
-          1,
-          SEARCH_FETCH_LIMIT,
-          searchTerm
-        );
-        list = data?.books || [];
-      } else {
-        // ✅ Filters
-        if (type && categoryId) {
-          const data = await bookService.getBooksByCategory(categoryId);
-          list = (data || []).filter(
-            (b) => (b.TransactionType || b.type) === type
-          );
-        } else if (categoryId) {
-          list = (await bookService.getBooksByCategory(categoryId)) || [];
-        } else if (type) {
-          list = (await bookService.getBooksByType(type)) || [];
-        } else {
-          const data = await bookService.getAllBooks(
-            1,
-            SEARCH_FETCH_LIMIT,
-            ""
-          );
-          list = data?.books || [];
-        }
-      }
-
-      const pages = Math.ceil(list.length / limit) || 1;
-      setTotalPages(pages);
-
-      const start = (page - 1) * limit;
-      const end = start + limit;
-      setBooks(list.slice(start, end));
-    } catch (err) {
-      console.error("Error fetching books:", err);
-      setBooks([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const cats = await bookService.getAllCategories();
-      setCategories(cats || []);
-    } catch (err) {
-      console.error("Error fetching categories:", err);
-      setCategories([]);
-    }
-  };
-
-  const handlePageChange = (_, value) => {
-    setPage(value);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const navigate = useNavigate();
 
   return (
-    <Box sx={{ bgcolor: "#f4f6f8", minHeight: "100vh" }}>
-      {/* ✅ Hero + Search inside */}
-      <HeroSection
-        searchTerm={searchTerm}
-        onSearchChange={(val) => {
-          setSearchTerm(val);
-          setPage(1);
+    <Box sx={{ bgcolor: BG, minHeight: "100vh" }}>
+      {/* ================= HERO SECTION ================= */}
+      <Box
+        sx={{
+          bgcolor: "#f7f1e8",
+          py: { xs: 12, md: 20 },
         }}
-        onSearchSubmit={() => {
-          setPage(1);
-          fetchBooks();
-        }}
-      />
-
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 8 }}>
-        {/* ✅ Top Tabs Filter (Borrow / Sell / Donate) */}
-        <TopTypeTabs
-          selectedType={activeFilter.type}
-          onChange={(type) => {
-            setPage(1);
-            setActiveFilter((prev) => ({ ...prev, type }));
-          }}
-        />
-
-        {/* ✅ Categories Carousel (optional) */}
-        {/* <CategoryCarousel categories={categories} /> */}
-        <CategoryCarousel
-  categories={categories}
-  selectedCategoryId={activeFilter.categoryId}
-  onSelectCategory={(categoryId) => {
-    setPage(1);
-    setActiveFilter((prev) => ({ ...prev, categoryId }));
-  }}
-/>
-
-
-        {/* ✅ Layout: Sidebar LEFT + Books RIGHT */}
-        <Box
-          sx={{
-            display: "flex",
-            gap: 3,
-            alignItems: "flex-start",
-            flexDirection: { xs: "column", md: "row" }, // موبايل تحت بعض
-          }}
-        >
-          {/* ✅ Sidebar Category Filter (LEFT) */}
+      >
+        <Container maxWidth="lg">
           <Box
             sx={{
-              width: { xs: "100%", md: 340 }, // ✅ أكبر من قبل
-              flexShrink: 0,
-              order: { xs: 2, md: 1 }, // ✅ في الديسكتوب يبقى أول عنصر
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+              gap: { xs: 4, md: 6 },
+              alignItems: "center",
             }}
           >
-            <SideCategoryFilter
-              categories={categories}
-              selectedCategoryId={activeFilter.categoryId}
-              onChangeCategory={(categoryId) => {
-                setPage(1);
-                setActiveFilter((prev) => ({ ...prev, categoryId }));
+            {/* Left side - Text content */}
+            <Box>
+              <Typography
+                fontWeight={900}
+                sx={{
+                  fontSize: { xs: "2rem", md: "2.5rem" },
+                  mb: 2,
+                  color: "#111827",
+                  lineHeight: 1.2,
+                }}
+              >
+                {t("heroTitle", "Share, Donate, or Sell Your Books.")}
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: "#4b5563",
+                  fontSize: { xs: "0.95rem", md: "1.05rem" },
+                  mb: 3,
+                }}
+              >
+                {t(
+                  "heroSubtitle",
+                  "Connect with readers in your community. Borrow, buy, or donate books easily."
+                )}
+              </Typography>
+
+              {/* CTA buttons */}
+              <Stack direction="row" spacing={2}>
+                <Button
+                  variant="contained"
+                  sx={{
+                    bgcolor: MAIN_COLOR,
+                    "&:hover": { bgcolor: "#1b8b7f" },
+                    fontWeight: 700,
+                    borderRadius: 999,
+                    textTransform: "none",
+                    px: 4,
+                    py: 1.2,
+                  }}
+                  onClick={() => navigate("/home")}
+                >
+                  {t("getStarted", "Get Started")}
+                </Button>
+              </Stack>
+            </Box>
+
+            {/* Right side - Hero Image */}
+            <Box
+              sx={{
+                borderRadius: 3,
+                overflow: "hidden",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
               }}
-            />
-          </Box>
-
-          {/* ✅ Books Grid (RIGHT) */}
-          <Box
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              order: { xs: 1, md: 2 },
-            }}
-          >
-            {loading ? (
-              <Spinner />
-            ) : books.length === 0 ? (
-              <EmptyBooksState
-                hasFiltersOrSearch={
-                  !!searchTerm.trim() ||
-                  !!activeFilter.categoryId ||
-                  !!activeFilter.type
-                }
-                onClearFilters={() => {
-                  setSearchTerm("");
-                  setActiveFilter({ type: null, categoryId: null });
-                  setPage(1);
+            >
+              <Box
+                component="img"
+                src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=1000"
+                alt="Stack of books"
+                sx={{
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
                 }}
               />
-            ) : (
-              <>
-                <BookGrid books={books} columns={4} bigCards />
-
-                {totalPages > 1 && (
-                  <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
-                    <Pagination
-                      page={page}
-                      count={totalPages}
-                      onChange={handlePageChange}
-                      shape="rounded"
-                      color="primary"
-                      size="large"
-                      sx={{
-                        "& .MuiPaginationItem-root": {
-                          borderRadius: 2,
-                          fontWeight: "bold",
-                        },
-                      }}
-                    />
-                  </Box>
-                )}
-              </>
-            )}
+            </Box>
           </Box>
-        </Box>
-      </Container>
+        </Container>
+      </Box>
 
-      <Footer />
+      {/* ================= EXPLORE COMMUNITY SECTION ================= */}
+      <Box sx={{ py: { xs: 6, md: 8 } }}>
+        <Container maxWidth="lg">
+          <Typography
+            variant="h4"
+            fontWeight={900}
+            textAlign="center"
+            sx={{ mb: 5, color: "#111827" }}
+          >
+            {t("exploreCommunity", "Explore the Community")}
+          </Typography>
+
+          <Stack spacing={3}>
+            {/* Borrow Books Card */}
+            <Card
+              sx={{
+                borderRadius: 3,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                transition: "transform 0.2s",
+                "&:hover": { transform: "translateY(-4px)" },
+              }}
+            >
+              <CardContent sx={{ p: 4 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 2,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>
+                    <Box
+                      sx={{
+                        bgcolor: `${MAIN_COLOR}15`,
+                        p: 1.5,
+                        borderRadius: 2,
+                        display: "flex",
+                      }}
+                    >
+                      <LocalLibraryIcon sx={{ color: MAIN_COLOR, fontSize: 28 }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        sx={{ mb: 1, color: "#111827" }}
+                      >
+                        {t("borrowBooks", "Borrow Books")}
+                      </Typography>
+                      <Typography
+                        sx={{ color: "#6b7280", fontSize: "0.9rem", maxWidth: 500 }}
+                      >
+                        {t(
+                          "borrowDesc",
+                          "Discover a wide range of books available for borrowing from people near you."
+                        )}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate("/home")}
+                    sx={{
+                      bgcolor: MAIN_COLOR,
+                      "&:hover": { bgcolor: "#1b8b7f" },
+                      fontWeight: 600,
+                      borderRadius: 999,
+                      textTransform: "none",
+                      px: 3,
+                    }}
+                  >
+                    {t("startBorrowing", "Start Borrowing")}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+
+            {/* Sell Books Card */}
+            <Card
+              sx={{
+                borderRadius: 3,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                transition: "transform 0.2s",
+                "&:hover": { transform: "translateY(-4px)" },
+              }}
+            >
+              <CardContent sx={{ p: 4 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 2,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>
+                    <Box
+                      sx={{
+                        bgcolor: `${MAIN_COLOR}15`,
+                        p: 1.5,
+                        borderRadius: 2,
+                        display: "flex",
+                      }}
+                    >
+                      <ShoppingBasketIcon sx={{ color: MAIN_COLOR, fontSize: 28 }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        sx={{ mb: 1, color: "#111827" }}
+                      >
+                        {t("sellBooks", "Sell Books")}
+                      </Typography>
+                      <Typography
+                        sx={{ color: "#6b7280", fontSize: "0.9rem", maxWidth: 500 }}
+                      >
+                        {t(
+                          "sellDesc",
+                          "Turn your pre-loved books into cash by selling them to our community of readers."
+                        )}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate("/home")}
+                    sx={{
+                      bgcolor: MAIN_COLOR,
+                      "&:hover": { bgcolor: "#1b8b7f" },
+                      fontWeight: 600,
+                      borderRadius: 999,
+                      textTransform: "none",
+                      px: 3,
+                    }}
+                  >
+                    {t("sellBooks", "Sell Books")}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+
+            {/* Donate Books Card */}
+            <Card
+              sx={{
+                borderRadius: 3,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                transition: "transform 0.2s",
+                "&:hover": { transform: "translateY(-4px)" },
+              }}
+            >
+              <CardContent sx={{ p: 4 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 2,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>
+                    <Box
+                      sx={{
+                        bgcolor: `${MAIN_COLOR}15`,
+                        p: 1.5,
+                        borderRadius: 2,
+                        display: "flex",
+                      }}
+                    >
+                      <VolunteerActivismIcon sx={{ color: MAIN_COLOR, fontSize: 28 }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        sx={{ mb: 1, color: "#111827" }}
+                      >
+                        {t("donateBooks", "Donate Books")}
+                      </Typography>
+                      <Typography
+                        sx={{ color: "#6b7280", fontSize: "0.9rem", maxWidth: 500 }}
+                      >
+                        {t(
+                          "donateDesc",
+                          "Give your books a new life and support a good cause by donating them to local charities."
+                        )}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate("/home")}
+                    sx={{
+                      bgcolor: MAIN_COLOR,
+                      "&:hover": { bgcolor: "#1b8b7f" },
+                      fontWeight: 600,
+                      borderRadius: 999,
+                      textTransform: "none",
+                      px: 3,
+                    }}
+                  >
+                    {t("donateNow", "Donate Now")}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Container>
+      </Box>
+
+      {/* ================= ABOUT SECTION ================= */}
+      <Box sx={{ bgcolor: "#f7f1e8", py: { xs: 10, md: 14 } }}>
+        <Container maxWidth="lg">
+          <Typography
+            variant="h4"
+            fontWeight={900}
+            textAlign="center"
+            sx={{ mb: 4, color: "#111827" }}
+          >
+            {t("aboutUs", "About Us")}
+          </Typography>
+
+          <Typography
+            sx={{
+              color: "#4b5563",
+              fontSize: "1.05rem",
+              textAlign: "center",
+              maxWidth: 800,
+              mx: "auto",
+              mb: 5,
+              lineHeight: 1.8,
+            }}
+          >
+            {t(
+              "aboutDesc",
+              "At Eshare Books, our mission is to foster a love for reading by making books more accessible and sustainable. We believe every book deserves to be read, and our platform connects passionate readers to facilitate easy exchanges, sales, and donations within local communities."
+            )}
+          </Typography>
+
+          {/* Feature Pills */}
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent="center"
+            flexWrap="wrap"
+            useFlexGap
+            sx={{ mb: 2 }}
+          >
+            <Box
+              sx={{
+                bgcolor: `${MAIN_COLOR}15`,
+                color: MAIN_COLOR,
+                px: 3,
+                py: 1,
+                borderRadius: 999,
+                fontSize: "0.85rem",
+                fontWeight: 600,
+              }}
+            >
+              💱 {t("safeExchange", "Safe Exchange")}
+            </Box>
+            <Box
+              sx={{
+                bgcolor: `${MAIN_COLOR}15`,
+                color: MAIN_COLOR,
+                px: 3,
+                py: 1,
+                borderRadius: 999,
+                fontSize: "0.85rem",
+                fontWeight: 600,
+              }}
+            >
+              👥 {t("communitySharing", "Community Sharing")}
+            </Box>
+            <Box
+              sx={{
+                bgcolor: `${MAIN_COLOR}15`,
+                color: MAIN_COLOR,
+                px: 3,
+                py: 1,
+                borderRadius: 999,
+                fontSize: "0.85rem",
+                fontWeight: 600,
+              }}
+            >
+              🔍 {t("easyDiscovery", "Easy Discovery")}
+            </Box>
+          </Stack>
+        </Container>
+      </Box>
     </Box>
   );
 }

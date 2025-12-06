@@ -53,13 +53,12 @@ const BookCard = ({ book, big = false, disabled = false }) => {
       sx={{
         position: "relative",
         width: big ? 330 : 290,
-        height: big ? 470 : 420,
+        height: big ? 470 : 420, // ✅ Fixed height
         borderRadius: 3,
         bgcolor: "white",
         boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
         transition: "transform 0.25s ease, box-shadow 0.25s ease, opacity 0.2s",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.75 : 1,
@@ -133,7 +132,7 @@ const BookCard = ({ book, big = false, disabled = false }) => {
         </Box>
       )}
 
-      {/* Image */}
+      {/* Image - Fixed height */}
       <CardMedia
         component="img"
         image={
@@ -142,27 +141,29 @@ const BookCard = ({ book, big = false, disabled = false }) => {
         }
         alt={title}
         sx={{
-          height: big ? 230 : 200,
+          height: big ? 230 : 200, // ✅ Fixed image height
           objectFit: "contain",
           backgroundColor: "#f7f7f7",
           borderTopLeftRadius: 12,
           borderTopRightRadius: 12,
           p: 1,
+          flexShrink: 0, // ✅ Prevents image from shrinking
         }}
       />
 
-      {/* Content */}
+      {/* Content - Takes remaining space */}
       <CardContent
         sx={{
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
           p: big ? 2.2 : 2,
           pb: 2,
+          overflow: "hidden", // ✅ Prevents content overflow
         }}
       >
-        <Box>
+        {/* Top content - grows to push button down */}
+        <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
           <Chip
             label={t(type, type)}
             size="small"
@@ -172,6 +173,7 @@ const BookCard = ({ book, big = false, disabled = false }) => {
               bgcolor: chipStyle.bg,
               color: chipStyle.color,
               border: `1px solid ${chipStyle.border}`,
+              alignSelf: "flex-start", // ✅ Prevents chip from stretching
             }}
           />
 
@@ -196,36 +198,41 @@ const BookCard = ({ book, big = false, disabled = false }) => {
             sx={{
               mb: 1.2,
               fontSize: big ? "0.9rem" : "0.85rem",
-              minHeight: big ? 52 : 42,
               lineHeight: 1.5,
+              display: "-webkit-box", // ✅ Multi-line ellipsis
+              WebkitLineClamp: 2, // ✅ Show max 2 lines
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              minHeight: big ? 48 : 42, // ✅ Fixed height for description area
             }}
           >
             {shortDescription}
           </Typography>
 
-          {type === "toSale" && (
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 900, mb: 1, color: MAIN_COLOR }}
-            >
-              {price} {t("egp", "EGP")}
-            </Typography>
-          )}
+          {/* Price section - fixed height */}
+          <Box sx={{ minHeight: 32, mb: 1 }}>
+            {type === "toSale" && (
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: 900, color: MAIN_COLOR }}
+              >
+                {price} {t("egp", "EGP")}
+              </Typography>
+            )}
 
-          {type === "toBorrow" && (
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 900, mb: 1, color: "#1976d2" }}
-            >
-              {pricePerDay} {t("egpPerDay", "EGP / day")}
-            </Typography>
-          )}
-
-          {type !== "toSale" && type !== "toBorrow" && (
-            <Box sx={{ height: 20, mb: 1 }} />
-          )}
+            {type === "toBorrow" && (
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 900, color: "#1976d2" }}
+              >
+                {pricePerDay} {t("egpPerDay", "EGP / day")}
+              </Typography>
+            )}
+          </Box>
         </Box>
 
+        {/* Button - always at bottom */}
         <Button
           variant="contained"
           fullWidth
@@ -241,6 +248,7 @@ const BookCard = ({ book, big = false, disabled = false }) => {
             fontSize: big ? "1rem" : "0.9rem",
             py: big ? 1.2 : 1,
             bgcolor: MAIN_COLOR,
+            flexShrink: 0, // ✅ Prevents button from shrinking
             "&:hover": { bgcolor: "#1b8b7f" },
             "&.Mui-disabled": {
               bgcolor: "#cbd5e1",

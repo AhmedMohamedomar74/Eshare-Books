@@ -16,6 +16,7 @@ export default function HeroSection({
   searchTerm = "",
   onSearchChange,
   onSearchSubmit,
+  onFilterClick, // ✅ NEW prop for filter buttons
 }) {
   const { t } = useTranslate();
 
@@ -32,11 +33,18 @@ export default function HeroSection({
       setActiveIndex((prev) => (prev + 1) % images.length);
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [images.length]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") onSearchSubmit?.();
   };
+
+  // ✅ Filter options
+  const filterButtons = [
+    { label: "Trending today", filter: "trending" },
+    { label: "Popular books", filter: "popular" },
+    { label: "Latest books", filter: "latest" },
+  ];
 
   return (
     <Box
@@ -153,34 +161,7 @@ export default function HeroSection({
           </Button>
         </Stack>
 
-        {/* Optional Buttons تحت السيرش */}
-        <Stack
-          direction="row"
-          spacing={2}
-          justifyContent="center"
-          sx={{ mt: 3, flexWrap: "wrap" }}
-        >
-          {["Trending today", "Popular books", "Latest books"].map((label) => (
-            <Button
-              key={label}
-              variant="outlined"
-              sx={{
-                color: "white",
-                borderColor: `${MAIN_COLOR}cc`,
-                borderRadius: 2,
-                textTransform: "none",
-                px: 3,
-                fontWeight: 800,
-                "&:hover": {
-                  borderColor: MAIN_COLOR,
-                  bgcolor: `${MAIN_COLOR}22`,
-                },
-              }}
-            >
-              {t(label, label)}
-            </Button>
-          ))}
-        </Stack>
+        
       </Box>
     </Box>
   );

@@ -3,9 +3,16 @@ import { Box, Paper, Typography, ButtonBase } from "@mui/material";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivismOutlined";
+import AppsIcon from "@mui/icons-material/Apps";
 import useTranslate from "../../hooks/useTranslate";
 
 const tabs = [
+  {
+    key: null, // ✅ null means "All"
+    label: "All",
+    icon: <AppsIcon sx={{ fontSize: 34 }} />,
+    color: "#6b7280",
+  },
   {
     key: "toSale",
     label: "Sell",
@@ -34,7 +41,7 @@ export default function TopTypeTabs({ selectedType, onChange }) {
       elevation={1}
       sx={{
         display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
+        gridTemplateColumns: "repeat(4, 1fr)", // ✅ Changed to 4 columns
         borderRadius: 2.5,
         overflow: "hidden",
         mb: 3,
@@ -46,15 +53,19 @@ export default function TopTypeTabs({ selectedType, onChange }) {
 
         return (
           <ButtonBase
-            key={tab.key}
-            onClick={() => onChange?.(active ? null : tab.key)}
+            key={tab.key || "all"}
+            onClick={() => onChange?.(tab.key)}
             sx={{
               py: 2.2,
               px: 2,
               transition: "all .25s ease",
               borderBottom: active ? `3px solid ${tab.color}` : "3px solid transparent",
-              bgcolor: active ? `${tab.color}10` : "transparent",
-              "&:hover": { bgcolor: `${tab.color}15` },
+              bgcolor: active ? `${tab.color}20` : "transparent", // ✅ More visible
+              "&:hover": { 
+                bgcolor: `${tab.color}30`, // ✅ Clearer hover
+                transform: "translateY(-2px)", // ✅ Subtle lift effect
+                boxShadow: active ? "none" : `0 4px 12px ${tab.color}30`, // ✅ Shadow on hover
+              },
             }}
           >
             <Box

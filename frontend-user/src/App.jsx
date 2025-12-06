@@ -27,16 +27,24 @@ import VerifyEmail from "./pages/VerificationPage/VerifyEmail.jsx";
 import LandingPage from "./pages/Home/LandingPage.jsx";
 import CategoryPage from "./pages/CategoryPage/CategoryPage.jsx";
 import AllCategoriesPage from "./pages/CategoryPage/AllCategoriesPage.jsx";
- function App() {
+
+// ✅ Footer
+import Footer from "./components/LandingPage/Footer.jsx";
+
+function App() {
   const { direction } = useSelector((state) => state.lang);
   const { mode } = useSelector((state) => state.theme);
   const theme = getMuiTheme({ mode, direction });
+
   return (
-    <BrowserRouter>
-      <NavigationProvider>
-        {/* <Navbar /> */}
-        <Routes>
-          {/* <Route path="/" element={<Home />} />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+
+      <BrowserRouter>
+        <NavigationProvider>
+          {/* <Navbar /> */}
+          <Routes>
+            {/* <Route path="/" element={<Home />} />
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/add-book" element={<AddBook />} />
@@ -48,37 +56,45 @@ import AllCategoriesPage from "./pages/CategoryPage/AllCategoriesPage.jsx";
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/reports/:type/:targetId" element={<Report />} />
         <Route path="/myreports" element={<MyReports />} /> */}
-          <Route element={<UserLayout />}>
-            <Route path="/details/:id" element={<BookDetails />} />
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/categories" element={<AllCategoriesPage />} />
 
-            <Route path="/category/:catId" element={<CategoryPage />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/public-profile/:userId" element={<PublicProfile />} />
-            <Route element={<ProtectedRoute />}>
-              <Route path="/notification" element={<NotificationPage />} />
-              <Route path="/profile" element={<BookShareDashboard />} />
-              <Route path="/order/:id" element={<OrderPage />} />
+            <Route element={<UserLayout />}>
+              <Route path="/details/:id" element={<BookDetails />} />
+              <Route path="/landingpage" element={<LandingPage />} />
+              <Route path="/categories" element={<AllCategoriesPage />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/category/:catId" element={<CategoryPage />} />
+              <Route path="/home" element={<Home />} />
+              <Route
+                path="/public-profile/:userId"
+                element={<PublicProfile />}
+              />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/notification" element={<NotificationPage />} />
+                <Route path="/profile" element={<BookShareDashboard />} />
+                <Route path="/order/:id" element={<OrderPage />} />
 
-              {/* <Route path="/order/:userId" element={<OrderPage />} /> */}
-              <Route path="/wishlist" element={<Wishlist />} />
-              <Route path="/reports/:type/:targetId" element={<Report />} />
-              <Route path="/myreports" element={<MyReports />} />
-              <Route path="/add-book" element={<AddBook />} />
-              <Route path="/edit-book/:id" element={<EditBook />} />
+                {/* <Route path="/order/:userId" element={<OrderPage />} /> */}
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/reports/:type/:targetId" element={<Report />} />
+                <Route path="/myreports" element={<MyReports />} />
+                <Route path="/add-book" element={<AddBook />} />
+                <Route path="/edit-book/:id" element={<EditBook />} />
+              </Route>
             </Route>
-          </Route>
-          <Route path="/login" element={<BookCycleLogin />} />
-          <Route path="/forget-password" element={<ForgotPassword />} />
-          <Route path="/register" element={<BookShareRegister />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="*" element={<NotFound />} />
 
-        </Routes>
-      </NavigationProvider>
-    </BrowserRouter>
+            <Route path="/login" element={<BookCycleLogin />} />
+            <Route path="/forget-password" element={<ForgotPassword />} />
+            <Route path="/register" element={<BookShareRegister />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+
+          {/* ✅ Footer يظهر في كل الصفحات */}
+          <Footer />
+        </NavigationProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

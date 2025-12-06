@@ -9,11 +9,12 @@ import {
   Divider,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import useTranslate from "../../hooks/useTranslate";
 import { useNavigate } from "react-router-dom";
 
-const MAIN_COLOR = "#22a699"; // ✅ نفس لون الكتب عندك
+const MAIN_COLOR = "#22a699";
 
 export default function SideCategoryFilter({
   categories = [],
@@ -32,12 +33,17 @@ export default function SideCategoryFilter({
     );
   }, [categories, query]);
 
+  const handleClearAll = () => {
+    setQuery("");
+    onChangeCategory?.(null);
+  };
+
   return (
     <Paper
       elevation={1}
       sx={{
         p: 2.2,
-        borderRadius: 4, // ✅ أنعم
+        borderRadius: 2,          // ✅ أقل rounded
         bgcolor: "white",
         height: "fit-content",
         position: "sticky",
@@ -55,12 +61,20 @@ export default function SideCategoryFilter({
         <Typography variant="h6" fontWeight={800}>
           {t("bookCategories", "Book Categories")}
         </Typography>
-        <IconButton size="small">
-          <SearchIcon />
+
+        <IconButton
+          size="small"
+          onClick={handleClearAll}
+          sx={{
+            color: MAIN_COLOR,
+            "&:hover": { bgcolor: `${MAIN_COLOR}15` },
+          }}
+        >
+          <ClearIcon />
         </IconButton>
       </Box>
 
-      {/* Search inside categories */}
+      {/* Search */}
       <TextField
         fullWidth
         size="small"
@@ -77,7 +91,7 @@ export default function SideCategoryFilter({
         sx={{
           mb: 1.5,
           "& .MuiOutlinedInput-root": {
-            borderRadius: "999px", // ✅ دائري
+            borderRadius: 2,      // ✅ بدل 999px
             bgcolor: "#f7f9fb",
           },
         }}
@@ -86,15 +100,15 @@ export default function SideCategoryFilter({
       <Divider sx={{ mb: 1.5 }} />
 
       {/* List */}
-      <Box sx={{ maxHeight: 420, overflowY: "auto", pr: 0.5 }}>
-        {/* ✅ All Categories (navigate to a full categories page) */}
+      <Box sx={{ maxHeight: 600, overflowY: "auto", pr: 0.5 }}>
+        {/* All Categories */}
         <Box
-          onClick={() => navigate("/categories")}
+          onClick={() => onChangeCategory?.(null)}
           sx={{
             cursor: "pointer",
             px: 1.5,
             py: 1.2,
-            borderRadius: "999px", // ✅ دائري
+            borderRadius: 2,     // ✅ أقل rounded
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -106,12 +120,10 @@ export default function SideCategoryFilter({
             "&:hover": {
               bgcolor: `${MAIN_COLOR}12`,
               borderColor: MAIN_COLOR,
-              transform: "translateX(2px)",
             },
           }}
         >
           <Box display="flex" alignItems="center" gap={1}>
-            {/* نقطة صغيرة */}
             <Box
               sx={{
                 width: 8,
@@ -142,7 +154,7 @@ export default function SideCategoryFilter({
                 px: 1.5,
                 py: 1.15,
                 mt: 0.8,
-                borderRadius: "999px", // ✅ دائري
+                borderRadius: 2,  // ✅ أقل rounded
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -154,12 +166,10 @@ export default function SideCategoryFilter({
                 "&:hover": {
                   bgcolor: `${MAIN_COLOR}12`,
                   borderColor: MAIN_COLOR,
-                  transform: "translateX(2px)",
                 },
               }}
             >
               <Box display="flex" alignItems="center" gap={1}>
-                {/* نقطة active */}
                 <Box
                   sx={{
                     width: 8,
@@ -177,12 +187,7 @@ export default function SideCategoryFilter({
                 </Typography>
               </Box>
 
-              <MenuBookOutlinedIcon
-                sx={{
-                  fontSize: 18,
-                  color: MAIN_COLOR,
-                }}
-              />
+              <MenuBookOutlinedIcon sx={{ fontSize: 18, color: MAIN_COLOR }} />
             </Box>
           );
         })}
