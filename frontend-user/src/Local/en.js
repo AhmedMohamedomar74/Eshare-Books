@@ -533,6 +533,40 @@ const en = {
   pricePerDayMustBePositive: 'Price per day must be greater than zero',
   priceMaxSale: 'Price is too high',
   priceMaxBorrow: 'Price per day is too high',
+    // ===== Landing Page =====
+  heroTitle: "Share, Donate, or Sell Your Books.",
+  heroSubtitle:
+    "Connect with readers in your community. Borrow, buy, or donate books easily.",
+  getStarted: "Get Started",
+
+  exploreCommunity: "Explore the Community",
+
+  borrowBooks: "Borrow Books",
+  borrowDesc:
+    "Discover a wide range of books available for borrowing from people near you.",
+  startBorrowing: "Start Borrowing",
+
+  sellBooks: "Sell Books",
+  sellDesc:
+    "Turn your pre-loved books into cash by selling them to our community of readers.",
+
+  donateBooks: "Donate Books",
+  donateDesc:
+    "Give your books a new life and support a good cause by donating them to local charities.",
+  donateNow: "Donate Now",
+
+  aboutUs: "About Us",
+  aboutDesc:
+    "At Eshare Books, our mission is to foster a love for reading by making books more accessible and sustainable. We believe every book deserves to be read, and our platform connects passionate readers to facilitate easy exchanges, sales, and donations within local communities.",
+
+  safeExchange: "Safe Exchange",
+  communitySharing: "Community Sharing",
+  easyDiscovery: "Easy Discovery",
+
+  // ===== Footer =====
+  footerTagline: "Borrow, sell, or donate books easily with your community.",
+  support: "Support",
+  allRightsReserved: "All rights reserved.",
 };
 
 export default en;
