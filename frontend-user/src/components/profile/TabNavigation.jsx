@@ -12,11 +12,11 @@ const TabNavigation = ({ activeTab, setActiveTab }) => {
     },
     { 
       id: "requested-books", 
-      label: content.requestedBooks || "Books I Requested" 
+      label: content.requestedBooks || "Requests to My Books" 
     },
     { 
       id: "received-requests", 
-      label: content.receivedRequests || "Requests to My Books" 
+      label: content.receivedRequests || "Books I Requested" 
     },
   ];
 

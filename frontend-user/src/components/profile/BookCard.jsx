@@ -300,6 +300,9 @@ const BookCard = ({ book, onDelete, isOwner, hasPendingOperation, showOperationD
                     {operation.borrowDetails.borrowedFrom && (
                       <p className="text-xs text-gray-500">Borrowed from: {operation.borrowDetails.borrowedFrom}</p>
                     )}
+                    {operation.borrowDetails.borrowedBy && (
+                      <p className="text-xs text-gray-500">Borrowed by: {operation.borrowDetails.borrowedBy}</p>
+                    )}
                   </div>
                 )}
 
