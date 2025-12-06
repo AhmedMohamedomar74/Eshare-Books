@@ -199,7 +199,7 @@ const BookShareDashboard = () => {
                     <p className="text-2xl font-bold text-green-600">{destSummary.totalOperations}</p>
                   </div>
                   <div className="bg-orange-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-600">{content.totalSpent || "Total Spent"}</p>
+                    <p className="text-sm text-gray-600">{content.totalSpent || "Total Revnue"}</p>
                     <p className="text-2xl font-bold text-orange-600">{destSummary.totalSpent} EGP</p>
                   </div>
                   <div className="bg-purple-50 p-3 rounded-lg">
@@ -272,7 +272,7 @@ const BookShareDashboard = () => {
                     <p className="text-2xl font-bold text-green-600">{sourceSummary.totalOperations}</p>
                   </div>
                   <div className="bg-purple-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-600">{content.totalRevenue || "Total Revenue"}</p>
+                    <p className="text-sm text-gray-600">{content.totalRevenue || "Total Spent"}</p>
                     <p className="text-2xl font-bold text-purple-600">{sourceSummary.totalRevenue} EGP</p>
                   </div>
                 </div>
