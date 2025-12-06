@@ -1,40 +1,36 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Container,
-  TextField,
-  Pagination,
-  InputAdornment,
-  Paper,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { Box, Container, Pagination } from "@mui/material";
+
 import HeroSection from "../../components/Home/HeroSection";
-import Filters from "../../components/Home/Filters";
-import BookGrid from "../../components/Home/BookGrid";
+import BookGrid from "../../components/LandingPage/BookGridLandingpage";
 import Spinner from "../../components/Spinner";
 import EmptyBooksState from "../../components/Home/EmptyBooksState";
 import bookService from "../../services/book.service";
 import useTranslate from "../../hooks/useTranslate";
+
+// ✅ new filters
+import TopTypeTabs from "../../components/LandingPage/TopTypeTabs";
+import SideCategoryFilter from "../../components/LandingPage/SideCategoryFilter";
 
 export default function Home() {
   const { t } = useTranslate();
 
   const [books, setBooks] = useState([]);
   const [categories, setCategories] = useState([]);
+
   const [searchTerm, setSearchTerm] = useState("");
-
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  const limit = 9;
-  const SEARCH_FETCH_LIMIT = 5000;
-
-  const [loading, setLoading] = useState(false);
 
   const [activeFilter, setActiveFilter] = useState({
     type: null,
     categoryId: null,
   });
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const limit = 12;
+  const SEARCH_FETCH_LIMIT = 5000;
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -43,15 +39,15 @@ export default function Home() {
   useEffect(() => {
     fetchBooks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, activeFilter, searchTerm]);
+  }, [page, searchTerm, activeFilter]);
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (sortOption = null) => {
     try {
       setLoading(true);
-
       const { type, categoryId } = activeFilter;
       let list = [];
 
+      // ✅ Search priority
       if (searchTerm.trim()) {
         const data = await bookService.getAllBooks(
           1,
@@ -60,6 +56,7 @@ export default function Home() {
         );
         list = data?.books || [];
       } else {
+        // ✅ Filters
         if (type && categoryId) {
           const data = await bookService.getBooksByCategory(categoryId);
           list = (data || []).filter(
@@ -70,35 +67,44 @@ export default function Home() {
         } else if (type) {
           list = (await bookService.getBooksByType(type)) || [];
         } else {
-          const data = await bookService.getAllBooks(page, limit, "");
-          setBooks((data?.books || []).slice(0, limit));
-
-          const pages = Math.ceil(
-            (data?.total || 0) / (data?.limit || limit)
+          const data = await bookService.getAllBooks(
+            1,
+            SEARCH_FETCH_LIMIT,
+            ""
           );
-          setTotalPages(pages || 1);
-          return;
+          list = data?.books || [];
         }
       }
 
-      if (categoryId) {
-        list = list.filter(
-          (b) => (b.categoryId?._id || b.categoryId) === categoryId
-        );
-      }
-
-      if (type) {
-        list = list.filter(
-          (b) => (b.TransactionType || b.type) === type
-        );
+      // ✅ Apply sorting based on filter button
+      if (sortOption === "latest") {
+        list = list.sort((a, b) => {
+          const dateA = new Date(a.createdAt || a.CreatedAt || 0);
+          const dateB = new Date(b.createdAt || b.CreatedAt || 0);
+          return dateB - dateA; // Newest first
+        });
+      } else if (sortOption === "popular") {
+        // Sort by views or favorites if available
+        list = list.sort((a, b) => {
+          const viewsA = a.views || a.Views || 0;
+          const viewsB = b.views || b.Views || 0;
+          return viewsB - viewsA;
+        });
+      } else if (sortOption === "trending") {
+        // Sort by recent activity or combination of views and date
+        list = list.sort((a, b) => {
+          const scoreA = (a.views || 0) + (new Date(a.createdAt || 0).getTime() / 1000000);
+          const scoreB = (b.views || 0) + (new Date(b.createdAt || 0).getTime() / 1000000);
+          return scoreB - scoreA;
+        });
       }
 
       const pages = Math.ceil(list.length / limit) || 1;
       setTotalPages(pages);
 
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      setBooks(list.slice(startIndex, endIndex));
+      const start = (page - 1) * limit;
+      const end = start + limit;
+      setBooks(list.slice(start, end));
     } catch (err) {
       console.error("Error fetching books:", err);
       setBooks([]);
@@ -118,105 +124,86 @@ export default function Home() {
     }
   };
 
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    setPage(1);
-  };
-
-  const handleCategoryChange = (catId) => {
-    setPage(1);
-    setActiveFilter((prev) => ({
-      ...prev,
-      categoryId: catId || null,
-    }));
-  };
-
-  const handleTypeChange = (selectedType) => {
-    setPage(1);
-    setActiveFilter((prev) => ({
-      ...prev,
-      type: selectedType || null,
-    }));
-  };
-
-  const handleClearFilters = () => {
-    setSearchTerm("");
-    setActiveFilter({ type: null, categoryId: null });
-    setPage(1);
-  };
-
   const handlePageChange = (_, value) => {
     setPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // ✅ Clear all filters function
+  const handleClearAllFilters = () => {
+    setSearchTerm("");
+    setActiveFilter({ type: null, categoryId: null });
+    setPage(1);
+  };
+
+  // ✅ Handle filter button clicks
+  const handleFilterClick = (filter) => {
+    setPage(1);
+    fetchBooks(filter);
+  };
+
   return (
-    <Box sx={{ bgcolor: "#f4f6f8" }}>
-      <HeroSection />
+    <Box sx={{ bgcolor: "#f4f6f8", minHeight: "100vh" }}>
+      {/* ✅ Hero + Search inside */}
+      <HeroSection
+        searchTerm={searchTerm}
+        onSearchChange={(val) => {
+          setSearchTerm(val);
+          setPage(1);
+        }}
+        onSearchSubmit={() => {
+          setPage(1);
+          fetchBooks();
+        }}
+        onFilterClick={handleFilterClick}
+      />
 
-      <Container maxWidth="xl" sx={{ mt: 6, mb: 6 }}>
-        {/* Search Bar */}
-        <Paper
-          elevation={2}
-          sx={{ p: 1.5, mb: 3, borderRadius: 3, bgcolor: "white" }}
-        >
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder={t("searchPlaceholder", "Search by title...")}
-            value={searchTerm}
-            onChange={handleSearch}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action" />
-                </InputAdornment>
-              ),
-              sx: { height: 40, borderRadius: 2 },
-            }}
-            sx={{
-              "& fieldset": { border: "none" },
-              "& .MuiInputBase-input": { py: 0.8 },
-              bgcolor: "transparent",
-            }}
-          />
-        </Paper>
+      <Container maxWidth="xl" sx={{ mt: 4, mb: 8 }}>
+        {/* ✅ Top Tabs Filter (All / Borrow / Sell / Donate) */}
+        <TopTypeTabs
+          selectedType={activeFilter.type}
+          onChange={(type) => {
+            setPage(1);
+            setActiveFilter((prev) => ({ ...prev, type }));
+          }}
+        />
 
+        {/* ✅ Layout: Sidebar LEFT + Books RIGHT */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: "row",
             gap: 3,
-            alignItems: "stretch",
-            overflowX: { xs: "auto", md: "visible" },
+            alignItems: "flex-start",
+            flexDirection: { xs: "column", md: "row" },
           }}
         >
-          {/* Filters */}
-          <Paper
-            elevation={1}
+          {/* ✅ Sidebar Category Filter (LEFT) */}
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
-              bgcolor: "white",
-              flex: "0 0 280px",
-              minWidth: 340,
-              height: "100%",
-              minHeight: "185vh",
+              width: { xs: "100%", md: 340 },
+              flexShrink: 0,
+              order: { xs: 2, md: 1 },
             }}
           >
-            <Filters
+            <SideCategoryFilter
               categories={categories}
-              onCategoryChange={handleCategoryChange}
-              onTypeChange={handleTypeChange}
-              onClearFilters={handleClearFilters}
               selectedCategoryId={activeFilter.categoryId}
-              selectedType={activeFilter.type}
+              onChangeCategory={(categoryId) => {
+                setPage(1);
+                setActiveFilter((prev) => ({ ...prev, categoryId }));
+              }}
+              onClearAllFilters={handleClearAllFilters}
             />
-          </Paper>
+          </Box>
 
-          {/* Books Grid + Pagination */}
-          <Box sx={{ flex: 1, minWidth: 0 }}>
+          {/* ✅ Books Grid (RIGHT) */}
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              order: { xs: 1, md: 2 },
+            }}
+          >
             {loading ? (
               <Spinner />
             ) : books.length === 0 ? (
@@ -226,11 +213,11 @@ export default function Home() {
                   !!activeFilter.categoryId ||
                   !!activeFilter.type
                 }
-                onClearFilters={handleClearFilters}
+                onClearFilters={handleClearAllFilters}
               />
             ) : (
               <>
-                <BookGrid books={books} />
+                <BookGrid books={books} columns={4} bigCards />
 
                 {totalPages > 1 && (
                   <Box display="flex" justifyContent="center" sx={{ mt: 5 }}>
@@ -239,23 +226,21 @@ export default function Home() {
                       count={totalPages}
                       onChange={handlePageChange}
                       shape="rounded"
-                      color="primary"
                       size="large"
                       sx={{
                         "& .MuiPaginationItem-root": {
                           borderRadius: 2,
                           fontWeight: "bold",
-                          color: "#1976d2",
-                          "&:hover": {
-                            backgroundColor: "#1976d2",
-                            color: "#fff",
-                            transform: "scale(1.06)",
+                          "&.Mui-selected": {
+                            bgcolor: "#22a699",
+                            color: "white",
+                            "&:hover": {
+                              bgcolor: "#1b8b7f",
+                            },
                           },
-                        },
-                        "& .Mui-selected": {
-                          backgroundColor: "#1976d2",
-                          color: "#fff",
-                          fontWeight: "bold",
+                          "&:hover": {
+                            bgcolor: "#22a69915",
+                          },
                         },
                       }}
                     />

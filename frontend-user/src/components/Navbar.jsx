@@ -25,7 +25,8 @@ import { fetchWishlist } from "../redux/slices/wishlist.slice";
 import UserAvatar from "./common/UserAvatar";
 import { logout } from "../services/auth/auth.service";
 import NotificationBell from "./Notification/NotificationBell";
-import LangButton from "./LangButton";
+
+const MAIN_COLOR = "#22a699";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -78,10 +79,9 @@ const Navbar = () => {
     }
   };
 
-  // For desktop - only icons with consistent styling
   const desktopNavIcons = [
     {
-      path: "/",
+      path: "/home",
       icon: <HomeIcon />,
       tooltip: content.home || "Home",
       component: Link,
@@ -106,7 +106,6 @@ const Navbar = () => {
     },
   ];
 
-  // For mobile drawer - with labels
   const mobileNavLinks = [
     { label: content.home || "Home", path: "/", icon: <HomeIcon /> },
     {
@@ -130,7 +129,10 @@ const Navbar = () => {
 
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
-      <Typography variant="h6" sx={{ my: 2, fontWeight: "bold" }}>
+      <Typography
+        variant="h6"
+        sx={{ my: 2, fontWeight: "bold", color: MAIN_COLOR }}
+      >
         EshareBook
       </Typography>
 
@@ -150,9 +152,10 @@ const Navbar = () => {
               textAlign: "center",
               py: 1,
               cursor: "pointer",
-              color: "black",
+              color: "#111827",
               "&:hover": {
-                backgroundColor: "rgba(0, 0, 0, 0.04)",
+                backgroundColor: `${MAIN_COLOR}12`,
+                color: MAIN_COLOR,
               },
             }}
           >
@@ -165,10 +168,12 @@ const Navbar = () => {
                     gap: 1,
                     justifyContent: "center",
                     width: "auto",
-                    color: "black",
+                    color: "inherit",
                   }}
                 >
-                  {icon}
+                  {/* نخلي لون الايقونة MAIN_COLOR */}
+                  <Box sx={{ color: MAIN_COLOR }}>{icon}</Box>
+
                   <Box
                     sx={{
                       display: "flex",
@@ -178,7 +183,7 @@ const Navbar = () => {
                         label === (content.wishlist || "Wishlist")
                           ? "row-reverse"
                           : "row",
-                      color: "black",
+                      color: "inherit",
                     }}
                   >
                     {label}
@@ -191,6 +196,7 @@ const Navbar = () => {
             />
           </ListItem>
         ))}
+
         {user && (
           <>
             <ListItem
@@ -199,12 +205,17 @@ const Navbar = () => {
               sx={{
                 justifyContent: "center",
                 py: 1,
-                color: "black",
+                color: "#111827",
+                "&:hover": {
+                  backgroundColor: `${MAIN_COLOR}12`,
+                  color: MAIN_COLOR,
+                },
               }}
               onClick={handleDrawerToggle}
             >
               <ListItemText primary={content.myProfile || "My Profile"} />
             </ListItem>
+
             <ListItem
               button
               onClick={handleLogout}
@@ -213,7 +224,7 @@ const Navbar = () => {
                 py: 1,
                 color: "red",
                 "&:hover": {
-                  backgroundColor: "rgba(244, 67, 54, 0.04)",
+                  backgroundColor: "rgba(244, 67, 54, 0.06)",
                 },
               }}
             >
@@ -234,8 +245,8 @@ const Navbar = () => {
         position="static"
         sx={{
           backgroundColor: "white",
-          color: "black",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          color: MAIN_COLOR, // ✅ النص يخد اللون
+          boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between" }}>
@@ -244,7 +255,13 @@ const Navbar = () => {
             <img
               src="https://cdn-icons-png.flaticon.com/512/29/29302.png"
               alt="logo"
-              style={{ width: "28px", height: "28px" }}
+              style={{
+                width: "28px",
+                height: "28px",
+                // ✅ نخليه MAIN_COLOR
+                filter:
+                  "invert(43%) sepia(78%) saturate(367%) hue-rotate(124deg) brightness(92%) contrast(90%)",
+              }}
             />
             <Typography
               variant="h6"
@@ -252,7 +269,7 @@ const Navbar = () => {
               to="/"
               sx={{
                 textDecoration: "none",
-                color: "black",
+                color: MAIN_COLOR,
                 fontWeight: "bold",
               }}
             >
@@ -260,7 +277,7 @@ const Navbar = () => {
             </Typography>
           </Box>
 
-          {/* Desktop Links - Icons Only with consistent spacing */}
+          {/* Desktop Links */}
           <Box
             sx={{
               display: { xs: "none", md: "flex" },
@@ -268,19 +285,18 @@ const Navbar = () => {
               alignItems: "center",
             }}
           >
-            {/* Regular icons */}
             {desktopNavIcons.map(({ path, icon, tooltip, component }) => (
               <Tooltip key={tooltip} title={tooltip}>
                 <IconButton
                   component={component}
                   to={component === Link ? path : undefined}
                   sx={{
-                    color: "gray",
+                    color: MAIN_COLOR,
                     width: 40,
                     height: 40,
                     "&:hover": {
-                      color: "black",
-                      backgroundColor: "transparent !important",
+                      backgroundColor: `${MAIN_COLOR}12`,
+                      color: MAIN_COLOR,
                     },
                   }}
                 >
@@ -289,12 +305,31 @@ const Navbar = () => {
               </Tooltip>
             ))}
 
-            {/* Language Button - with consistent styling */}
-            <Tooltip>
-              <LangButton />
+            {/* Language Button */}
+            <Tooltip
+              title={
+                lang === "en"
+                  ? content.switchToArabic || "Switch to Arabic"
+                  : content.switchToEnglish || "Switch to English"
+              }
+            >
+              <IconButton
+                onClick={handleLanguageToggle}
+                sx={{
+                  color: MAIN_COLOR,
+                  width: 40,
+                  height: 40,
+                  "&:hover": {
+                    backgroundColor: `${MAIN_COLOR}12`,
+                    color: MAIN_COLOR,
+                  },
+                }}
+              >
+                <LanguageIcon />
+              </IconButton>
             </Tooltip>
 
-            {/* User Avatar with Dropdown */}
+            {/* Avatar */}
             <Box sx={{ ml: 1 }}>
               <UserAvatar size={32} onAvatarClick={handleAvatarClick} />
             </Box>
@@ -318,7 +353,8 @@ const Navbar = () => {
                   fontSize: "0.9rem",
                   backgroundColor: "white !important",
                   "&:hover": {
-                    backgroundColor: "rgba(0, 0, 0, 0.04) !important",
+                    backgroundColor: `${MAIN_COLOR}12 !important`,
+                    color: MAIN_COLOR,
                   },
                 },
               },
@@ -326,24 +362,17 @@ const Navbar = () => {
             transformOrigin={{ horizontal: "right", vertical: "top" }}
             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
           >
-            <MenuItem
-              onClick={handleProfileClick}
-              sx={{
-                backgroundColor: "white !important",
-                "&:hover": {
-                  backgroundColor: "rgba(0, 0, 0, 0.04) !important",
-                },
-              }}
-            >
+            <MenuItem onClick={handleProfileClick}>
               {content.myProfile || "My Profile"}
             </MenuItem>
+
             <MenuItem
               onClick={handleLogout}
               sx={{
                 color: "red",
                 backgroundColor: "white !important",
                 "&:hover": {
-                  backgroundColor: "rgba(244, 67, 54, 0.04) !important",
+                  backgroundColor: "rgba(244, 67, 54, 0.06) !important",
                   color: "red",
                 },
               }}
@@ -360,7 +389,10 @@ const Navbar = () => {
             color="inherit"
             edge="end"
             onClick={handleDrawerToggle}
-            sx={{ display: { xs: "block", md: "none" } }}
+            sx={{
+              display: { xs: "block", md: "none" },
+              color: MAIN_COLOR,
+            }}
           >
             <MenuIcon />
           </IconButton>
