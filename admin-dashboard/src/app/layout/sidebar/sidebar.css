@@ -1,0 +1,288 @@
+.sidebar {
+  width: 280px;
+  background-color: #f5f5f5;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e0e0e0;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  top: 0;
+  left: 0;
+  transition: filter 0.3s ease;
+  z-index: 100;
+}
+
+/* عندما يكون هناك modal مفتوح */
+.sidebar.modal-open {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* تأثير blur على main-content */
+.sidebar.modal-open + .main-content {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* لمنع التمرير عند فتح المودال */
+body.modal-open {
+  overflow: hidden;
+}
+
+.sidebar-header {
+  margin-bottom: 30px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #1e60e8 0%, #1e60e8 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+/* User Profile */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border: 1px solid #e0e0e0;
+}
+
+.avatar-img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.user-name {
+  margin: 0;
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.user-email {
+  margin: 0;
+  color: #999;
+  font-size: 12px;
+}
+
+/* Navigation Menu */
+.nav-menu {
+  flex-grow: 1;
+  margin-bottom: 30px;
+}
+
+.nav-item {
+  margin-bottom: 10px;
+}
+
+.nav-link {
+  color: #666;
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: #e3e3e3;
+  color: #1e60e8;
+}
+
+.nav-link.active {
+  background-color: #e3f0ff;
+  color: #1e60e8;
+  font-weight: 600;
+}
+
+.nav-link i {
+  font-size: 18px;
+}
+
+/* Logout Section */
+.logout-section {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 15px;
+}
+
+.logout-section .nav-link {
+  color: #999;
+}
+
+.logout-section .nav-link:hover {
+  color: #d32f2f;
+  background-color: #ffe0e0;
+}
+
+/* Logout Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001; /* أعلى من الـ sidebar */
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 0;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: modalSlideIn 0.2s ease-out;
+  z-index: 1002;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 20px 20px 0;
+  border-bottom: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.modal-header h5 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #a0aec0;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.btn-close:hover {
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body p {
+  margin-bottom: 12px;
+  color: #4a5568;
+  font-size: 14px;
+}
+
+.modal-body .user-info {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.modal-body .user-info strong {
+  color: #2d3748;
+}
+
+.modal-footer {
+  padding: 0 20px 20px;
+  border-top: none;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-footer .btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background-color: #f7fafc;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-secondary:hover {
+  background-color: #edf2f7;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    position: relative;
+    height: auto;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+}

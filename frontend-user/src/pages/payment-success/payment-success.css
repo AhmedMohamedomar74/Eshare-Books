@@ -1,0 +1,62 @@
+.payment-status-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background-color: #f5f5f5;
+}
+
+.payment-status-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.status-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.status-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.status-message {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.transaction-id {
+  font-size: 14px;
+  color: #888;
+  background-color: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  word-break: break-all;
+}
+
+.continue-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.continue-button:hover {
+  background-color: #0056b3;
+}
