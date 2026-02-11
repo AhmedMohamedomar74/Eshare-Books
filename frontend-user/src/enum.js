@@ -1,0 +1,1 @@
+export const signatureLevelEnum = { admin: "admin", user: "Bearer" }
