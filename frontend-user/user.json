@@ -1,0 +1,20 @@
+{
+  "ownerBok": [
+    {
+      "email": "84fc880046@webxio.pro",
+      "password": "Abc@1234"
+    },
+    {
+      "email": "ab4dcdec6b@webxio.pro",
+      "password": "Abc@12345"
+    }
+  ],
+  "USER": {
+    "email": "217447492a@webxios.pro",
+    "password": "Abc@1234"
+  },
+  "admin": {
+    "email": "8154443b1f@webxio.pro",
+    "password": "Abc@1234"
+  }
+}

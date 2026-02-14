@@ -1,0 +1,303 @@
+<div class="users-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">User Management</h1>
+    <p class="page-subtitle">Manage all registered users in the system.</p>
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="search-filter-bar">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search by name, email, or ID..."
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+        [disabled]="loading"
+      />
+      <!-- Search Loading Spinner -->
+      <span *ngIf="searchLoading" class="search-spinner">
+        <span class="spinner-border spinner-border-sm"></span>
+      </span>
+    </div>
+
+    <div class="filter-group">
+      <select
+        class="filter-select"
+        [(ngModel)]="sortBy"
+        (change)="onSortChange()"
+        [disabled]="loading"
+      >
+        <option value="name">Sort by: Name</option>
+        <option value="email">Sort by: Email</option>
+        <option value="role">Sort by: Role</option>
+        <option value="date">Sort by: Date</option>
+      </select>
+
+      <select
+        class="filter-select"
+        [(ngModel)]="roleFilter"
+        (change)="onRoleFilter()"
+        [disabled]="loading"
+      >
+        <option value="all">Role: All</option>
+        <option value="admin">Role: Admin</option>
+        <option value="user">Role: User</option>
+      </select>
+
+      <select
+        class="filter-select"
+        [(ngModel)]="statusFilter"
+        (change)="onStatusFilter()"
+        [disabled]="loading"
+      >
+        <option value="all">Status: All</option>
+        <option value="confirmed">Status: Confirmed</option>
+        <option value="pending">Status: Pending</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- search loading -->
+  <div *ngIf="loading && !searchLoading" class="loading-indicator">
+    <div class="spinner"></div>
+    <span>Loading users...</span>
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-container" *ngIf="!loading || searchLoading">
+    <table class="table user-table">
+      <thead>
+        <tr>
+          <th>PROFILE PIC</th>
+          <th>FIRST NAME</th>
+          <th>SECOND NAME</th>
+          <th>EMAIL</th>
+          <th>ROLE</th>
+          <th>STATUS</th>
+          <th>JOINED DATE</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of paginatedUsers">
+          <td>
+            <img
+              [src]="user.profilePic || '/default-admin.png'"
+              [alt]="user.firstName"
+              class="profile-pic"
+            />
+          </td>
+          <td>{{ user.firstName }}</td>
+          <td>{{ user.secondName }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="badge-role" [class.badge-role-admin]="user.role === 'admin'">
+              {{ user.role | titlecase }}
+            </span>
+          </td>
+          <td>
+            <span [ngClass]="user.isConfirmed ? 'badge-confirmed' : 'badge-pending'">
+              {{ user.isConfirmed ? 'Confirmed' : 'Pending' }}
+            </span>
+          </td>
+          <td>{{ user.createdAt | date : 'mediumDate' }}</td>
+          <td>
+            <span *ngIf="user.role === 'admin'"></span>
+
+            <div *ngIf="user.role !== 'admin'">
+              <button
+                class="btn-action role-toggle"
+                title="Promote to Admin"
+                (click)="openRoleModal(user)"
+                [disabled]="loading"
+              >
+                <i class="bi bi-arrow-up"></i>
+              </button>
+              <button
+                *ngIf="!user.isConfirmed"
+                class="btn-action confirm"
+                title="Confirm User"
+                (click)="openConfirmModal(user)"
+                [disabled]="loading"
+              >
+                <i class="bi bi-check-lg"></i>
+              </button>
+              <button
+                class="btn-action delete"
+                title="Delete"
+                (click)="openDeleteModal(user)"
+                [disabled]="loading"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="paginatedUsers.length === 0">
+          <td colspan="8" class="no-data">No users found</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper" *ngIf="totalResults > 0">
+      <div class="pagination-info">
+        Showing {{ startIndex }} to {{ endIndex }} of {{ totalResults }} results
+      </div>
+      <nav>
+        <ul class="pagination">
+          <li class="page-item" [class.disabled]="currentPage === 1 || loading">
+            <a class="page-link" (click)="goToPage(currentPage - 1)" tabindex="-1">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+          <li
+            class="page-item"
+            *ngFor="let page of visiblePages"
+            [class.active]="page === currentPage"
+          >
+            <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === totalPages || loading">
+            <a class="page-link" (click)="goToPage(currentPage + 1)">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div
+    *ngIf="showToastMessage"
+    class="toast message-toast"
+    [ngClass]="toastType === 'success' ? 'alert-success' : 'alert-danger'"
+  >
+    {{ toastMessage }}
+  </div>
+
+  <!-- Role Change Modal -->
+  <div
+    *ngIf="showRoleModal"
+    class="modal-overlay"
+    (click)="!modalLoading && (showRoleModal = false)"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>Promote to Admin</h5>
+        <button
+          class="btn-close"
+          (click)="showRoleModal = false"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to promote
+          <strong>{{ userForRoleChange?.firstName }} {{ userForRoleChange?.secondName }}</strong>
+          to <strong>Admin</strong>?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showRoleModal = false" [disabled]="modalLoading">
+          Cancel
+        </button>
+        <button class="btn btn-primary" (click)="confirmRoleChange()" [disabled]="modalLoading">
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Promoting...
+          </span>
+          <span *ngIf="!modalLoading">Promote</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm User Modal -->
+  <div
+    *ngIf="showConfirmModal"
+    class="modal-overlay"
+    (click)="!modalLoading && (showConfirmModal = false)"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>Confirm User</h5>
+        <button
+          class="btn-close"
+          (click)="showConfirmModal = false"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to confirm
+          <strong>{{ userForConfirmation?.firstName }} {{ userForConfirmation?.secondName }}</strong
+          >?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          (click)="showConfirmModal = false"
+          [disabled]="modalLoading"
+        >
+          Cancel
+        </button>
+        <button class="btn btn-primary" (click)="confirmUser()" [disabled]="modalLoading">
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Confirming...
+          </span>
+          <span *ngIf="!modalLoading">Confirm</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete User Modal -->
+  <div
+    *ngIf="showDeleteModal"
+    class="modal-overlay"
+    (click)="!modalLoading && (showDeleteModal = false)"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.loading]="modalLoading">
+      <div class="modal-header">
+        <h5>Delete User</h5>
+        <button
+          class="btn-close"
+          (click)="showDeleteModal = false"
+          [disabled]="modalLoading"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to delete
+          <strong>{{ userForDeletion?.firstName }} {{ userForDeletion?.secondName }}</strong
+          >?
+          <br />
+          <small class="text-danger">This action cannot be undone.</small>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-secondary"
+          (click)="showDeleteModal = false"
+          [disabled]="modalLoading"
+        >
+          Cancel
+        </button>
+        <button class="btn btn-danger" (click)="confirmDelete()" [disabled]="modalLoading">
+          <span *ngIf="modalLoading" class="loading-spinner">
+            <span class="spinner-border spinner-border-sm"></span>
+            Deleting...
+          </span>
+          <span *ngIf="!modalLoading">Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
